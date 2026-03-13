@@ -1,5 +1,6 @@
 package seedu.duke.command;
 
+import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Blockchain;
 import seedu.duke.model.Wallet;
 import seedu.duke.model.WalletManager;
@@ -17,7 +18,7 @@ public class ListCommand extends Command {
     }
 
     @Override
-    public void execute(Blockchain blockchain) {
+    public void execute(Blockchain blockchain) throws Exceptions {
         List<Wallet> wallets = walletManager.getWallets();
         if (wallets.isEmpty()) {
             System.out.println(NO_WALLETS_MESSAGE);

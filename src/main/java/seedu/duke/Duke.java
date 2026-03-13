@@ -2,6 +2,7 @@ package seedu.duke;
 
 import seedu.duke.command.Command;
 import seedu.duke.command.ExitCommand;
+import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Blockchain;
 import seedu.duke.model.WalletManager;
 
@@ -26,6 +27,8 @@ public class Duke {
                     break;
                 }
                 c.execute(blockchain);
+            } catch (Exceptions e) {
+                System.out.println(e.getMessage());
             } catch (IllegalArgumentException e) {
                 System.out.println("Invalid Command");
             } catch (NoSuchElementException e) {

@@ -65,4 +65,44 @@ public class Blockchain {
 
         return ValidationResult.valid();
     }
+
+    public double getBalance(String walletName) {
+        double balance = 0.0;
+        for (Block block : blocks) {
+            for (String transaction : block.getTransactions()) {
+                balance += parseTransactionAmount(walletName, transaction);
+            }
+        }
+        return balance;
+    }
+
+    private double parseTransactionAmount(String walletName, String transaction) {
+        // Expected format: "sender -> receiver : amount"
+        String[] parts = transaction.split(" -> ");
+        if (parts.length != 2) {
+            return 0.0;
+        }
+        String sender = parts[0].trim();
+        String rest = parts[1];
+        String[] receiverAmount = rest.split(" : ");
+        if (receiverAmount.length != 2) {
+            return 0.0;
+        }
+        String receiver = receiverAmount[0].trim();
+        String amountStr = receiverAmount[1].trim();
+
+        double amount;
+        try {
+            amount = Double.parseDouble(amountStr);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+
+        if (walletName.equalsIgnoreCase(receiver)) {
+            return amount;
+        } else if (walletName.equalsIgnoreCase(sender)) {
+            return -amount;
+        }
+        return 0.0;
+    }
 }

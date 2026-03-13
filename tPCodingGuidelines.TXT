@@ -1,0 +1,27 @@
+Criteria:
+
+At least some evidence of these (see here for more info)
+
+logging
+exceptions
+assertions
+No coding standard violations e.g., all boolean variables/methods sounds like booleans. Checkstyle can prevent only some coding standard violations; others need to be checked manually.
+
+SLAP is applied at a reasonable level. Long methods or deeply-nested code are symptoms of low-SLAP.
+
+No noticeable code duplications i.e., if there multiple blocks of code that vary only in minor ways, try to extract out similarities into one place, especially in test code.
+
+Good use of these GitHub mechanisms:
+
+milestones
+releases
+issue tracker (with good task definition, assignment, and tracking)
+PRs, and PR reviews
+
+Good version control, based on the repo.
+
+Reasonable attempt to use the prescribed workflows.
+
+Good use of buffers (opposite: everything at the last minute).
+
+Branch for each feature/level

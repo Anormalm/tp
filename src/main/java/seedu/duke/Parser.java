@@ -47,7 +47,7 @@ public class Parser {
         case VALIDATE -> new ValidateCommand();
         case VIEWBLOCK -> new ViewBlockCommand(arguments);
         case EXIT -> new ExitCommand();
-        case SEND -> new SendCommand();
+        case SEND -> new SendCommand(arguments, walletManager);
         case KEYGEN -> new KeygenCommand();
         };
     }

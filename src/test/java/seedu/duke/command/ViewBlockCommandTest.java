@@ -1,7 +1,9 @@
 package seedu.duke.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Blockchain;
 
 import java.io.ByteArrayOutputStream;
@@ -33,9 +35,8 @@ class ViewBlockCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         ViewBlockCommand command = new ViewBlockCommand("-1");
 
-        String output = runCommand(command, blockchain);
-
-        assertEquals("Error: INDEX must be a non-negative integer." + System.lineSeparator(), output);
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: INDEX must be a non-negative integer.", exception.getMessage());
     }
 
     @Test
@@ -43,9 +44,8 @@ class ViewBlockCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         ViewBlockCommand command = new ViewBlockCommand("abc");
 
-        String output = runCommand(command, blockchain);
-
-        assertEquals("Error: INDEX must be a non-negative integer." + System.lineSeparator(), output);
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: INDEX must be a non-negative integer.", exception.getMessage());
     }
 
     @Test
@@ -53,9 +53,8 @@ class ViewBlockCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         ViewBlockCommand command = new ViewBlockCommand("5");
 
-        String output = runCommand(command, blockchain);
-
-        assertEquals("Error: Block index out of range." + System.lineSeparator(), output);
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: Block index out of range.", exception.getMessage());
     }
 
     private String runCommand(Command command, Blockchain blockchain) {
@@ -64,6 +63,8 @@ class ViewBlockCommandTest {
         System.setOut(new PrintStream(outputStream));
         try {
             command.execute(blockchain);
+        } catch (Exceptions e) {
+            throw new RuntimeException(e);
         } finally {
             System.setOut(originalOut);
         }

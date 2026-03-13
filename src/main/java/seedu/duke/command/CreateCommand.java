@@ -1,5 +1,6 @@
 package seedu.duke.command;
 
+import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Blockchain;
 import seedu.duke.model.Wallet;
 import seedu.duke.model.WalletManager;
@@ -17,16 +18,14 @@ public class CreateCommand extends Command {
     }
 
     @Override
-    public void execute(Blockchain blockchain) {
+    public void execute(Blockchain blockchain) throws Exceptions {
         if (walletName == null || walletName.isBlank()) {
-            System.out.println(NAME_ERROR);
-            return;
+            throw new Exceptions(NAME_ERROR);
         }
 
         String trimmedWalletName = walletName.trim();
         if (walletManager.hasWallet(trimmedWalletName)) {
-            System.out.println(DUPLICATE_ERROR);
-            return;
+            throw new Exceptions(DUPLICATE_ERROR);
         }
 
         Wallet wallet = walletManager.createWallet(trimmedWalletName);

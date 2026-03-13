@@ -1,7 +1,9 @@
 package seedu.duke.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Blockchain;
 import seedu.duke.model.WalletManager;
 
@@ -25,27 +27,25 @@ class CreateCommandTest {
     }
 
     @Test
-    void execute_blankName_printsError() {
+    void execute_blankName_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         CreateCommand command = new CreateCommand("   ", walletManager);
 
-        String output = runCommand(command, blockchain);
-
-        assertEquals("Error: wallet name cannot be empty." + System.lineSeparator(), output);
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name cannot be empty.", exception.getMessage());
         assertEquals(0, walletManager.getWallets().size());
     }
 
     @Test
-    void execute_duplicateName_printsError() {
+    void execute_duplicateName_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
         CreateCommand command = new CreateCommand("alice", walletManager);
 
-        String output = runCommand(command, blockchain);
-
-        assertEquals("Error: wallet name already exists." + System.lineSeparator(), output);
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name already exists.", exception.getMessage());
         assertEquals(1, walletManager.getWallets().size());
     }
 
@@ -55,6 +55,8 @@ class CreateCommandTest {
         System.setOut(new PrintStream(outputStream));
         try {
             command.execute(blockchain);
+        } catch (Exceptions e) {
+            throw new RuntimeException(e);
         } finally {
             System.setOut(originalOut);
         }

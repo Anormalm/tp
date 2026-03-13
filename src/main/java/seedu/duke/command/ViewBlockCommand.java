@@ -1,5 +1,6 @@
 package seedu.duke.command;
 
+import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Block;
 import seedu.duke.model.Blockchain;
 
@@ -14,15 +15,13 @@ public class ViewBlockCommand extends Command {
     }
 
     @Override
-    public void execute(Blockchain blockchain) {
+    public void execute(Blockchain blockchain) throws Exceptions {
         Integer index = parseIndex(indexText);
         if (index == null) {
-            System.out.println(INDEX_PARSE_ERROR);
-            return;
+            throw new Exceptions(INDEX_PARSE_ERROR);
         }
         if (index >= blockchain.size()) {
-            System.out.println(INDEX_RANGE_ERROR);
-            return;
+            throw new Exceptions(INDEX_RANGE_ERROR);
         }
 
         Block block = blockchain.getBlock(index);

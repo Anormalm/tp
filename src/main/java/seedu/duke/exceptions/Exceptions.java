@@ -1,4 +1,4 @@
-package seedu.duke.Exceptions;
+package seedu.duke.exceptions;
 
 /**
  * Custom exception type used throughout the Crypto1010 application.
@@ -12,5 +12,14 @@ public class Exceptions extends Exception {
      */
     public Exceptions(String message) {
         super(message);
+    }
+
+    /**
+     * Prints an error message to the console.
+     *
+     * @param message the error message to print
+     */
+    public static void printError(String message) {
+        System.out.println(message);
     }
 }

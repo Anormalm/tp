@@ -2,6 +2,7 @@ package seedu.duke.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Block;
 import seedu.duke.model.Blockchain;
 
@@ -98,6 +99,8 @@ class ValidateCommandTest {
         System.setOut(new PrintStream(outputStream));
         try {
             command.execute(blockchain);
+        } catch (Exceptions e) {
+            throw new RuntimeException(e);
         } finally {
             System.setOut(originalOut);
         }
