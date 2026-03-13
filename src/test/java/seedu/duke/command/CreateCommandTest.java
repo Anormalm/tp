@@ -55,6 +55,8 @@ class CreateCommandTest {
         System.setOut(new PrintStream(outputStream));
         try {
             command.execute(blockchain);
+        } catch (Exceptions e) {
+            throw new RuntimeException(e);
         } finally {
             System.setOut(originalOut);
         }
