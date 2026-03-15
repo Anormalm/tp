@@ -1,7 +1,6 @@
 package seedu.duke.command;
 
 import seedu.duke.Parser;
-import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Blockchain;
 import seedu.duke.model.WalletManager;
 

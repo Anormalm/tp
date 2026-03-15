@@ -2,6 +2,7 @@ package seedu.duke.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Blockchain {
@@ -31,6 +32,10 @@ public class Blockchain {
 
     public int size() {
         return blocks.size();
+    }
+
+    public List<Block> getBlocks() {
+        return Collections.unmodifiableList(blocks);
     }
 
     public Block getBlock(int index) {
