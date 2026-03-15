@@ -5,6 +5,11 @@ import seedu.duke.model.Blockchain;
 import seedu.duke.model.WalletManager;
 
 public class SendCommand extends Command {
+    private static final String HELP_DESCRIPTION = """
+            Format: send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]
+            SPEED FEE and MEMO are optional arguments
+            Sends cryptocurrency from one wallet to another address
+            """;
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid send format. Use: send w/WALLET to/ADDR amt/AMT";
     private static final String WALLET_NOT_FOUND_ERROR = "Error: Wallet not found.";
     private static final String AMOUNT_INVALID_ERROR = "Error: Amount must be a positive number.";
@@ -15,12 +20,13 @@ public class SendCommand extends Command {
     private final WalletManager walletManager;
 
     public SendCommand(String arguments, WalletManager walletManager) {
+        super(HELP_DESCRIPTION);
         this.arguments = arguments;
         this.walletManager = walletManager;
     }
 
     @Override
-    public void execute(Blockchain blockchain) throws Exceptions {
+    public void execute(String description, Blockchain blockchain) throws Exceptions {
         // Parse arguments
         ParsedArgs parsed = parseArguments(arguments);
         if (parsed == null) {
