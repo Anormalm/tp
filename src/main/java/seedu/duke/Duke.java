@@ -36,8 +36,8 @@ public class Duke {
                 System.out.println("No Input");
             } catch (ArrayIndexOutOfBoundsException e) {
                 String[] components = message.split("\\s+", 2);
-                Command c = Parser.parse(components[0]);
-                c.execute("");
+                Command c = parser.parse(components[0]);
+                c.execute("", blockchain);
             }
         }
     }
