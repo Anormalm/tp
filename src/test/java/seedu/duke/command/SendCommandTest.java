@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import seedu.duke.exceptions.Exceptions;
+import seedu.duke.model.Block;
 import seedu.duke.model.Blockchain;
 import seedu.duke.model.WalletManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -69,6 +72,27 @@ class SendCommandTest {
 
         Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
         assertEquals("Error: Invalid send format. Use: send w/WALLET to/ADDR amt/AMT", exception.getMessage());
+    }
+
+    @Test
+    void execute_selfTransferDoesNotIncreaseSpendableBalance_throwsException() {
+        Blockchain blockchain = new Blockchain(List.of(
+                new Block(
+                        0,
+                        LocalDateTime.of(2026, 2, 12, 14, 30, 21),
+                        "0000000000000000",
+                        List.of("Genesis Block")),
+                new Block(
+                        1,
+                        LocalDateTime.of(2026, 2, 12, 14, 35, 2),
+                        "prev-hash",
+                        List.of("alice -> alice : 5"))));
+        WalletManager walletManager = new WalletManager();
+        walletManager.createWallet("alice");
+        SendCommand command = new SendCommand("w/alice to/bob amt/1", walletManager);
+
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: Insufficient balance.", exception.getMessage());
     }
 
     private String runCommand(Command command, Blockchain blockchain) {
