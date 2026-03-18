@@ -28,6 +28,8 @@ public class HelpCommand extends Command {
         try {
             if (components.length < 2) {
                 for (CommandWord c : CommandWord.values()) {
+                    assert c.getCommand() != null : "command word should have a command";
+                    assert c.getDescription() != null : "command word should have a description";
 
                     System.out.print("  ");
                     System.out.print(c.getCommand());
