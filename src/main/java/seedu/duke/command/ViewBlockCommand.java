@@ -6,8 +6,11 @@ import seedu.duke.model.Blockchain;
 
 public class ViewBlockCommand extends Command {
     private static final String HELP_DESCRIPTION = """
-            format: viewblock INDEX
+            Format: viewblock INDEX
+            Example: viewblock 0
+            
             Displays the full details of a block
+            The index must be a non-negative integer 0, 1, 2...
             Details include: Block Index, Timestamp, Previous Hash, Current Hash and List of Transactions
             """;
 

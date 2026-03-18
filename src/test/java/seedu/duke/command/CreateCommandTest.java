@@ -17,7 +17,7 @@ class CreateCommandTest {
     void execute_validName_createsWallet() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        CreateCommand command = new CreateCommand("n/alice", walletManager);
+        CreateCommand command = new CreateCommand("w/alice", walletManager);
 
         String output = runCommand(command, blockchain);
 
@@ -30,7 +30,7 @@ class CreateCommandTest {
     void execute_blankName_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        CreateCommand command = new CreateCommand("n/   ", walletManager);
+        CreateCommand command = new CreateCommand("w/   ", walletManager);
 
         Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
         assertEquals("Error: wallet name cannot be empty.", exception.getMessage());
@@ -42,7 +42,7 @@ class CreateCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
-        CreateCommand command = new CreateCommand("n/alice", walletManager);
+        CreateCommand command = new CreateCommand("w/alice", walletManager);
 
         Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
         assertEquals("Error: wallet name already exists.", exception.getMessage());
@@ -56,7 +56,7 @@ class CreateCommandTest {
         CreateCommand command = new CreateCommand("alice", walletManager);
 
         Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
-        assertEquals("Error: Invalid create format. Use: create n/WALLET_NAME", exception.getMessage());
+        assertEquals("Error: Invalid create format. Use: create w/WALLET_NAME", exception.getMessage());
         assertEquals(0, walletManager.getWallets().size());
     }
 

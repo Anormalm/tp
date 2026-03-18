@@ -6,7 +6,8 @@ import seedu.duke.model.ValidationResult;
 
 public class ValidateCommand extends Command {
     private static final String HELP_DESCRIPTION = """
-            format: validate
+            Format: validate
+            
             Validates entire blockchain integrity
             """;
 

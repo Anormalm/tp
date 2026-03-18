@@ -8,10 +8,13 @@ import java.math.RoundingMode;
 
 public class BalanceCommand extends Command {
     private static final String HELP_DESCRIPTION = """
-            Format: balance NAME
+            Format: balance w/WALLET_NAME
+            Example: balance w/Bob's Wallet
+            
             Displays the balance of wallet up to 8 decimal points
             """;
     private static final String NAME_ERROR = "Error: wallet name cannot be empty.";
+    private static final String INVALID_FORMAT_ERROR = "Error: Invalid create format. Use: balance n/WALLET_NAME";
 
     private final String walletName;
 
@@ -26,7 +29,6 @@ public class BalanceCommand extends Command {
             System.out.println(NAME_ERROR);
             return;
         }
-
         String trimmedWalletName = walletName.trim();
         BigDecimal balance = blockchain.getPreciseBalance(trimmedWalletName);
 
@@ -36,4 +38,5 @@ public class BalanceCommand extends Command {
     private String formatBalance(BigDecimal balance) {
         return balance.setScale(8, RoundingMode.HALF_UP).toPlainString();
     }
+
 }

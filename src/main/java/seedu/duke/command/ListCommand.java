@@ -10,8 +10,9 @@ import java.util.Objects;
 
 public class ListCommand extends Command {
     private static final String HELP_DESCRIPTION = """
-            format: list
-            lists all the available wallets
+            Format: list
+            
+            Lists all the available wallets
             """;
   
     private static final String NO_WALLETS_MESSAGE = "No wallets found.";

@@ -7,13 +7,16 @@ import seedu.duke.model.WalletManager;
 
 public class CreateCommand extends Command {
     private static final String HELP_DESCRIPTION = """
-            format: create n/NAME
-            Creates a wallet called NAME
+            Format: create w/WALLET_NAME
+            Example: create w/Bob's Wallet
+            
+            Creates a wallet with the associated NAME
+            NAME must consist only of alphanumeric characters
             """;
   
     private static final String NAME_ERROR = "Error: wallet name cannot be empty.";
     private static final String DUPLICATE_ERROR = "Error: wallet name already exists.";
-    private static final String INVALID_FORMAT_ERROR = "Error: Invalid create format. Use: create n/WALLET_NAME";
+    private static final String INVALID_FORMAT_ERROR = "Error: Invalid create format. Use: create w/WALLET_NAME";
 
     private final String arguments;
     private final WalletManager walletManager;
@@ -46,7 +49,7 @@ public class CreateCommand extends Command {
         }
 
         String trimmedArgs = args.trim();
-        if (!trimmedArgs.startsWith("n/")) {
+        if (!trimmedArgs.startsWith("w/")) {
             throw new Exceptions(INVALID_FORMAT_ERROR);
         }
 
