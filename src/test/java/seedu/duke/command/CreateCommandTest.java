@@ -17,7 +17,7 @@ class CreateCommandTest {
     void execute_validName_createsWallet() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        CreateCommand command = new CreateCommand("alice", walletManager);
+        CreateCommand command = new CreateCommand("n/alice", walletManager);
 
         String output = runCommand(command, blockchain);
 
@@ -30,7 +30,7 @@ class CreateCommandTest {
     void execute_blankName_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        CreateCommand command = new CreateCommand("   ", walletManager);
+        CreateCommand command = new CreateCommand("n/   ", walletManager);
 
         Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
         assertEquals("Error: wallet name cannot be empty.", exception.getMessage());
@@ -42,11 +42,22 @@ class CreateCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
-        CreateCommand command = new CreateCommand("alice", walletManager);
+        CreateCommand command = new CreateCommand("n/alice", walletManager);
 
         Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
         assertEquals("Error: wallet name already exists.", exception.getMessage());
         assertEquals(1, walletManager.getWallets().size());
+    }
+
+    @Test
+    void execute_missingNamePrefix_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        CreateCommand command = new CreateCommand("alice", walletManager);
+
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: Invalid create format. Use: create n/WALLET_NAME", exception.getMessage());
+        assertEquals(0, walletManager.getWallets().size());
     }
 
     private String runCommand(Command command, Blockchain blockchain) {

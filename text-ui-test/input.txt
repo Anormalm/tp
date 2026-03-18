@@ -1,5 +1,5 @@
-create alice
-create bob
+create n/alice
+create n/bob
 send w/bob to/alice amt/5
 send w/alice to/bob amt/1
 send w/nonexistent to/alice amt/1
