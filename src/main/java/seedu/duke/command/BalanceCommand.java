@@ -24,13 +24,11 @@ public class BalanceCommand extends Command {
     }
 
     @Override
-    public void execute(String arguments, Blockchain blockchain) throws Exceptions {
+    public void execute(String description, Blockchain blockchain) throws Exceptions {
         if (walletName == null || walletName.isBlank()) {
             System.out.println(NAME_ERROR);
             return;
         }
-
-        String walletName = parseArguments(arguments);
         String trimmedWalletName = walletName.trim();
         BigDecimal balance = blockchain.getPreciseBalance(trimmedWalletName);
 
@@ -41,16 +39,4 @@ public class BalanceCommand extends Command {
         return balance.setScale(8, RoundingMode.HALF_UP).toPlainString();
     }
 
-    private String parseArguments(String args) throws Exceptions {
-        if (args == null || args.isBlank()) {
-            throw new Exceptions(NAME_ERROR);
-        }
-
-        String trimmedArgs = args.trim();
-        if (!trimmedArgs.startsWith("w/")) {
-            throw new Exceptions(INVALID_FORMAT_ERROR);
-        }
-
-        return trimmedArgs.substring(2).trim();
-    }
 }

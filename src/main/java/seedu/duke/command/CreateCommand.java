@@ -16,7 +16,7 @@ public class CreateCommand extends Command {
   
     private static final String NAME_ERROR = "Error: wallet name cannot be empty.";
     private static final String DUPLICATE_ERROR = "Error: wallet name already exists.";
-    private static final String INVALID_FORMAT_ERROR = "Error: Invalid create format. Use: create n/WALLET_NAME";
+    private static final String INVALID_FORMAT_ERROR = "Error: Invalid create format. Use: create w/WALLET_NAME";
 
     private final String arguments;
     private final WalletManager walletManager;
