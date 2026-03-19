@@ -10,7 +10,7 @@
 Crypto1010 is implemented as a modular command-line application with clear separation between input parsing, command execution, domain model, and persistence.
 
 ### High-level structure
-- `Duke` manages the main loop, input capture, and save/load lifecycle.
+- `Crypto1010` manages the main loop, input capture, and save/load lifecycle.
 - `Parser` maps raw user input to concrete command objects.
 - `command` package implements user-facing functionality (`create`, `send`, `balance`, etc.).
 - `model` package contains core blockchain and wallet logic.
@@ -21,7 +21,7 @@ Crypto1010 is implemented as a modular command-line application with clear separ
 2. `Parser` extracts command word and arguments.
 3. A concrete `Command` subclass is instantiated.
 4. `Command.execute(...)` mutates/queries model state.
-5. `Duke` saves blockchain state after successful command execution.
+5. `Crypto1010` saves blockchain state after successful command execution.
 
 ### Blockchain model
 - A `Blockchain` stores an ordered list of `Block`.
@@ -60,12 +60,12 @@ Validation sequence:
 
 ### Persistence implementation
 - `BlockchainStorage` serializes blockchain state to JSON.
-- On startup, `Duke` attempts to load and validate persisted data.
+- On startup, `Crypto1010` attempts to load and validate persisted data.
 - If loading fails, a default blockchain is initialized.
 - Wallets are currently in-memory only and are not persisted.
 
 ### Suggested UML diagrams (update this plz)
-- Class diagram: `Command` hierarchy, `Parser`, `Duke`, model classes.
+- Class diagram: `Command` hierarchy, `Parser`, `Crypto1010`, model classes.
 - Sequence diagram: end-to-end execution of `send`.
 - Sequence diagram: validation flow in `validate`.
 
