@@ -15,9 +15,9 @@ public class Duke {
     private static final String DIVIDER =
             "============================================================";
     private static final String WELCOME_BANNER = """
-            Welcome to Duke Wallet CLI
+            Welcome to Crypto1010
             Manage wallets, send transactions, and inspect your blockchain quickly.
-            Try: create w/Main Wallet | list | help
+            Try: create w/MainWallet | list | help
             """;
 
     /**
