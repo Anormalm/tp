@@ -138,6 +138,22 @@ class SendCommandTest {
         assertEquals("Error: Fee must be a non-negative number.", exception.getMessage());
     }
 
+    @Test
+    void execute_sendToLocalWalletAddress_creditsReceiverBalance() throws Exceptions {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        Wallet sender = walletManager.createWallet("bob");
+        Wallet receiver = walletManager.createWallet("carol");
+        SendCommand command = new SendCommand("w/bob to/" + receiver.getAddress() + " amt/2 fee/0", walletManager);
+
+        command.execute(blockchain);
+
+        assertEquals(new BigDecimal("3"), blockchain.getPreciseBalance("bob"));
+        assertEquals(new BigDecimal("7"), blockchain.getPreciseBalance("carol"));
+        assertEquals(new BigDecimal("0"), blockchain.getPreciseBalance(receiver.getAddress()));
+        assertEquals(1, sender.getTransactionHistory().size());
+    }
+
     private String runCommand(Command command, Blockchain blockchain) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;

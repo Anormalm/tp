@@ -34,7 +34,8 @@ public class ListCommand extends Command {
 
         System.out.println("Wallets:");
         for (int i = 0; i < wallets.size(); i++) {
-            System.out.println((i + 1) + ". " + wallets.get(i).getName());
+            Wallet wallet = wallets.get(i);
+            System.out.println((i + 1) + ". " + wallet.getName() + " | Address: " + wallet.getAddress());
         }
     }
 }

@@ -88,8 +88,12 @@ public class SendCommand extends Command {
             throw new Exceptions(INSUFFICIENT_BALANCE_ERROR);
         }
 
+        String receiverAccount = walletManager.findWalletByAddress(parsed.recipientAddress)
+                .map(Wallet::getName)
+                .orElse(parsed.recipientAddress);
+
         List<String> transactions = new ArrayList<>();
-        transactions.add(formatTransaction(parsed.walletName, parsed.recipientAddress, amount));
+        transactions.add(formatTransaction(parsed.walletName, receiverAccount, amount));
         if (fee.compareTo(BigDecimal.ZERO) > 0) {
             transactions.add(formatTransaction(parsed.walletName, NETWORK_FEE_ACCOUNT, fee));
         }

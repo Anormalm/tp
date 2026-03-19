@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Blockchain;
+import seedu.duke.model.Wallet;
 import seedu.duke.model.WalletManager;
 
 import java.io.ByteArrayOutputStream;
@@ -27,16 +28,16 @@ class ListCommandTest {
     void execute_existingWallets_printsWalletNames() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("alice");
-        walletManager.createWallet("bob");
+        Wallet alice = walletManager.createWallet("alice");
+        Wallet bob = walletManager.createWallet("bob");
         ListCommand command = new ListCommand(walletManager);
 
         String output = runCommand(command, blockchain);
 
         String expected = String.join(System.lineSeparator(),
                 "Wallets:",
-                "1. alice",
-                "2. bob") + System.lineSeparator();
+            "1. alice | Address: " + alice.getAddress(),
+            "2. bob | Address: " + bob.getAddress()) + System.lineSeparator();
         assertEquals(expected, output);
     }
 

@@ -31,6 +31,13 @@ public class WalletManager {
                 .findFirst();
     }
 
+    public Optional<Wallet> findWalletByAddress(String address) {
+        String normalizedAddress = address.trim();
+        return wallets.stream()
+                .filter(wallet -> wallet.getAddress().equalsIgnoreCase(normalizedAddress))
+                .findFirst();
+    }
+
     public List<Wallet> getWallets() {
         return Collections.unmodifiableList(wallets);
     }

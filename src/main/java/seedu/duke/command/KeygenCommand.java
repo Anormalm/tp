@@ -11,7 +11,7 @@ import seedu.duke.model.WalletManager;
 public class KeygenCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: keygen w/WALLET_NAME
-            Example: keygen w/Bob's Wallet
+            Example: keygen w/main_wallet
             
             Generates and displays key pair for new wallet, or regenerates for existing wallet
             Displays the process of creating a key pair

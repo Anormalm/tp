@@ -13,6 +13,13 @@
       "previousHash": "439def57b28567b0de019485bb56dd9a006b0f0202453a3c38cc38e4ba36be01",
       "currentHash": "ca8e23e8fcfb716ad0ff82715efb51fe76d3fc6345d870f69fc3992cb806937e",
       "transactions": ["alice -> bob : 10", "bob -> carol : 5"]
+    },
+    {
+      "index": 2,
+      "timestamp": "2026-03-19 17:06:36",
+      "previousHash": "ca8e23e8fcfb716ad0ff82715efb51fe76d3fc6345d870f69fc3992cb806937e",
+      "currentHash": "6015ed750c182a602d9caff7c45edf3f1c163497cd1d11186d0c2cd56ae4dcd6",
+      "transactions": ["bob -> jainam : 2", "bob -> network-fee : 0.001"]
     }
   ]
 }
