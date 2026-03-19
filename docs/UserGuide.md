@@ -61,13 +61,13 @@ Example:
 - `keygen w/alice`
 
 ### `balance`: Show wallet balance
-Format: `balance NAME`
+Format: `balance w/WALLET_NAME`
 
 - Computes balance from blockchain transactions.
 - Prints up to 8 decimal places.
 
 Example:
-- `balance bob`
+- `balance w/bob`
 
 ### `send`: Create a transfer transaction
 Format: `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]`
@@ -128,7 +128,7 @@ Format: `exit`
 - `create NAME`
 - `list`
 - `keygen w/NAME`
-- `balance NAME`
+- `balance w/WALLET_NAME`
 - `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]`
 - `validate`
 - `viewblock INDEX`

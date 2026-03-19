@@ -125,7 +125,7 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
    - `list`
    - Expected: numbered wallet list including `alice` and `bob`.
 1. Check balance:
-   - `balance bob`
+   - `balance w/bob`
    - Expected: balance displayed with 8 decimal places.
 1. Successful transfer:
    - `send w/bob to/0x1111111111111111111111111111111111111111 amt/1`
@@ -151,4 +151,3 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 
 ### Data reset / test isolation
 - Delete or replace `data/blockchain.json` to reset blockchain state between manual test runs.
-

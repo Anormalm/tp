@@ -13,7 +13,7 @@ class ParserTest {
     void parse_balanceCommandWithName_returnsBalanceCommand() {
         Parser parser = new Parser(new WalletManager());
 
-        Command command = parser.parse("balance alice");
+        Command command = parser.parse("balance w/alice");
 
         assertInstanceOf(BalanceCommand.class, command);
     }

@@ -1,6 +1,7 @@
 package seedu.duke.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import seedu.duke.exceptions.Exceptions;
 import seedu.duke.model.Block;
@@ -17,7 +18,7 @@ class BalanceCommandTest {
     @Test
     void execute_existingWallet_printsBalanceToEightDecimalPlaces() {
         Blockchain blockchain = Blockchain.createDefault();
-        BalanceCommand command = new BalanceCommand("bob");
+        BalanceCommand command = new BalanceCommand("w/bob");
 
         String output = runCommand(command, blockchain);
 
@@ -37,7 +38,7 @@ class BalanceCommandTest {
                         LocalDateTime.of(2026, 2, 12, 14, 35, 2),
                         "prev-hash",
                         List.of("miner -> alice : 1.234567895"))));
-        BalanceCommand command = new BalanceCommand("alice");
+        BalanceCommand command = new BalanceCommand("w/alice");
 
         String output = runCommand(command, blockchain);
 
@@ -57,7 +58,7 @@ class BalanceCommandTest {
                         LocalDateTime.of(2026, 2, 12, 14, 35, 2),
                         "prev-hash",
                         List.of("alice -> alice : 5"))));
-        BalanceCommand command = new BalanceCommand("alice");
+        BalanceCommand command = new BalanceCommand("w/alice");
 
         String output = runCommand(command, blockchain);
 
@@ -65,13 +66,21 @@ class BalanceCommandTest {
     }
 
     @Test
-    void execute_blankWalletName_printsError() {
+    void execute_blankWalletNameAfterPrefix_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
-        BalanceCommand command = new BalanceCommand("   ");
+        BalanceCommand command = new BalanceCommand("w/   ");
 
-        String output = runCommand(command, blockchain);
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name cannot be empty.", exception.getMessage());
+    }
 
-        assertEquals("Error: wallet name cannot be empty." + System.lineSeparator(), output);
+    @Test
+    void execute_missingWalletPrefix_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        BalanceCommand command = new BalanceCommand("alice");
+
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: Invalid balance format. Use: balance w/WALLET_NAME", exception.getMessage());
     }
 
     private String runCommand(Command command, Blockchain blockchain) {
