@@ -12,11 +12,20 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Duke {
+    private static final String DIVIDER =
+            "============================================================";
+    private static final String WELCOME_BANNER = """
+            Welcome to Duke Wallet CLI
+            Manage wallets, send transactions, and inspect your blockchain quickly.
+            Try: create w/Main Wallet | list | help
+            """;
+
     /**
      * Main entry-point for the java.duke.Duke application.
      */
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
+        printWelcome();
         BlockchainStorage storage = new BlockchainStorage(Duke.class);
         Blockchain blockchain = loadBlockchain(storage);
         WalletManager walletManager = new WalletManager();
@@ -42,6 +51,12 @@ public class Duke {
                 System.out.println("No Input");
             }
         }
+    }
+
+    private static void printWelcome() {
+        System.out.println(DIVIDER);
+        System.out.print(WELCOME_BANNER);
+        System.out.println(DIVIDER);
     }
 
     private static Blockchain loadBlockchain(BlockchainStorage storage) {

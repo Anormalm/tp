@@ -9,11 +9,12 @@ import java.math.RoundingMode;
 public class BalanceCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: balance w/WALLET_NAME
-            Example: balance w/Bob's Wallet
+            Example: balance w/BobWallet
             
             Displays the balance of wallet up to 8 decimal points
             """;
     private static final String NAME_ERROR = "Error: wallet name cannot be empty.";
+    private static final String NAME_WHITESPACE_ERROR = "Error: wallet name must be one word without spaces.";
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid balance format. Use: balance w/WALLET_NAME";
 
     private final String arguments;
@@ -45,6 +46,9 @@ public class BalanceCommand extends Command {
         String walletName = trimmedArgs.substring(2).trim();
         if (walletName.isEmpty()) {
             throw new Exceptions(NAME_ERROR);
+        }
+        if (walletName.chars().anyMatch(Character::isWhitespace)) {
+            throw new Exceptions(NAME_WHITESPACE_ERROR);
         }
 
         return walletName;

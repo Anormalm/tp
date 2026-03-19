@@ -8,13 +8,14 @@ import seedu.duke.model.WalletManager;
 public class CreateCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: create w/WALLET_NAME
-            Example: create w/Bob's Wallet
+            Example: create w/BobWallet
             
             Creates a wallet with the associated NAME
-            NAME must consist only of alphanumeric characters
+            NAME must be one word without spaces
             """;
   
     private static final String NAME_ERROR = "Error: wallet name cannot be empty.";
+    private static final String NAME_WHITESPACE_ERROR = "Error: wallet name must be one word without spaces.";
     private static final String DUPLICATE_ERROR = "Error: wallet name already exists.";
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid create format. Use: create w/WALLET_NAME";
 
@@ -53,6 +54,11 @@ public class CreateCommand extends Command {
             throw new Exceptions(INVALID_FORMAT_ERROR);
         }
 
-        return trimmedArgs.substring(2).trim();
+        String walletName = trimmedArgs.substring(2).trim();
+        if (walletName.chars().anyMatch(Character::isWhitespace)) {
+            throw new Exceptions(NAME_WHITESPACE_ERROR);
+        }
+
+        return walletName;
     }
 }

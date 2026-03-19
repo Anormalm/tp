@@ -83,6 +83,15 @@ class BalanceCommandTest {
         assertEquals("Error: Invalid balance format. Use: balance w/WALLET_NAME", exception.getMessage());
     }
 
+    @Test
+    void execute_walletNameWithSpaces_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        BalanceCommand command = new BalanceCommand("w/alice bob");
+
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name must be one word without spaces.", exception.getMessage());
+    }
+
     private String runCommand(Command command, Blockchain blockchain) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;

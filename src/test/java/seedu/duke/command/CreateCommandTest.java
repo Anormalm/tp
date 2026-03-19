@@ -60,6 +60,17 @@ class CreateCommandTest {
         assertEquals(0, walletManager.getWallets().size());
     }
 
+    @Test
+    void execute_nameWithSpaces_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        CreateCommand command = new CreateCommand("w/alice bob", walletManager);
+
+        Exceptions exception = assertThrows(Exceptions.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name must be one word without spaces.", exception.getMessage());
+        assertEquals(0, walletManager.getWallets().size());
+    }
+
     private String runCommand(Command command, Blockchain blockchain) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
