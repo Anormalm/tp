@@ -44,3 +44,9 @@ checkstyle {
 run{
     standardInput = System.in
 }
+
+manifest {
+    attributes(
+            'Main-Class': 'seedu.crypto1010.Crypto1010'
+    )
+}

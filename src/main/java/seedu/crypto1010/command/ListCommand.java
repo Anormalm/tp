@@ -17,6 +17,7 @@ public class ListCommand extends Command {
   
     private static final String NO_WALLETS_MESSAGE = "No wallets found.";
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid list format. Use: list";
+    private static final String GENERATE_KEYS_FIRST = "Generate keys first";
 
     private final WalletManager walletManager;
   
