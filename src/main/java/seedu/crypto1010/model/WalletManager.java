@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import seedu.crypto1010.exceptions.Exceptions;
+
 public class WalletManager {
     private final List<Wallet> wallets;
 
@@ -34,7 +36,13 @@ public class WalletManager {
     public Optional<Wallet> findWalletByAddress(String address) {
         String normalizedAddress = address.trim();
         return wallets.stream()
-                .filter(wallet -> wallet.getAddress().equalsIgnoreCase(normalizedAddress))
+                .filter(wallet -> {
+                    try {
+                        return wallet.getAddress().equalsIgnoreCase(normalizedAddress);
+                    } catch (Exceptions e) {
+                        return false;
+                    }
+                })
                 .findFirst();
     }
 

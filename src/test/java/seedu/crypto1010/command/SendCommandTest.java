@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.exceptions.Exceptions;
 import seedu.crypto1010.model.Blockchain;
+import seedu.crypto1010.model.Key;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
@@ -152,7 +153,12 @@ class SendCommandTest {
         WalletManager walletManager = new WalletManager();
         Wallet sender = walletManager.createWallet("bob");
         Wallet receiver = walletManager.createWallet("carol");
-        SendCommand command = new SendCommand("w/bob to/" + receiver.getAddress() + " amt/2 fee/0", walletManager);
+
+        Key[] keys = Key.generateKeyPair();
+        receiver.setKeys(keys);
+
+        SendCommand command = new SendCommand("w/bob to/" + receiver.getAddress() + " amt/2 fee/0"
+                , walletManager);
 
         command.execute(blockchain);
 

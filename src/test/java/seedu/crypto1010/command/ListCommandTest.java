@@ -28,7 +28,7 @@ class ListCommandTest {
     }
 
     @Test
-    void execute_existingWallets_printsWalletNames() {
+    void execute_existingWallets_printsWalletNames() throws Exceptions {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");

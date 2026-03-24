@@ -14,12 +14,13 @@ public class KeygenCommand extends Command {
             Generates and displays key pair for new wallet, or regenerates for existing wallet
             Displays the process of creating a key pair
             """;
-    private static final String INVALID_WALLET_NUMBER_ERROR = "Error: Invalid keygen format."
-            + " Use: keygen w/WALLET_NAME";
-    private static final String INVALID_FORMAT_ERROR = "Error: Invalid keygen format. Use: keygen w/WALLET_NAME";
-    private static final String NAME_ERROR = "Error: wallet name cannot be empty. Use: keygen w/WALLET_NAME";
+
     private static final String WALLET_NOT_FOUND_ERROR = "Error: Wallet not found";
     private static final String KEY_PAIR_GENERATION_SUCCESSFUL = "Key pair successfully generated";
+    private static final String NAME_ERROR = "Error: wallet name cannot be empty.";
+    private static final String NAME_WHITESPACE_ERROR = "Error: wallet name must be one word without spaces.";
+    private static final String INVALID_FORMAT_ERROR = "Error: Invalid keygen format. Use: keygen w/WALLET_NAME";
+    private static final String KEYGEN_FORMAT = "Use: keygen w/WALLET_NAME";
 
     private final String arguments;
     private final WalletManager walletManager;
@@ -41,20 +42,22 @@ public class KeygenCommand extends Command {
 
     private String parseArguments(String args) throws Exceptions {
         if (args == null || args.isBlank()) {
+            throw new Exceptions(NAME_ERROR + " " + KEYGEN_FORMAT);
+        }
+
+        String trimmedArgs = args.trim();
+        if (!trimmedArgs.startsWith("w/")) {
             throw new Exceptions(INVALID_FORMAT_ERROR);
         }
 
-        String[] parts = args.trim().split("\\s+");
-        if (parts.length != 1) {
-            throw new Exceptions(INVALID_WALLET_NUMBER_ERROR);
-        } else if (parts[0].startsWith("w/")) {
-            String walletName = parts[0].substring(2).trim();
-            if (walletName.isEmpty() || walletName.chars().anyMatch(Character::isWhitespace)) {
-                throw new Exceptions(NAME_ERROR);
-            }
-            return walletName;
-        } else {
-            throw new Exceptions(INVALID_FORMAT_ERROR);
+        String walletName = trimmedArgs.substring(2).trim();
+        if (walletName.isEmpty()) {
+            throw new Exceptions(NAME_ERROR + " " + KEYGEN_FORMAT);
         }
+        if (walletName.chars().anyMatch(Character::isWhitespace)) {
+            throw new Exceptions(NAME_WHITESPACE_ERROR + " " + KEYGEN_FORMAT);
+        }
+
+        return walletName;
     }
 }

@@ -41,8 +41,12 @@ public class ListCommand extends Command {
         System.out.println("Wallets:");
         for (int i = 0; i < wallets.size(); i++) {
             Wallet wallet = wallets.get(i);
-            String addressDisplay = wallet.hasGeneratedKeys() ? wallet.getAddress() : GENERATE_KEYS_FIRST;
-            System.out.println((i + 1) + ". " + wallet.getName() + " | Address: " + addressDisplay);
+            System.out.print((i + 1) + ". " + wallet.getName() + " | Address: ");
+            try {
+                System.out.println(wallet.getAddress());
+            } catch (Exceptions e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 }
