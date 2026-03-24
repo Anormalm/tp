@@ -4,7 +4,6 @@ import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +19,7 @@ public class WalletStorage {
     private final Path dataFilePath;
 
     public WalletStorage(Class<?> appClass) {
-        this.dataFilePath = resolveDataFilePath(appClass);
+        this.dataFilePath = StorageUtils.resolveDataFilePath(appClass, DATA_DIR, FILE_NAME);
     }
 
     public WalletManager load() throws IOException {
@@ -70,19 +69,6 @@ public class WalletStorage {
 
         Files.createDirectories(dataFilePath.getParent());
         Files.writeString(dataFilePath, content.toString(), StandardCharsets.UTF_8);
-    }
-
-    private Path resolveDataFilePath(Class<?> appClass) {
-        Path defaultPath = Path.of(System.getProperty("user.dir"), DATA_DIR, FILE_NAME);
-        try {
-            Path codeSourcePath = Path.of(appClass.getProtectionDomain().getCodeSource().getLocation().toURI());
-            if (Files.isRegularFile(codeSourcePath)) {
-                return codeSourcePath.getParent().resolve(DATA_DIR).resolve(FILE_NAME);
-            }
-            return defaultPath;
-        } catch (URISyntaxException | NullPointerException e) {
-            return defaultPath;
-        }
     }
 
     private String escape(String value) {

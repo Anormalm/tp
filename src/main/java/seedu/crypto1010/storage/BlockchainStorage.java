@@ -5,7 +5,6 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.ValidationResult;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +24,7 @@ public class BlockchainStorage {
     private final Path dataFilePath;
 
     public BlockchainStorage(Class<?> appClass) {
-        this.dataFilePath = resolveDataFilePath(appClass);
+        this.dataFilePath = StorageUtils.resolveDataFilePath(appClass, DATA_DIR, FILE_NAME);
     }
 
     public Blockchain load() throws IOException {
@@ -45,19 +44,6 @@ public class BlockchainStorage {
     public void save(Blockchain blockchain) throws IOException {
         Files.createDirectories(dataFilePath.getParent());
         Files.writeString(dataFilePath, toJson(blockchain), StandardCharsets.UTF_8);
-    }
-
-    private Path resolveDataFilePath(Class<?> appClass) {
-        Path defaultPath = Path.of(System.getProperty("user.dir"), DATA_DIR, FILE_NAME);
-        try {
-            Path codeSourcePath = Path.of(appClass.getProtectionDomain().getCodeSource().getLocation().toURI());
-            if (Files.isRegularFile(codeSourcePath)) {
-                return codeSourcePath.getParent().resolve(DATA_DIR).resolve(FILE_NAME);
-            }
-            return defaultPath;
-        } catch (URISyntaxException | NullPointerException e) {
-            return defaultPath;
-        }
     }
 
     private String toJson(Blockchain blockchain) {
