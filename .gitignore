@@ -20,4 +20,8 @@ tPCodingGuidelines.TXT
 
 /.vscode/settings.json
 
+# Local runtime data files
+/data/*.json
+/data/*.txt
+
 

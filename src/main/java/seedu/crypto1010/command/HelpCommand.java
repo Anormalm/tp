@@ -5,6 +5,8 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
 
 public class HelpCommand extends Command {
+    private static final String COMMAND_PREFIX = "c/";
+    private static final int COMMAND_LIST_COLUMN_WIDTH = 12;
     private static final String HELP_DESCRIPTION = """
             Format: help [c/COMMAND]
             Example: help c/list
@@ -38,19 +40,19 @@ public class HelpCommand extends Command {
 
                     System.out.print("  ");
                     System.out.print(c.getCommand());
-                    for (int i = 0; i < 12 - c.getCommand().length(); i++) {
+                    for (int i = 0; i < COMMAND_LIST_COLUMN_WIDTH - c.getCommand().length(); i++) {
                         System.out.print(" ");
                     }
                     System.out.println(c.getDescription());
                 }
                 System.out.println(HELP_MESSAGE);
             } else {
-                if (!trimmedDescription.startsWith("c/")) {
+                if (!trimmedDescription.startsWith(COMMAND_PREFIX)) {
                     System.out.println(INVALID_FORMAT_ERROR);
                     return;
                 }
 
-                String commandName = trimmedDescription.substring(2).trim();
+                String commandName = trimmedDescription.substring(COMMAND_PREFIX.length()).trim();
                 if (commandName.isEmpty() || commandName.chars().anyMatch(Character::isWhitespace)) {
                     System.out.println(INVALID_FORMAT_ERROR);
                     return;

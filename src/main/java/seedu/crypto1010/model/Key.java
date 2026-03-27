@@ -14,6 +14,8 @@ public class Key {
     private static final String KEY_GENERATION_FAIL_ERROR = "Error: Key pair verification failed";
 
     private static final int KEY_SIZE = 1024;
+    private static final int MAX_UNTRUNCATED_LENGTH = 20;
+    private static final int TRUNCATED_PART_LENGTH = 10;
     private static final BigInteger PUBLIC_EXPONENT = BigInteger.valueOf(65537);
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -76,11 +78,11 @@ public class Key {
 
     public static String truncate(BigInteger bigInt) {
         String intRepresentation = bigInt.toString();
-        if (intRepresentation.length() <= 20) {
+        if (intRepresentation.length() <= MAX_UNTRUNCATED_LENGTH) {
             return intRepresentation;
         }
-        return intRepresentation.substring(0, 10) + "..."
-                + intRepresentation.substring(intRepresentation.length() - 10);
+        return intRepresentation.substring(0, TRUNCATED_PART_LENGTH) + "..."
+                + intRepresentation.substring(intRepresentation.length() - TRUNCATED_PART_LENGTH);
     }
 
     private static String deriveAddress(BigInteger modulus, BigInteger exponent) {
