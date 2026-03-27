@@ -117,7 +117,12 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 1. Run `./gradlew run` (or `.\gradlew run` on Windows PowerShell).
 
 ### Manual test cases
-1. Create wallets:
+1. Help
+   - `help`
+   - Expected: prints out the list of commands
+   - `help c/list`
+   - Expected: prints out details about the list command
+2. Create wallets:
    - `create alice`
    - `create bob`
    - Expected: confirmation messages for each wallet.
