@@ -111,7 +111,14 @@ public class BlockchainStorage {
 
     private int asInt(Object value, String fieldName) throws IOException {
         if (value instanceof Number number) {
-            return number.intValue();
+            double asDouble = number.doubleValue();
+            if (!Double.isFinite(asDouble) || Math.rint(asDouble) != asDouble) {
+                throw new IOException("Invalid blockchain JSON: " + fieldName + " must be an integer.");
+            }
+            if (asDouble < Integer.MIN_VALUE || asDouble > Integer.MAX_VALUE) {
+                throw new IOException("Invalid blockchain JSON: " + fieldName + " is out of int range.");
+            }
+            return (int) asDouble;
         }
         throw new IOException("Invalid blockchain JSON: " + fieldName + " must be a number.");
     }

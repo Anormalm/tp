@@ -34,7 +34,13 @@ public class Crypto1010 {
         Parser parser = new Parser(walletManager);
 
         while (true) {
-            String message = in.nextLine().strip();
+            String message;
+            try {
+                message = in.nextLine().strip();
+            } catch (NoSuchElementException e) {
+                saveData(blockchainStorage, walletStorage, blockchain, walletManager);
+                break;
+            }
             try {
                 Command c = parser.parse(message);
                 String[] components = message.split("\\s+", 2);
@@ -50,8 +56,6 @@ public class Crypto1010 {
                 System.out.println(e.getMessage());
             } catch (IllegalArgumentException e) {
                 System.out.println("Error: Invalid command. Use: help c/COMMAND");
-            } catch (NoSuchElementException e) {
-                System.out.println("No Input");
             }
         }
     }
