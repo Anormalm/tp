@@ -25,6 +25,7 @@ class ViewBlockCommandTest {
                         + "Previous Hash : " + blockchain.getBlock(1).getPreviousHash() + System.lineSeparator()
                         + "Current Hash  : " + blockchain.getBlock(1).getCurrentHash() + System.lineSeparator()
                         + "Transactions:" + System.lineSeparator()
+                        + "network -> alice : 10" + System.lineSeparator()
                         + "alice -> bob : 10" + System.lineSeparator()
                         + "bob -> carol : 5" + System.lineSeparator(),
                 output);

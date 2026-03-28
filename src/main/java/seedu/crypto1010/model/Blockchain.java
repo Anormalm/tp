@@ -4,8 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +18,9 @@ public class Blockchain {
     private static final Pattern TRANSACTION_PATTERN =
             Pattern.compile("^(.+?)\\s*->\\s*(.+?)\\s*:\\s*([+-]?\\d+(?:\\.\\d+)?)$");
     private static final String GENESIS_TRANSACTION = "Genesis Block";
+    private static final Set<String> EXEMPT_BALANCE_ACCOUNTS =
+            Set.of("network", "network-fee", "system", "coinbase", "genesis");
+    private static final Logger LOGGER = Logger.getLogger(Blockchain.class.getName());
 
     private final List<Block> blocks;
 
@@ -33,7 +40,7 @@ public class Blockchain {
                 1,
                 LocalDateTime.of(2026, 2, 12, 14, 35, 2),
                 genesis.getCurrentHash(),
-                List.of("alice -> bob : 10", "bob -> carol : 5")));
+                List.of("network -> alice : 10", "alice -> bob : 10", "bob -> carol : 5")));
         return new Blockchain(defaultBlocks);
     }
 
@@ -50,45 +57,53 @@ public class Blockchain {
     }
 
     public ValidationResult validate() {
+        assert blocks != null : "Block list must not be null.";
         if (blocks.isEmpty()) {
-            return ValidationResult.invalid("Blockchain must contain at least one block.");
+            return invalidWithLog("Blockchain must contain at least one block.");
         }
 
+        LOGGER.fine(() -> "Starting blockchain validation for " + blocks.size() + " blocks.");
+        Map<String, BigDecimal> balances = new HashMap<>();
         for (int i = 0; i < blocks.size(); i++) {
             Block block = blocks.get(i);
+            assert block != null : "Block must not be null.";
             if (block.getIndex() != i) {
-                return ValidationResult.invalid("Invalid block index at Block " + i + ".");
+                return invalidWithLog("Invalid block index at Block " + i + ".");
             }
 
             String computedHash = block.computeCurrentHash();
+            assert computedHash != null : "Computed hash must not be null.";
             if (!computedHash.equals(block.getCurrentHash())) {
-                return ValidationResult.invalid("Hash mismatch at Block " + i + ".");
+                return invalidWithLog("Hash mismatch at Block " + i + ".");
             }
 
             if (!block.hasValidTransactionData()) {
-                return ValidationResult.invalid("Invalid transaction data at Block " + i + ".");
+                return invalidWithLog("Invalid transaction data at Block " + i + ": contains blank transaction.");
             }
 
             if (i == 0) {
                 if (!GENESIS_PREVIOUS_HASH.equals(block.getPreviousHash())) {
-                    return ValidationResult.invalid("Invalid previous hash linkage at Block " + i + ".");
+                    return invalidWithLog("Invalid previous hash linkage at Block " + i + ".");
                 }
                 if (!isValidGenesisBlock(block)) {
-                    return ValidationResult.invalid("Invalid genesis block transaction data.");
+                    return invalidWithLog("Invalid genesis block transaction data at Block 0.");
                 }
                 continue;
             }
 
-            if (!hasValidTransferTransactions(block)) {
-                return ValidationResult.invalid("Invalid transaction data at Block " + i + ".");
+            Block previousBlock = blocks.get(i - 1);
+            assert previousBlock != null : "Previous block must not be null.";
+            if (!previousBlock.getCurrentHash().equals(block.getPreviousHash())) {
+                return invalidWithLog("Invalid previous hash linkage at Block " + i + ".");
             }
 
-            Block previousBlock = blocks.get(i - 1);
-            if (!previousBlock.getCurrentHash().equals(block.getPreviousHash())) {
-                return ValidationResult.invalid("Invalid previous hash linkage at Block " + i + ".");
+            ValidationResult transferValidation = validateTransferTransactions(block, i, balances);
+            if (!transferValidation.isValid()) {
+                return transferValidation;
             }
         }
 
+        LOGGER.fine("Blockchain validation completed successfully.");
         return ValidationResult.valid();
     }
 
@@ -146,17 +161,53 @@ public class Blockchain {
         return transactions.size() == 1 && GENESIS_TRANSACTION.equals(transactions.get(0).trim());
     }
 
-    private boolean hasValidTransferTransactions(Block block) {
-        for (String transaction : block.getTransactions()) {
+    private ValidationResult validateTransferTransactions(Block block, int blockIndex,
+                                                          Map<String, BigDecimal> balances) {
+        List<String> transactions = block.getTransactions();
+        assert transactions != null : "Block transactions must not be null.";
+        for (int transactionIndex = 0; transactionIndex < transactions.size(); transactionIndex++) {
+            String transaction = transactions.get(transactionIndex);
             Matcher matcher = TRANSACTION_PATTERN.matcher(transaction);
             if (!matcher.matches()) {
-                return false;
+                return invalidWithLog("Invalid transaction format at Block " + blockIndex
+                        + ", Transaction " + transactionIndex + ": " + transaction);
             }
+
+            String sender = matcher.group(1).trim();
+            String receiver = matcher.group(2).trim();
             BigDecimal amount = new BigDecimal(matcher.group(3));
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                return false;
+                return invalidWithLog("Invalid transaction amount at Block " + blockIndex
+                        + ", Transaction " + transactionIndex + ": " + amount.stripTrailingZeros().toPlainString());
+            }
+            assert amount.compareTo(BigDecimal.ZERO) > 0 : "Validated amount should be positive.";
+
+            String normalizedSender = sender.toLowerCase();
+            String normalizedReceiver = receiver.toLowerCase();
+            if (!isExemptAccount(normalizedSender)) {
+                BigDecimal senderBalance = balances.getOrDefault(normalizedSender, BigDecimal.ZERO);
+                if (senderBalance.compareTo(amount) < 0) {
+                    return invalidWithLog("Insufficient balance at Block " + blockIndex
+                            + ", Transaction " + transactionIndex + ": sender '" + sender
+                            + "' has " + senderBalance.stripTrailingZeros().toPlainString()
+                            + ", needs " + amount.stripTrailingZeros().toPlainString() + ".");
+                }
+                balances.put(normalizedSender, senderBalance.subtract(amount));
+            }
+            if (!isExemptAccount(normalizedReceiver)) {
+                BigDecimal receiverBalance = balances.getOrDefault(normalizedReceiver, BigDecimal.ZERO);
+                balances.put(normalizedReceiver, receiverBalance.add(amount));
             }
         }
-        return true;
+        return ValidationResult.valid();
+    }
+
+    private boolean isExemptAccount(String normalizedAccountName) {
+        return EXEMPT_BALANCE_ACCOUNTS.contains(normalizedAccountName);
+    }
+
+    private ValidationResult invalidWithLog(String reason) {
+        LOGGER.warning(reason);
+        return ValidationResult.invalid(reason);
     }
 }

@@ -89,7 +89,7 @@ class ValidateCommandTest {
         String output = runCommand(command, blockchain);
 
         assertEquals(
-                "Blockchain is invalid. Reason: Invalid transaction data at Block 1."
+                "Blockchain is invalid. Reason: Invalid transaction data at Block 1: contains blank transaction."
                         + System.lineSeparator(),
                 output);
     }
@@ -112,7 +112,31 @@ class ValidateCommandTest {
         String output = runCommand(command, blockchain);
 
         assertEquals(
-                "Blockchain is invalid. Reason: Invalid transaction data at Block 1."
+                "Blockchain is invalid. Reason: Invalid transaction amount at Block 1, Transaction 0: -10"
+                        + System.lineSeparator(),
+                output);
+    }
+
+    @Test
+    void execute_insufficientBalanceTransaction_printsBalanceReason() {
+        Block genesis = new Block(
+                0,
+                LocalDateTime.of(2026, 2, 12, 14, 30, 21),
+                "0000000000000000",
+                List.of("Genesis Block"));
+        Block secondBlock = new Block(
+                1,
+                LocalDateTime.of(2026, 2, 12, 14, 35, 2),
+                genesis.getCurrentHash(),
+                List.of("alice -> bob : 10"));
+        Blockchain blockchain = new Blockchain(List.of(genesis, secondBlock));
+        ValidateCommand command = new ValidateCommand();
+
+        String output = runCommand(command, blockchain);
+
+        assertEquals(
+                "Blockchain is invalid. Reason: Insufficient balance at Block 1, Transaction 0: sender 'alice'"
+                        + " has 0, needs 10."
                         + System.lineSeparator(),
                 output);
     }
