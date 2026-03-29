@@ -14,6 +14,8 @@ public class TutorialCommand extends Command {
             If a valid COMMAND is given: displays details regarding that command
             """;
 
+    private static final String ERROR_MESSAGE_1 = "Please input the given command to continue:";
+    private static final String ERROR_MESSAGE_2 = "If you want to exit tutorial mode, type: tutorial exit";
     public TutorialCommand() {
         super(HELP_DESCRIPTION);
     }
@@ -26,6 +28,12 @@ public class TutorialCommand extends Command {
                 "keygen w/alice",
                 "keygen w/bob",
                 "list",
+                "balance w/alice",
+                "balance w/bob",
+                "help c/send",
+                "send w/bob amt/3 to/",
+                "balance w/alice",
+                "balance w/bob",
         };
         int index = 0;
 
