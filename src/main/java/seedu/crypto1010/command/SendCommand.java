@@ -2,12 +2,14 @@ package seedu.crypto1010.command;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
-import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.service.TransactionRecordingService;
+import seedu.crypto1010.service.TransferRequest;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +24,6 @@ public class SendCommand extends Command {
     private static final Pattern SOL_ADDRESS_PATTERN = Pattern.compile("^[1-9A-HJ-NP-Za-km-z]{32,44}$");
 
     private static final String DEFAULT_SPEED = "standard";
-    private static final String NETWORK_FEE_ACCOUNT = "network-fee";
     private static final BigDecimal SLOW_FEE = new BigDecimal("0.0005");
     private static final BigDecimal STANDARD_FEE = new BigDecimal("0.0010");
     private static final BigDecimal FAST_FEE = new BigDecimal("0.0020");
@@ -42,22 +43,19 @@ public class SendCommand extends Command {
         + " to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]";
     private static final String SEND_FORMAT = "Use: send w/WALLET_NAME"
             + " to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]";
-    private static final String WALLET_NOT_FOUND_ERROR = "Error: Wallet not found.";
     private static final String AMOUNT_INVALID_ERROR = "Error: Amount must be a positive number.";
     private static final String FEE_INVALID_ERROR = "Error: Fee must be a non-negative number.";
     private static final String SPEED_INVALID_ERROR = "Error: Unsupported speed. Use speed/slow, speed/standard,"
             + " or speed/fast.";
-    private static final String INSUFFICIENT_BALANCE_ERROR =
-            "invalid, sent amount is more than balance, nothing was sent";
     private static final String INVALID_ADDRESS_ERROR = "Error: Invalid recipient address.";
 
     private final String arguments;
-    private final WalletManager walletManager;
+    private final TransactionRecordingService transactionRecordingService;
 
     public SendCommand(String arguments, WalletManager walletManager) {
         super(HELP_DESCRIPTION);
         this.arguments = arguments;
-        this.walletManager = walletManager;
+        this.transactionRecordingService = new TransactionRecordingService(Objects.requireNonNull(walletManager));
     }
 
     @Override
@@ -66,9 +64,6 @@ public class SendCommand extends Command {
         if (parsed == null) {
             throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
         }
-
-        Wallet wallet = walletManager.findWallet(parsed.walletName)
-                .orElseThrow(() -> new Crypto1010Exception(WALLET_NOT_FOUND_ERROR));
 
         BigDecimal amount = parseDecimal(parsed.amount);
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -89,33 +84,24 @@ public class SendCommand extends Command {
             throw new Crypto1010Exception(FEE_INVALID_ERROR + " " + SEND_FORMAT);
         }
 
-        BigDecimal balance = blockchain.getPreciseBalance(parsed.walletName);
-        BigDecimal totalCost = amount.add(fee);
-        if (balance.compareTo(totalCost) < 0) {
-            throw new Crypto1010Exception(INSUFFICIENT_BALANCE_ERROR);
-        }
-
-        String receiverAccount = walletManager.findWalletByAddress(parsed.recipientAddress)
-                .map(Wallet::getName)
-                .orElse(parsed.recipientAddress);
-
-        List<String> transactions = new ArrayList<>();
-        transactions.add(formatTransaction(parsed.walletName, receiverAccount, amount));
-        if (fee.compareTo(BigDecimal.ZERO) > 0) {
-            transactions.add(formatTransaction(parsed.walletName, NETWORK_FEE_ACCOUNT, fee));
-        }
-        blockchain.addTransactions(transactions);
-
-        wallet.addTransaction(buildHistoryEntry(parsed, speed, fee));
+        String speedLabel = parsed.fee == null ? speed : "manual";
+        TransferRequest transferRequest = new TransferRequest(
+                parsed.walletName,
+                parsed.recipientAddress,
+                amount,
+                speedLabel,
+                fee,
+                parsed.note);
+        transactionRecordingService.recordTransfer(transferRequest, blockchain);
 
         System.out.println("Transaction sent successfully.");
-        System.out.println("Wallet: " + parsed.walletName);
-        System.out.println("To: " + parsed.recipientAddress);
-        System.out.println("Amount: " + amount.toPlainString());
-        System.out.println("Speed: " + (parsed.fee == null ? speed : "manual"));
-        System.out.println("Fee: " + fee.toPlainString());
-        if (parsed.note != null) {
-            System.out.println("Note: " + parsed.note);
+        System.out.println("Wallet: " + transferRequest.getSenderWalletName());
+        System.out.println("To: " + transferRequest.getRecipientAddress());
+        System.out.println("Amount: " + transferRequest.getAmount().toPlainString());
+        System.out.println("Speed: " + transferRequest.getSpeedLabel());
+        System.out.println("Fee: " + transferRequest.getFee().toPlainString());
+        if (transferRequest.getNote() != null) {
+            System.out.println("Note: " + transferRequest.getNote());
         }
     }
 
@@ -234,22 +220,6 @@ public class SendCommand extends Command {
 
     private boolean isSupportedSpeed(String speed) {
         return "slow".equals(speed) || "standard".equals(speed) || "fast".equals(speed);
-    }
-
-    private String formatTransaction(String sender, String receiver, BigDecimal amount) {
-        return sender + " -> " + receiver + " : " + amount.stripTrailingZeros().toPlainString();
-    }
-
-    private String buildHistoryEntry(ParsedArgs parsed, String speed, BigDecimal fee) {
-        StringBuilder history = new StringBuilder();
-        history.append("to/").append(parsed.recipientAddress)
-                .append(" amt/").append(parsed.amount)
-                .append(" speed/").append(parsed.fee == null ? speed : "manual")
-                .append(" fee/").append(fee.stripTrailingZeros().toPlainString());
-        if (parsed.note != null) {
-            history.append(" note/").append(parsed.note);
-        }
-        return history.toString();
     }
 
     private boolean containsWhitespace(String value) {
