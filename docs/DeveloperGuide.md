@@ -44,12 +44,125 @@ Crypto1010 is implemented as a modular command-line application with clear separ
   - previous-hash linkage
   - transaction data quality
 
-### Blockchain Simulation Mode
-- Simulation Mode allows developers and users to interact with a fully functional blockchain environment locally without connecting to a real network. 
-- Test blockchain logic without real funds or network latency
-- Debug transaction flows and consensus mechanisms 
-- Demonstrate how blockchain systems work (educational use)
-- Rapid prototyping of new features (smart contracts, validation rules, etc.)
+### Blockchain and Block subsystem
+This section documents the enhancement: the blockchain core (`Blockchain`, `Block`) and integrity-first validation flow that powers `validate`, `send`, and persisted-chain loading.
+
+#### Scope of enhancement
+- Tamper-evident block representation with deterministic SHA-256 hashing.
+- End-to-end chain integrity checks across index, hash linkage, and transaction semantics.
+- Transaction-safe balance validation during chain verification.
+- Controlled block append path for new transactions.
+- Persistence gatekeeping: reject corrupted blockchain files at load time.
+
+#### Architecture-level design
+The blockchain subsystem is centered on two model classes:
+- `Block`: immutable record of block payload fields and hash computation.
+- `Blockchain`: ordered aggregate and the single authority for chain validation and block appending.
+
+`ValidateCommand` delegates all integrity checks to `Blockchain.validate()`; command layer does not duplicate blockchain logic. `BlockchainStorage.load()` also invokes `validate()` after deserialization. This means both interactive validation and startup data loading use the same invariant checks, avoiding drift between runtime and persistence behavior.
+
+At system level, the flow is:
+1. Commands mutate/query blockchain through `Blockchain` APIs.
+2. `Blockchain` owns block construction and linkage rules.
+3. Storage serializes/deserializes raw state.
+4. Validation logic gates acceptance of loaded data.
+
+This keeps blockchain rules in one place and reduces the risk of inconsistent behavior between command paths.
+
+#### Component-level design
+`Block` design choices:
+- Block state includes `index`, `timestamp`, `previousHash`, `transactions`, and `currentHash`.
+- `computeCurrentHash()` recomputes SHA-256 from the full payload (`index|timestamp|previousHash|joinedTransactions`).
+- `hasValidTransactionData()` enforces non-empty, non-blank transaction entries.
+
+Why this design:
+- Recompute support enables tamper detection without trusting stored hash values.
+- Hashing full payload makes any transaction/link/timestamp modification detectable.
+- Lightweight representation stays easy to serialize while still being integrity-aware.
+
+`Blockchain` design choices:
+- Internally stores blocks as a mutable list, exposed as unmodifiable view for read access.
+- `addTransactions(...)` is the only append path: it always derives `newIndex = last.index + 1` and `previousHash = last.currentHash`.
+- `validate()` runs deterministic checks in a fixed order and returns a structured `ValidationResult`.
+
+Validation stages in `Blockchain.validate()`:
+1. Structural checks:
+   - chain non-empty
+   - block index continuity (`block.index == iteration index`)
+2. Cryptographic consistency:
+   - `block.computeCurrentHash()` equals stored `block.currentHash`
+3. Data quality:
+   - no blank/null transactions
+4. Genesis constraints:
+   - previous hash equals fixed genesis predecessor
+   - transaction data is exactly `Genesis Block`
+5. Linkage checks for non-genesis blocks:
+   - `block.previousHash == previousBlock.currentHash`
+6. Economic/semantic checks:
+   - transaction format must match `sender -> receiver : amount`
+   - amount must be positive
+   - sender must have sufficient running balance
+   - exempt accounts (e.g., `network`, `network-fee`) bypass balance enforcement
+
+#### Balance validation strategy
+Validation uses a running `Map<String, BigDecimal>` keyed by normalized account names.
+- For each parsed transaction:
+  - sender balance is checked/decremented (unless exempt).
+  - receiver balance is incremented (unless exempt).
+- If any sender lacks funds at that point in chain order, validation fails immediately.
+
+Rationale:
+- Enforces causal ordering semantics (a transfer is only valid if funds existed before that transaction).
+- Keeps validation deterministic and independent from wallet objects.
+- Uses `BigDecimal` to avoid floating-point precision drift.
+
+#### Block append behavior from transfer flow
+`SendCommand` delegates to `TransactionRecordingService`, which composes one or two transaction strings (transfer + optional fee) and calls `Blockchain.addTransactions(...)`.
+
+`Blockchain.addTransactions(...)`:
+- rejects empty transaction batches.
+- obtains the last block.
+- builds a new block with current timestamp and last block hash as predecessor.
+- computes new block hash at construction.
+- appends to chain.
+
+This ensures hash linkage is always created from canonical in-memory state, not externally supplied values.
+
+#### Persistence interaction
+`BlockchainStorage` serializes blocks to JSON and reconstructs them on load.
+After parsing JSON into `Block` objects, it calls `validate()`. Invalid chains are rejected with an `IOException`, and app startup falls back to a safe default chain. This prevents partially tampered or malformed persisted state from silently entering runtime.
+
+#### Alternatives considered
+1. Recompute balance on demand for each transaction during validation without a running map:
+   - Rejected because it is less efficient and harder to reason about for long chains.
+2. Put transaction-format validation in command/service only:
+   - Rejected because persisted data could bypass command checks; blockchain-level validation must be authoritative.
+3. Allow direct block injection (`addBlock(Block)` API):
+   - Rejected to reduce misuse risk. `addTransactions(...)` preserves index/hash derivation invariants.
+4. Skip validation during storage load for faster startup:
+   - Rejected because startup should fail-safe against tampered files.
+
+#### Trade-offs and known limitations
+- Chain validation currently scans all blocks each run (`O(n * txPerBlock)`), acceptable for project-scale data but not optimized for large ledgers.
+- Hashing uses payload string concatenation; robust for current format but not yet versioned for schema evolution.
+- Exempt account model is pragmatic for simulation and fees but not a full consensus/economic model.
+
+#### Planned next-step extension (post-v2.1)
+The current implementation validates a complete chain each time. A planned extension is an incremental validation cache:
+- store the latest validated block hash and running balances snapshot.
+- on append, validate only new blocks against cached state.
+- invalidate cache automatically after file import/load mismatch.
+
+Reason for planning this enhancement:
+- keeps correctness guarantees while reducing repeated full-chain scans for larger datasets.
+- preserves the current fail-safe model because full validation remains available as a fallback path.
+
+#### UML diagrams for this enhancement (PlantUML)
+This enhancement uses multiple UML diagram types to show both structure and runtime behavior:
+- Validation Sequence: `docs/diagrams/BlockchainValidationSequence.puml`
+- Append Sequence: `docs/diagrams/BlockAppendOnSendSequence.puml`
+- Class: `docs/diagrams/BlockchainBlockClassDiagram.puml`
+
 
 ### Transaction and balance logic
 Transactions are represented in this format:
@@ -89,10 +202,10 @@ Validation sequence:
 - On startup, `Crypto1010` loads blockchain and wallet data independently.
 - If loading fails, the app falls back to a default blockchain and/or an empty wallet list.
 
-### Suggested UML diagrams (update this plz)
-- Class diagram: `Command` hierarchy, `Parser`, `Crypto1010`, model classes.
-- Sequence diagram: end-to-end execution of `send`.
-- Sequence diagram: validation flow in `validate`.
+### UML diagrams
+- Sequence diagram source: `docs/diagrams/BlockchainValidationSequence.puml`
+- Sequence diagram source: `docs/diagrams/BlockAppendOnSendSequence.puml`
+- Class diagram source: `docs/diagrams/BlockchainBlockClassDiagram.puml`
 
 ## Product scope
 

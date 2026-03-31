@@ -1,0 +1,42 @@
+@startuml
+title Validate Command - Blockchain Validation Sequence
+
+actor User
+participant "Crypto1010" as App
+participant "Parser" as Parser
+participant "ValidateCommand" as Validate
+participant "Blockchain" as Chain
+participant "Block[i]" as Block
+
+User -> App: validate
+App -> Parser: parse("validate")
+Parser --> App: ValidateCommand
+App -> Validate: execute(...)
+Validate -> Chain: validate()
+
+loop each block i from 0..n-1
+  Chain -> Block: getIndex()
+  Block --> Chain: index
+  Chain -> Block: computeCurrentHash()
+  Block --> Chain: computedHash
+  Chain -> Block: getCurrentHash()
+  Block --> Chain: storedHash
+  Chain -> Block: hasValidTransactionData()
+  Block --> Chain: boolean
+
+  alt i == 0 (genesis)
+    Chain -> Block: getPreviousHash()
+    Block --> Chain: previousHash
+    Chain -> Chain: check genesis marker tx
+  else i > 0
+    Chain -> Chain: verify previous hash linkage
+    Chain -> Chain: parse tx and validate semantics
+    Chain -> Chain: update running balances
+  end
+end
+
+Chain --> Validate: ValidationResult
+Validate --> App: print valid/invalid message
+App --> User: output
+
+@enduml
