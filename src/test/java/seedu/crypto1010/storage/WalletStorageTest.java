@@ -1,12 +1,14 @@
 package seedu.crypto1010.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -53,5 +55,20 @@ class WalletStorageTest {
         WalletManager loaded = storage.load();
 
         assertTrue(loaded.getWallets().isEmpty());
+    }
+
+    @Test
+    void load_duplicateWalletEntries_throwsIOException() throws IOException {
+        Files.createDirectories(DATA_DIR);
+        Files.writeString(WALLET_FILE, """
+                W|alice
+                E
+                W|alice
+                E
+                """, StandardCharsets.UTF_8);
+        WalletStorage storage = new WalletStorage(WalletStorageTest.class);
+
+        IOException exception = assertThrows(IOException.class, storage::load);
+        assertTrue(exception.getMessage().startsWith("Invalid wallet data: wallet already exists: alice"));
     }
 }

@@ -113,6 +113,24 @@ class SendCommandTest {
     }
 
     @Test
+    void execute_noteContainingPrefixLikeText_preservesEntireNote() {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        walletManager.createWallet("bob");
+        SendCommand command = new SendCommand(
+                "w/bob to/" + ETH_ADDRESS + " amt/1 fee/0 note/repay w/alice tomorrow",
+                walletManager);
+
+        String output = runCommand(command, blockchain);
+
+        assertTrue(output.contains("Transaction sent successfully."));
+        assertTrue(output.contains("Note: repay w/alice tomorrow"));
+        Wallet wallet = walletManager.findWallet("bob").orElse(null);
+        assertNotNull(wallet);
+        assertTrue(wallet.getTransactionHistory().get(0).contains("note/repay w/alice tomorrow"));
+    }
+
+    @Test
     void execute_validBitcoinAddress_succeeds() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();

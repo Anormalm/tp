@@ -37,7 +37,11 @@ public class WalletStorage {
             }
             if (line.startsWith(WALLET_PREFIX)) {
                 String walletName = unescape(line.substring(WALLET_PREFIX.length()));
-                currentWallet = walletManager.createWallet(walletName);
+                try {
+                    currentWallet = walletManager.createWallet(walletName);
+                } catch (IllegalArgumentException e) {
+                    throw new IOException("Invalid wallet data: " + e.getMessage(), e);
+                }
                 continue;
             }
             if (line.startsWith(TRANSACTION_PREFIX)) {

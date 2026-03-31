@@ -3,6 +3,7 @@ package seedu.crypto1010.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
@@ -15,7 +16,15 @@ public class WalletManager {
     }
 
     public Wallet createWallet(String walletName) {
-        Wallet wallet = new Wallet(walletName);
+        Objects.requireNonNull(walletName, "walletName must not be null");
+        String normalizedName = walletName.trim();
+        if (normalizedName.isEmpty()) {
+            throw new IllegalArgumentException("walletName must not be blank");
+        }
+        if (hasWallet(normalizedName)) {
+            throw new IllegalArgumentException("wallet already exists: " + normalizedName);
+        }
+        Wallet wallet = new Wallet(normalizedName);
         wallets.add(wallet);
         return wallet;
     }
