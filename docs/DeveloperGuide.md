@@ -206,7 +206,6 @@ Validation sequence:
 - Sequence diagram source: `docs/diagrams/BlockchainValidationSequence.puml`
 - Sequence diagram source: `docs/diagrams/BlockAppendOnSendSequence.puml`
 - Class diagram source: `docs/diagrams/BlockchainBlockClassDiagram.puml`
-- Object diagram source: `docs/diagrams/BlockchainObjectDiagram.puml`
 
 ## Product scope
 
