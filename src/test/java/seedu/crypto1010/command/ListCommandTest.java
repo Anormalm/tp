@@ -11,7 +11,9 @@ import seedu.crypto1010.model.WalletManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -77,7 +79,7 @@ class ListCommandTest {
     void execute_corruptWalletData_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("   ");
+        injectCorruptWalletEntry(walletManager);
         ListCommand command = new ListCommand(walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -102,5 +104,17 @@ class ListCommandTest {
             System.setOut(originalOut);
         }
         return outputStream.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void injectCorruptWalletEntry(WalletManager walletManager) {
+        try {
+            Field walletsField = WalletManager.class.getDeclaredField("wallets");
+            walletsField.setAccessible(true);
+            List<Wallet> wallets = (List<Wallet>) walletsField.get(walletManager);
+            wallets.add(null);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to inject corrupt wallet entry for test setup", e);
+        }
     }
 }

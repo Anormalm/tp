@@ -42,9 +42,15 @@ public class Crypto1010 {
                 break;
             }
             try {
-                Command c = parser.parse(message);
                 String[] components = message.split("\\s+", 2);
                 String description = components.length > 1 ? components[1] : "";
+                Command c;
+                try {
+                    c = parser.parse(message);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Error: Invalid command. Use: help c/COMMAND");
+                    continue;
+                }
                 if (c instanceof ExitCommand) {
                     c.execute(description, blockchain);
                     saveData(blockchainStorage, walletStorage, blockchain, walletManager);
@@ -54,8 +60,6 @@ public class Crypto1010 {
                 saveData(blockchainStorage, walletStorage, blockchain, walletManager);
             } catch (Crypto1010Exception e) {
                 System.out.println(e.getMessage());
-            } catch (IllegalArgumentException e) {
-                System.out.println("Error: Invalid command. Use: help c/COMMAND");
             }
         }
     }

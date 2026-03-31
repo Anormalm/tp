@@ -7,14 +7,10 @@ import seedu.crypto1010.service.TransactionRecordingService;
 import seedu.crypto1010.service.TransferRequest;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SendCommand extends Command {
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("(w/|to/|amt/|speed/|fee/|note/)");
     private static final Pattern ETH_ADDRESS_PATTERN = Pattern.compile("^0x[a-fA-F0-9]{40}$");
     private static final Pattern BTC_LEGACY_ADDRESS_PATTERN =
             Pattern.compile("^[13][A-HJ-NP-Za-km-z1-9]{25,34}$");
@@ -110,16 +106,7 @@ public class SendCommand extends Command {
             return null;
         }
 
-        String trimmedArgs = args.trim();
-        Matcher matcher = PREFIX_PATTERN.matcher(trimmedArgs);
-        List<PrefixMatch> matches = new ArrayList<>();
-        while (matcher.find()) {
-            matches.add(new PrefixMatch(matcher.group(), matcher.start()));
-        }
-
-        if (matches.isEmpty() || matches.get(0).startIndex != 0) {
-            return null;
-        }
+        String[] tokens = args.trim().split("\\s+");
 
         ParsedArgs parsed = new ParsedArgs();
         boolean hasWallet = false;
@@ -129,61 +116,81 @@ public class SendCommand extends Command {
         boolean hasFee = false;
         boolean hasNote = false;
 
-        for (int i = 0; i < matches.size(); i++) {
-            PrefixMatch current = matches.get(i);
-            int valueStart = current.startIndex + current.prefix.length();
-            int valueEnd = i + 1 < matches.size() ? matches.get(i + 1).startIndex : trimmedArgs.length();
-            String value = trimmedArgs.substring(valueStart, valueEnd).trim();
-            if (value.isEmpty()) {
-                return null;
-            }
+        for (int i = 0; i < tokens.length; i++) {
+            String token = tokens[i];
+            String value;
 
-            switch (current.prefix) {
-            case "w/":
-                if (hasWallet || containsWhitespace(value)) {
-                    return null;
-                }
-                parsed.walletName = value;
-                hasWallet = true;
-                break;
-            case "to/":
-                if (hasRecipient || containsWhitespace(value)) {
-                    return null;
-                }
-                parsed.recipientAddress = value;
-                hasRecipient = true;
-                break;
-            case "amt/":
-                if (hasAmount || containsWhitespace(value)) {
-                    return null;
-                }
-                parsed.amount = value;
-                hasAmount = true;
-                break;
-            case "speed/":
-                if (hasSpeed || containsWhitespace(value)) {
-                    return null;
-                }
-                parsed.speed = value;
-                hasSpeed = true;
-                break;
-            case "fee/":
-                if (hasFee || containsWhitespace(value)) {
-                    return null;
-                }
-                parsed.fee = value;
-                hasFee = true;
-                break;
-            case "note/":
+            if (token.startsWith("note/")) {
                 if (hasNote) {
+                    return null;
+                }
+                StringBuilder noteBuilder = new StringBuilder(token.substring("note/".length()));
+                for (int j = i + 1; j < tokens.length; j++) {
+                    noteBuilder.append(" ").append(tokens[j]);
+                }
+                value = noteBuilder.toString().trim();
+                if (value.isEmpty()) {
                     return null;
                 }
                 parsed.note = value;
                 hasNote = true;
                 break;
-            default:
-                return null;
             }
+
+            if (token.startsWith("w/")) {
+                value = token.substring("w/".length()).trim();
+                if (hasWallet || value.isEmpty() || containsWhitespace(value)) {
+                    return null;
+                }
+                parsed.walletName = value;
+                hasWallet = true;
+                continue;
+            }
+
+            if (token.startsWith("to/")) {
+                value = token.substring("to/".length()).trim();
+                if (hasRecipient || value.isEmpty() || containsWhitespace(value)) {
+                    return null;
+                }
+                parsed.recipientAddress = value;
+                hasRecipient = true;
+                continue;
+            }
+
+            if (token.startsWith("amt/")) {
+                value = token.substring("amt/".length()).trim();
+                if (hasAmount || value.isEmpty() || containsWhitespace(value)) {
+                    return null;
+                }
+                parsed.amount = value;
+                hasAmount = true;
+                continue;
+            }
+
+            if (token.startsWith("speed/")) {
+                value = token.substring("speed/".length()).trim();
+                if (hasSpeed || value.isEmpty() || containsWhitespace(value)) {
+                    return null;
+                }
+                parsed.speed = value;
+                hasSpeed = true;
+                continue;
+            }
+
+            if (token.startsWith("fee/")) {
+                value = token.substring("fee/".length()).trim();
+                if (hasFee || value.isEmpty() || containsWhitespace(value)) {
+                    return null;
+                }
+                parsed.fee = value;
+                hasFee = true;
+                continue;
+            }
+
+            if (token.isBlank()) {
+                continue;
+            }
+            return null;
         }
 
         if (parsed.walletName == null || parsed.recipientAddress == null || parsed.amount == null) {
@@ -234,16 +241,6 @@ public class SendCommand extends Command {
                 || BTC_LEGACY_ADDRESS_PATTERN.matcher(address).matches()
                 || BTC_BECH32_ADDRESS_PATTERN.matcher(address).matches()
                 || SOL_ADDRESS_PATTERN.matcher(address).matches();
-    }
-
-    private static class PrefixMatch {
-        private final String prefix;
-        private final int startIndex;
-
-        private PrefixMatch(String prefix, int startIndex) {
-            this.prefix = prefix;
-            this.startIndex = startIndex;
-        }
     }
 
     private static class ParsedArgs {
