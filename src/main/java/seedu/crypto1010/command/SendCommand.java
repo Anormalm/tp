@@ -44,14 +44,17 @@ public class SendCommand extends Command {
     private static final String SPEED_INVALID_ERROR = "Error: Unsupported speed. Use speed/slow, speed/standard,"
             + " or speed/fast.";
     private static final String INVALID_ADDRESS_ERROR = "Error: Invalid recipient address.";
+    private static final String WALLET_NOT_FOUND_ERROR = "Error: Wallet not found.";
 
     private final String arguments;
+    private final WalletManager walletManager;
     private final TransactionRecordingService transactionRecordingService;
 
     public SendCommand(String arguments, WalletManager walletManager) {
         super(HELP_DESCRIPTION);
         this.arguments = arguments;
-        this.transactionRecordingService = new TransactionRecordingService(Objects.requireNonNull(walletManager));
+        this.walletManager = Objects.requireNonNull(walletManager);
+        this.transactionRecordingService = new TransactionRecordingService(this.walletManager);
     }
 
     @Override
@@ -64,6 +67,10 @@ public class SendCommand extends Command {
         BigDecimal amount = parseDecimal(parsed.amount);
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new Crypto1010Exception(AMOUNT_INVALID_ERROR + " " + SEND_FORMAT);
+        }
+
+        if (!walletManager.hasWallet(parsed.walletName)) {
+            throw new Crypto1010Exception(WALLET_NOT_FOUND_ERROR);
         }
 
         if (!isValidAddress(parsed.recipientAddress)) {
