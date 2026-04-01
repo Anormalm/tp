@@ -18,6 +18,7 @@ The application is designed for educational use and records transactions in a si
   + #### [Validate blockchain integrity: `validate`](#validate-validate-blockchain-integrity)
   + #### [View one block: `viewblock`](#viewblock-view-one-block)
   + #### [Save and terminate: `exit`](#exit-save-and-terminate)
++ #### [Coming Soon](#coming-soon)
 + #### [Command Summary](#command-summary)
 + #### [Data and Persistence](#data-and-persistence)
 + #### [FAQ](#faq)
@@ -174,6 +175,17 @@ Example:
 Format: `exit`
 
 - Saves blockchain data and exits the program.
+
+---
+## Coming Soon
+Based on planned work tracked in project discussions/issues, the next user-facing feature is:
+
+### Account switching (planned)
+- Switch between multiple named accounts without restarting the app.
+- Save and load account-specific wallet state.
+- Improve persistence boundaries so each account context remains isolated.
+
+This feature is not available yet in the current release.
 ---
 ## Command Summary
 - `help [COMMAND]`
