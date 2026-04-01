@@ -4,8 +4,6 @@ import seedu.crypto1010.Parser;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
 
-import java.util.Scanner;
-
 public class HelpCommand extends Command {
     private static final String COMMAND_PREFIX = "c/";
     private static final int COMMAND_LIST_COLUMN_WIDTH = 12;
