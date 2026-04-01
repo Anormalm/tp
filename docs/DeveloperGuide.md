@@ -185,6 +185,18 @@ Validation sequence:
 5. resolve fee (manual or speed-based)
 6. pass the transfer to `TransactionRecordingService`
 
+### SendCommand class diagram
+The SendCommand class diagram documents the static structure of the send flow centered on command-level validation and service delegation.
+
+Key design points shown in the diagram:
+- `SendCommand` inherits from `Command`.
+- `SendCommand` depends on `WalletManager` to validate sender wallet existence.
+- `SendCommand` creates `TransferRequest` and delegates transfer persistence to `TransactionRecordingService`.
+- `TransactionRecordingService` performs blockchain write operations through `Blockchain`.
+
+Diagram source:
+- `docs/diagrams/SendCommandClassDiagram.puml`
+
 ### Centralized transfer recording
 - `TransactionRecordingService` is the single write path for successful transfers.
 - It verifies the sender wallet exists and has sufficient balance for `amount + fee`.
@@ -206,6 +218,7 @@ Validation sequence:
 - Sequence diagram source: `docs/diagrams/BlockchainValidationSequence.puml`
 - Sequence diagram source: `docs/diagrams/BlockAppendOnSendSequence.puml`
 - Class diagram source: `docs/diagrams/BlockchainBlockClassDiagram.puml`
+- Class diagram source: `docs/diagrams/SendCommandClassDiagram.puml`
 
 ## Product scope
 

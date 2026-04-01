@@ -1,0 +1,55 @@
+@startuml
+title SendCommand - Class Diagram
+
+hide circle
+skinparam classAttributeIconSize 0
+
+abstract class Command {
+  #helpDescription: String
+  +execute(description: String, blockchain: Blockchain): void
+}
+
+class SendCommand {
+  -arguments: String
+  -walletManager: WalletManager
+  -transactionRecordingService: TransactionRecordingService
+  +SendCommand(arguments: String, walletManager: WalletManager)
+  +execute(description: String, blockchain: Blockchain): void
+}
+
+class ParsedArgs {
+  -walletName: String
+  -recipientAddress: String
+  -amount: String
+  -speed: String
+  -fee: String
+  -note: String
+}
+
+class WalletManager {
+  +hasWallet(walletName: String): boolean
+}
+
+class TransactionRecordingService {
+  +recordTransfer(request: TransferRequest, blockchain: Blockchain): void
+}
+
+class TransferRequest {
+  +TransferRequest(senderWalletName: String, recipientAddress: String,
+    amount: BigDecimal, speedLabel: String, fee: BigDecimal, note: String)
+}
+
+class Blockchain
+class Crypto1010Exception
+
+SendCommand --|> Command
+SendCommand *-- TransactionRecordingService : contains
+SendCommand --> WalletManager : uses
+SendCommand ..> ParsedArgs : creates
+SendCommand ..> TransferRequest : creates
+SendCommand ..> Blockchain : execute(...)
+SendCommand ..> Crypto1010Exception : throws
+TransactionRecordingService ..> TransferRequest
+TransactionRecordingService ..> Blockchain
+
+@enduml
