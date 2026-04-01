@@ -22,6 +22,10 @@ public class WalletStorage {
         this.dataFilePath = StorageUtils.resolveDataFilePath(appClass, DATA_DIR, FILE_NAME);
     }
 
+    public WalletStorage(Class<?> appClass, String accountName) {
+        this.dataFilePath = StorageUtils.resolveAccountDataFilePath(appClass, DATA_DIR, accountName, FILE_NAME);
+    }
+
     public WalletManager load() throws IOException {
         WalletManager walletManager = new WalletManager();
         if (!Files.exists(dataFilePath)) {

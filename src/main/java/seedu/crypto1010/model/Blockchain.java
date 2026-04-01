@@ -2,6 +2,7 @@ package seedu.crypto1010.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -116,7 +117,7 @@ public class Blockchain {
         Block previousBlock = blocks.get(blocks.size() - 1);
         Block newBlock = new Block(
                 previousBlock.getIndex() + 1,
-                LocalDateTime.now(),
+                LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
                 previousBlock.getCurrentHash(),
                 transactions);
         blocks.add(newBlock);

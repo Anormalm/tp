@@ -1,12 +1,13 @@
 # Crypto1010 User Guide  
 ## Introduction
-Crypto1010 is a command-line blockchain wallet simulator. It supports wallet creation, key generation, transfers, balance queries, wallet history lookup, and blockchain validation.
+Crypto1010 is a command-line blockchain wallet simulator. It supports account login/registration, wallet creation, key generation, transfers, balance queries, wallet history lookup, and blockchain validation.
 
-The application is designed for educational use and records transactions in a simple blockchain persisted as JSON.
+The application is designed for educational use and records transactions in a simple blockchain persisted as JSON. Each account has its own isolated wallets, blockchain data, and transaction history after login.
 
 ---
 ## Table of Contents
 + #### [Quick Start](#quick-start)
++ #### [Startup Authentication](#startup-authentication)
 + #### [Features](#features)
   + #### [Display command help: `help`](#help-display-command-help)
   + #### [Create a wallet: `create`](#create-create-a-wallet)
@@ -35,7 +36,15 @@ The application is designed for educational use and records transactions in a si
    .\gradlew run
    ```
 1. Enter commands in the terminal.
+1. At startup, choose `login` or `register`, then enter your username and password to access your account-specific wallets and blockchain data.
 ---
+## Startup Authentication
+- On launch, Crypto1010 requires an account before loading any wallets or blockchain data.
+- Choose `register` if you are a new user. Registration logs you in immediately after the account is created.
+- Choose `login` if you already have an account.
+- Usernames are case-insensitive and must be 3-20 characters using letters, numbers, `_`, or `-`.
+- Passwords must be at least 6 characters long.
+
 ## Features
 > [!NOTE]
 > ### **Command Formatting:**
@@ -180,10 +189,10 @@ Format: `exit`
 ## Coming Soon
 Based on planned work tracked in project discussions/issues, the next user-facing feature is:
 
-### Account switching (planned)
-- Switch between multiple named accounts without restarting the app.
-- Save and load account-specific wallet state.
-- Improve persistence boundaries so each account context remains isolated.
+### Cross-account transfers (planned)
+- Send currency from wallets in one account to wallets owned by a different account user.
+- Add account-aware address discovery so local transfers can resolve recipients beyond the current login session.
+- Expand persistence to keep wallet addresses available across accounts after restart.
 
 This feature is not available yet in the current release.
 ---
@@ -200,13 +209,17 @@ This feature is not available yet in the current release.
 - `exit`
 ---
 ## Data and Persistence
-- Blockchain data is stored in `data/blockchain.json`.
-- Wallet names and wallet send history are stored in `data/wallets.txt`.
+- Account credentials are stored in `data/accounts/credentials.txt`.
+- Each account has its own blockchain data at `data/accounts/USERNAME/blockchain.json`.
+- Each account has its own wallet names and wallet send history at `data/accounts/USERNAME/wallets.txt`.
 - Generated keys and wallet addresses are not currently persisted; run `keygen` again after restarting if you need an address.
 ---
 ## FAQ
+**Q**: Do different users share wallets and blockchain data?  
+**A**: No. Each login account gets its own wallet list and blockchain file under its account directory.
+
 **Q**: Where is my blockchain data stored?  
-**A**: In `data/blockchain.json`.
+**A**: In `data/accounts/USERNAME/blockchain.json` for the currently logged-in account.
 
 **Q**: Why is my wallet address missing after restart?  
 **A**: Wallet names and send history are persisted, but generated keys and wallet addresses are not. Run `keygen w/WALLET_NAME` again.

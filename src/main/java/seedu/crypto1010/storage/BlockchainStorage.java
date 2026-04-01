@@ -27,6 +27,10 @@ public class BlockchainStorage {
         this.dataFilePath = StorageUtils.resolveDataFilePath(appClass, DATA_DIR, FILE_NAME);
     }
 
+    public BlockchainStorage(Class<?> appClass, String accountName) {
+        this.dataFilePath = StorageUtils.resolveAccountDataFilePath(appClass, DATA_DIR, accountName, FILE_NAME);
+    }
+
     public Blockchain load() throws IOException {
         if (!Files.exists(dataFilePath)) {
             return Blockchain.createDefault();

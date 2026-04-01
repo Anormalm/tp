@@ -1,5 +1,18 @@
 ============================================================
+Crypto1010 Account Access
+No registered accounts found. Register to get started.
+1. login
+2. register
+3. exit
+============================================================
+Choice:
+Choose username:
+Choose password:
+Confirm password:
+Registration successful. Logged in as testuser.
+============================================================
 Welcome to Crypto1010
+Logged in as: testuser
 Manage wallets, send transactions, and inspect your blockchain quickly.
 Try: create w/MainWallet | list | help
 ============================================================

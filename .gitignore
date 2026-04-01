@@ -23,5 +23,7 @@ tPCodingGuidelines.TXT
 # Local runtime data files
 /data/*.json
 /data/*.txt
+/data/accounts/
+/text-ui-test/data/
 
 

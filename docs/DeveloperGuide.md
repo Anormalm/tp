@@ -7,22 +7,25 @@
 - SHA-256 usage through Java `MessageDigest` API from the Java standard library documentation.
 
 ## Design & implementation
-Crypto1010 is implemented as a modular command-line application with clear separation between input parsing, command execution, domain model, and persistence.
+Crypto1010 is implemented as a modular command-line application with clear separation between authentication, input parsing, command execution, domain model, and persistence.
 
 ### High-level structure
 - `Crypto1010` manages the main loop, input capture, and save/load lifecycle.
+- `auth` package manages account registration, login, and password hashing.
 - `Parser` maps raw user input to concrete command objects.
 - `command` package implements user-facing functionality (`create`, `send`, `balance`, etc.).
 - `model` package contains core blockchain and wallet logic.
 - `service` package centralizes transfer recording so blockchain writes and wallet history stay aligned.
-- `storage` package persists the blockchain to JSON (`data/blockchain.json`).
+- `storage` package persists account credentials plus account-scoped blockchain and wallet data.
 
 ### Command execution flow
-1. User enters command text in the CLI.
-2. `Parser` extracts command word and arguments.
-3. A concrete `Command` subclass is instantiated.
-4. `Command.execute(...)` mutates/queries model state.
-5. `Crypto1010` saves blockchain state after successful command execution.
+1. User authenticates through the startup login/register flow.
+2. `Crypto1010` loads account-specific blockchain and wallet storage for the authenticated username.
+3. User enters command text in the CLI.
+4. `Parser` extracts command word and arguments.
+5. A concrete `Command` subclass is instantiated.
+6. `Command.execute(...)` mutates/queries model state.
+7. `Crypto1010` saves account-scoped blockchain and wallet state after successful command execution.
 
 ### Adding a new command
 - Add the new keyword and description to `CommandWord` so it is exposed through `help`.
@@ -209,9 +212,10 @@ Diagram source:
 - The command is intentionally wallet-local: it shows recorded outgoing send history, not a reconstructed blockchain-wide ledger view.
 
 ### Persistence implementation
-- `BlockchainStorage` serializes blockchain state to JSON.
-- `WalletStorage` persists wallet names and transaction history in `data/wallets.txt`.
-- On startup, `Crypto1010` loads blockchain and wallet data independently.
+- `AccountStorage` persists hashed credentials in `data/accounts/credentials.txt`.
+- `BlockchainStorage` serializes blockchain state to `data/accounts/USERNAME/blockchain.json`.
+- `WalletStorage` persists wallet names and transaction history in `data/accounts/USERNAME/wallets.txt`.
+- On startup, `Crypto1010` authenticates first, then loads blockchain and wallet data for the current account only.
 - If loading fails, the app falls back to a default blockchain and/or an empty wallet list.
 
 ### UML diagrams
@@ -243,11 +247,11 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 | v1.0 | user | validate the blockchain | confirm chain integrity after modifications |
 | v1.0 | user | inspect a specific block | view exact block-level transaction data |
 
-### Planned enhancement: account switching
-- User story: As a user, I can switch accounts and save progress.
-- Add account switching.
-- Load/save different wallet states.
-- Improve persistence logic.
+### Planned enhancement: cross-account transfers
+- User story: As a user, I can transfer currency to wallets owned by other account users.
+- Persist wallet addresses so recipient discovery can work across accounts.
+- Add account-aware lookup instead of limiting local resolution to the current `WalletManager`.
+- Keep account boundaries while enabling controlled inter-account transfer flows.
 
 ## Non-Functional Requirements
 - The application shall run on Java 17.
@@ -275,6 +279,13 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 1. Run `./gradlew run` (or `.\gradlew run` on Windows PowerShell).
 
 ### Manual test cases
+1. Authentication:
+   - Launch the app.
+   - Choose `register`.
+   - Enter a username and password.
+   - Expected: account is created and the app logs in to that account.
+   - Relaunch the app and choose `login` with the same credentials.
+   - Expected: login succeeds and the same account data is loaded.
 1. Help
    - `help`
    - Expected: prints out the list of commands
@@ -316,4 +327,5 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
    - Expected: program terminates and blockchain state is saved.
 
 ### Data reset / test isolation
-- Delete or replace `data/blockchain.json` to reset blockchain state between manual test runs.
+- Delete or replace `data/accounts/USERNAME/blockchain.json` and `data/accounts/USERNAME/wallets.txt` to reset one account.
+- Delete `data/accounts/credentials.txt` only if you also want to remove registered login accounts.

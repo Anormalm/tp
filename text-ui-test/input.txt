@@ -1,3 +1,7 @@
+register
+testuser
+secret1
+secret1
 create w/alice
 create w/bob
 send w/bob to/alice amt/5
