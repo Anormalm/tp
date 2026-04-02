@@ -99,6 +99,18 @@ class CreateCommandTest {
     }
 
     @Test
+    void execute_nameWithReservedDelimiter_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        CreateCommand command = new CreateCommand("w/alice|btc", walletManager);
+
+        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name cannot contain '|'. Use: create w/WALLET_NAME [curr/CURRENCY]",
+                exception.getMessage());
+        assertEquals(0, walletManager.getWallets().size());
+    }
+
+    @Test
     void execute_blankStoredArguments_usesDescriptionFallback() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();

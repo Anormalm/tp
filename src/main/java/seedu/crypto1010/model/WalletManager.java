@@ -9,6 +9,7 @@ import java.util.Optional;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 
 public class WalletManager {
+    private static final char RESERVED_NAME_DELIMITER = '|';
     private final List<Wallet> wallets;
 
     public WalletManager() {
@@ -26,6 +27,9 @@ public class WalletManager {
         if (normalizedName.isEmpty()) {
             throw new IllegalArgumentException("walletName must not be blank");
         }
+        if (containsReservedNameDelimiter(normalizedName)) {
+            throw new IllegalArgumentException("walletName contains reserved character: " + RESERVED_NAME_DELIMITER);
+        }
         if (hasWallet(normalizedName)) {
             throw new IllegalArgumentException("wallet already exists: " + normalizedName);
         }
@@ -35,6 +39,10 @@ public class WalletManager {
         Wallet wallet = new Wallet(normalizedName, normalizedCurrency);
         wallets.add(wallet);
         return wallet;
+    }
+
+    private boolean containsReservedNameDelimiter(String walletName) {
+        return walletName.indexOf(RESERVED_NAME_DELIMITER) >= 0;
     }
 
     public boolean hasWallet(String walletName) {

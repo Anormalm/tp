@@ -20,6 +20,8 @@ public class CreateCommand extends Command {
   
     private static final String NAME_ERROR = "Error: wallet name cannot be empty.";
     private static final String NAME_WHITESPACE_ERROR = "Error: wallet name must be one word without spaces.";
+    private static final String NAME_RESERVED_CHARACTER_ERROR =
+            "Error: wallet name cannot contain '|'.";
     private static final String DUPLICATE_ERROR = "Error: wallet name already exists.";
     private static final String DUPLICATE_CURRENCY_ERROR =
             "Error: a wallet for that currency already exists in this account.";
@@ -109,6 +111,9 @@ public class CreateCommand extends Command {
         }
         if (walletName.chars().anyMatch(Character::isWhitespace)) {
             throw new Crypto1010Exception(NAME_WHITESPACE_ERROR + " " + CREATE_FORMAT);
+        }
+        if (walletName.contains("|")) {
+            throw new Crypto1010Exception(NAME_RESERVED_CHARACTER_ERROR + " " + CREATE_FORMAT);
         }
 
         return new ParsedCreateArguments(walletName, currencyCode);
