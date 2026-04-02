@@ -237,6 +237,36 @@ Reasons for planning this enhancement:
 to derive addresses and sign transactions
 - `secp256k1` migration would allow generated addresses and keypairs to be verified against real Ethereum tooling.
 
+### `help` command implementation
+HelpCommand uses prefix-based argument parsing:
+- optional c/COMMAND
+
+Validation sequence:
+1. parse prefixes
+2. if no arguments provided, display general help message listing all commands
+3. if `c/COMMAND` is provided, extract the command keyword
+4. verfiy the command exists
+5. retrieve the corresponding command's help description
+6. display the format and usage details of the specified command
+
+### `tutorial` command implementation
+TutorialCommand uses argument-based parsing:
+- required: `start`
+
+Validation sequence:
+1. verify argument equals `start`, otherwise throw invalid format error
+2. initialise a default `Blockchain` and `WalletManager` for tutorial isolation
+3. create a `Parser` instance for handling tutorial inputs
+4. print tutorial welcome message
+5. iterate through predefined tutorial steps:
+   - display instructional message
+   - prompt user to enter the expected command
+6. read user input from `Scanner`
+7. if input equals `tutorial exit` or `exit`, terminate tutorial and print exit message
+8. if input matches expected instruction (with special handling for dynamic inputs like `send`), execute command using parser
+9. if execution fails or input is incorrect, display error message and repeat step
+10. continue until all tutorial steps are completed or user exits
+
 ### `create` command implementation
 CreateCommand uses prefix-based argument parsing:
 - required: `w/`
