@@ -79,9 +79,10 @@ The application is designed for educational use and records transactions in a si
     ✅ `create w/alice`  
     ❌ `create name/alice`  
     <br/>
-> + Parameters in the format `/type UPPER_CASE` will ignore all spaces after `/type`.  
+> + Parameters in the format `/type UPPER_CASE` are prefix-based, and spacing support may differ by command parser implementation.  
     e.g. in `create w/WALLET_NAME`  
-    `create w/     alice` &rarr; `Wallet created: alice`  
+    ✅ `create w/alice`  
+    ❌ `create alice`  
     <br/>
 > + Parameters must be separated by spaces.   
     e.g. in `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT`  
@@ -123,7 +124,7 @@ Format: `tutorial start`
 ### `create`: Create a wallet
 Format: `create w/WALLET_NAME [curr/CURRENCY]`
 
-- Creates a wallet in memory for the current session.
+- Creates a wallet for the current account and persists it on save/exit.
 - Wallet names are unique (case-insensitive).
 - `curr/` is optional.
 - A wallet tagged with a specific currency can be used by `crossSend`.
@@ -241,7 +242,7 @@ This feature is not available yet in the current release.
 ---
 ## Command Summary
 - `help [c/COMMAND]`
-- `tutorial`
+- `tutorial start`
 - `create w/WALLET_NAME [curr/CURRENCY]`
 - `list`
 - `keygen w/WALLET_NAME`
