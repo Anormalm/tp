@@ -40,6 +40,7 @@ The application is designed for educational use and records transactions in a si
    ```
 1. Enter commands in the terminal.
 1. At startup, choose `login` or `register`, then enter your username and password to access your account-specific wallets and blockchain data.
+   
 ---
 ## Startup Authentication
 - On launch, Crypto1010 requires an account before loading any wallets or blockchain data.
