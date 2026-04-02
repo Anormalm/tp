@@ -106,12 +106,11 @@ public class CreateCommand extends Command {
         if (walletName == null) {
             throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
         }
-        if (walletName.isEmpty()) {
-            throw new Crypto1010Exception(NAME_ERROR + " " + CREATE_FORMAT);
-        }
-        if (walletName.chars().anyMatch(Character::isWhitespace)) {
-            throw new Crypto1010Exception(NAME_WHITESPACE_ERROR + " " + CREATE_FORMAT);
-        }
+        walletName = CommandParserUtil.validateWalletName(
+                walletName,
+                NAME_ERROR,
+                NAME_WHITESPACE_ERROR,
+                CREATE_FORMAT);
         if (walletName.contains("|")) {
             throw new Crypto1010Exception(NAME_RESERVED_CHARACTER_ERROR + " " + CREATE_FORMAT);
         }

@@ -41,23 +41,11 @@ public class KeygenCommand extends Command {
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {
-        if (args == null || args.isBlank()) {
-            throw new Crypto1010Exception(NAME_ERROR + " " + KEYGEN_FORMAT);
-        }
-
-        String trimmedArgs = args.trim();
-        if (!trimmedArgs.startsWith("w/")) {
-            throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
-        }
-
-        String walletName = trimmedArgs.substring(2).trim();
-        if (walletName.isEmpty()) {
-            throw new Crypto1010Exception(NAME_ERROR + " " + KEYGEN_FORMAT);
-        }
-        if (walletName.chars().anyMatch(Character::isWhitespace)) {
-            throw new Crypto1010Exception(NAME_WHITESPACE_ERROR + " " + KEYGEN_FORMAT);
-        }
-
-        return walletName;
+        return CommandParserUtil.parseRequiredWalletNameArgument(
+                args,
+                INVALID_FORMAT_ERROR,
+                NAME_ERROR,
+                NAME_WHITESPACE_ERROR,
+                KEYGEN_FORMAT);
     }
 }
