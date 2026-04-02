@@ -9,6 +9,7 @@ import seedu.crypto1010.exceptions.Crypto1010Exception;
 
 public class Wallet {
     private static final String NO_ADDRESS_ERROR = "Generate keys first";
+    private static final String INVALID_KEYS_ERROR = "keys must contain public and private keys";
 
     private final String name;
     private final String currencyCode;
@@ -52,6 +53,9 @@ public class Wallet {
     }
 
     public void setKeys(Key[] keys) {
+        if (keys == null || keys.length < 2 || keys[0] == null || keys[1] == null) {
+            throw new IllegalArgumentException(INVALID_KEYS_ERROR);
+        }
         this.publicKey = keys[0];
         this.privateKey = keys[1];
         address = publicKey.getWalletAddress();
