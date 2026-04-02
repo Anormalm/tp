@@ -61,9 +61,9 @@ The application is designed for educational use and records transactions in a si
     ❌ `viewblock`  
     <br/>
 > + Parameters in the format `[UPPER_CASE]` are optional.  
-    e.g. in `help [COMMAND]`  
+    e.g. in `help [c/COMMAND]`  
     ✅ `help`  
-    ✅ `help create`  
+    ✅ `help c/create`  
     <br/>
 > + Parameters in the format `/type UPPER_CASE` must include `/type` in the input.   
     e.g. in `create w/WALLET_NAME`  
@@ -104,7 +104,15 @@ Format: `help [COMMAND]`
 
 Examples:
 - `help`
-- `help send`
+- `help c/send`
+
+### `tutorial`: Enters tutorial mode
+Format: `tutorial start`
+
+- Enters an interactive tutorial mode that guides you through the basic features of Crypto1010 step by step.
+- Guides users on using all the basic commands available
+- Does not affect wallets and blockchains, all changes made are isolated and temporary
+- User can exit this mode by typing `tutorial exit` at anytime
 
 ### `create`: Create a wallet
 Format: `create w/WALLET_NAME [curr/CURRENCY]`
