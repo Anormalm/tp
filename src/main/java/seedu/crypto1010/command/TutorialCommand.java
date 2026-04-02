@@ -35,6 +35,7 @@ public class TutorialCommand extends Command {
         "balance w/alice",
         "balance w/bob",
         "validate",
+        "history w/bob",
         "viewblock 2",
         "tutorial exit"
     };
@@ -46,11 +47,11 @@ public class TutorialCommand extends Command {
         "Notice that both wallets do not have addresses yet!\n" +
                 "Let's first generate a key pair for alice",
         "Now we do the same for bob",
-        "Now let's list our wallets again\n" +
-                "Notice that both wallets have addresses now, we will use these addresses later",
-        "Now let us see how much alice has in her wallet",
+        "Now let's list our wallets again",
+        "Notice that both wallets have addresses now, we will use these addresses later\n" +
+            "Now let us see how much alice has in her wallet",
         "We do the same for bob",
-        "Remember the amount of money that each wallet have before the transaction\n" +
+        "Remember the amount of money that each wallet has before the transaction\n" +
                 "Before we send money, let's use the help command to learn how to send money",
         "Now we are ready to send money!\n" +
                 "Let's get bob to send 3 dollars to alice\n" +
@@ -60,6 +61,7 @@ public class TutorialCommand extends Command {
         "Notice how there was a fee deducted from bob's wallet in addition to the amount that he sent to alice\n" +
                 "Now we validate the blockchain to make sure that it is not tampered with",
         "We can also view the transaction that we made",
+        "If you want to view the block that shows the transaction instead",
         "Congrats! You made it to the end of the tutorial!\n" +
                 "You are now ready to start your own simulated crypto blockchain!"
     };
@@ -72,6 +74,7 @@ public class TutorialCommand extends Command {
         if (!description.equals("start")) {
             throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
         }
+        Blockchain tutorialBlockchain = Blockchain.createDefault();
         Scanner in = new Scanner(System.in);
         WalletManager walletManager = new WalletManager();
         Parser parser = new Parser(walletManager);
@@ -80,6 +83,7 @@ public class TutorialCommand extends Command {
 
         System.out.println(WELCOME_MESSAGE);
         while (true) {
+            System.out.println();
             System.out.println(tutorialMessages[index]);
             System.out.println("Enter the following command:");
             System.out.println(instructions[index]);
@@ -88,12 +92,12 @@ public class TutorialCommand extends Command {
                 System.out.println(EXIT_MESSAGE);
                 return;
             } else if (input.equals(instructions[index]) ||
-                    (input.startsWith(instructions[index].substring(0,19)) && index == 9)) {
+                    (index == 9 && input.startsWith(instructions[index].substring(0,19)))) {
                 Command c = parser.parse(input);
                 String[] components = input.split("\\s+", 2);
                 String descriptions = components.length > 1 ? components[1] : "";
                 try {
-                    c.execute(descriptions, blockchain);
+                    c.execute(descriptions, tutorialBlockchain);
                     index++;
                 } catch (Crypto1010Exception e) {
                     System.out.println(ERROR_MESSAGE);
