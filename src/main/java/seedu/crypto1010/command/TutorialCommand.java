@@ -8,7 +8,6 @@ import seedu.crypto1010.model.WalletManager;
 import java.util.Scanner;
 
 public class TutorialCommand extends Command {
-    private final String arguments;
     private static final String HELP_DESCRIPTION = """
             Format: tutorial start
             Example: tutorial start
@@ -21,6 +20,8 @@ public class TutorialCommand extends Command {
     private static final String EXIT_MESSAGE = "Exiting tutorial...";
     private static final String WELCOME_MESSAGE = "Welcome to the tutorial!";
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid tutorial format. Use tutorial start";
+
+    private final String arguments;
 
     String[] instructions = {
         "create w/alice",
