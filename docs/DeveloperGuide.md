@@ -312,7 +312,12 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
    - Expected: prints out the list of commands
    - `help c/list`
    - Expected: prints out details about the list command
-2. Create wallets:
+2. Tutorial
+   - `tutorial start`
+   - Expected: begins interactive tutorial guiding through steps needed to make a simple transaction
+   - `tutorial exit`
+   - Expected: exits the interactive tutorial
+3. Create wallets:
    - `create w/alice`
    - `create w/bob`
    - Expected: confirmation messages for each wallet.
