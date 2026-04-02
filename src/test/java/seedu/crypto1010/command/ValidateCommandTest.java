@@ -164,16 +164,6 @@ class  ValidateCommandTest {
                 output);
     }
 
-    @Test
-    void execute_withUnexpectedArguments_throwsFormatError() {
-        Blockchain blockchain = Blockchain.createDefault();
-        ValidateCommand command = new ValidateCommand();
-
-        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class,
-                () -> command.execute("extra", blockchain));
-        assertEquals("Error: Invalid validate format. Use: validate", exception.getMessage());
-    }
-
     private String runCommand(Command command, Blockchain blockchain) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;

@@ -114,9 +114,9 @@ class CreateCommandTest {
     void execute_blankStoredArguments_usesDescriptionFallback() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        CreateCommand command = new CreateCommand("   ", walletManager);
+        CreateCommand command = new CreateCommand("w/alice", walletManager);
 
-        String output = runCommand(command, "w/alice", blockchain);
+        String output = runCommand(command, blockchain);
 
         assertEquals("Wallet created: alice" + System.lineSeparator(), output);
         assertEquals(1, walletManager.getWallets().size());
@@ -151,15 +151,11 @@ class CreateCommandTest {
     }
 
     private String runCommand(Command command, Blockchain blockchain) {
-        return runCommand(command, "", blockchain);
-    }
-
-    private String runCommand(Command command, String description, Blockchain blockchain) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outputStream));
         try {
-            command.execute(description, blockchain);
+            command.execute(blockchain);
         } catch (Crypto1010Exception e) {
             throw new RuntimeException(e);
         } finally {

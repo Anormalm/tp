@@ -75,7 +75,7 @@ public class Crypto1010 {
                     continue;
                 }
                 if (c instanceof ExitCommand) {
-                    c.execute(description, blockchain);
+                    c.execute(blockchain, in);
                     saveData(
                             blockchainStorage,
                             walletStorage,
@@ -85,7 +85,7 @@ public class Crypto1010 {
                             allowWalletSave);
                     break;
                 }
-                c.execute(description, blockchain);
+                c.execute(blockchain, in);
                 saveData(
                         blockchainStorage,
                         walletStorage,

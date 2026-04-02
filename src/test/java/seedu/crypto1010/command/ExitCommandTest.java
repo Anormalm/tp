@@ -1,30 +1,35 @@
 package seedu.crypto1010.command;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import org.junit.jupiter.api.Test;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 
-import org.junit.jupiter.api.Test;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Scanner;
 
-class ExitCommandTest {
-    @Test
-    void execute_noArguments_succeeds() {
-        ExitCommand command = new ExitCommand();
-        Blockchain blockchain = Blockchain.createDefault();
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-        assertDoesNotThrow(() -> command.execute("", blockchain));
-    }
+public class ExitCommandTest {
 
     @Test
-    void execute_withArguments_throwsFormatError() {
-        ExitCommand command = new ExitCommand();
+    public void execute_printsExitMessage() throws Crypto1010Exception {
+        ExitCommand exitCommand = new ExitCommand();
         Blockchain blockchain = Blockchain.createDefault();
+        Scanner scanner = new Scanner(System.in); // Scanner is not used here
 
-        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class,
-                () -> command.execute("now", blockchain));
-        assertEquals("Error: Invalid exit format. Use: exit", exception.getMessage());
+        // Capture system output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            exitCommand.execute(blockchain, scanner);
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Exiting Crypto1010..."));
     }
 }

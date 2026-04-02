@@ -80,17 +80,6 @@ class ListCommandTest {
     }
 
     @Test
-    void execute_withUnexpectedArguments_throwsFormatError() {
-        Blockchain blockchain = Blockchain.createDefault();
-        WalletManager walletManager = new WalletManager();
-        ListCommand command = new ListCommand(walletManager);
-
-        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class,
-                () -> command.execute("extra", blockchain));
-        assertEquals("Error: Invalid list format. Use: list", exception.getMessage());
-    }
-
-    @Test
     void execute_corruptWalletData_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
