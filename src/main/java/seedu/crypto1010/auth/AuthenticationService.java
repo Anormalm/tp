@@ -3,6 +3,7 @@ package seedu.crypto1010.auth;
 import seedu.crypto1010.storage.AccountStorage;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +34,10 @@ public class AuthenticationService {
 
     public boolean hasRegisteredAccounts() {
         return !accountsByUsername.isEmpty();
+    }
+
+    public List<String> getRegisteredUsernames() {
+        return List.copyOf(accountsByUsername.keySet());
     }
 
     public String authenticate(String username, String password) throws AuthenticationException {
