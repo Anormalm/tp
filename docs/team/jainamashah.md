@@ -8,7 +8,7 @@ My focus was improving the transfer flow (`send`), including stronger argument h
 ## Summary of Contributions
 
 ### Code contributed
-- [Code Dashboard link: ADD_YOUR_DASHBOARD_LINK_HERE]
+- [Code Dashboard link: [ADD_YOUR_DASHBOARD_LINK_HERE](https://nus-cs2113-ay2526-s2.github.io/tp-dashboard/?search=jainam&sort=groupTitle&sortWithin=title&timeframe=commit&mergegroup=&groupSelect=groupByRepos&breakdown=true&checkedFileTypes=docs~functional-code~test-code~other&since=2026-02-20T00%3A00%3A00&filteredFileName=)]
 
 ### Enhancements implemented
 - Refactored `SendCommand` to improve readability and maintainability while preserving behavior.
