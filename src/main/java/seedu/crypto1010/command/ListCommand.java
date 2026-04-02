@@ -8,6 +8,7 @@ import seedu.crypto1010.model.WalletManager;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Scanner;
 
 public class ListCommand extends Command {
     private static final String HELP_DESCRIPTION = """
@@ -17,7 +18,6 @@ public class ListCommand extends Command {
             """;
   
     private static final String NO_WALLETS_MESSAGE = "No wallets found.";
-    private static final String INVALID_FORMAT_ERROR = "Error: Invalid list format. Use: list";
     private static final String INVALID_WALLET_DATA_ERROR = "Error: Wallet data is corrupted.";
 
     private final WalletManager walletManager;
@@ -28,10 +28,7 @@ public class ListCommand extends Command {
     }
 
     @Override
-    public void execute(String description, Blockchain blockchain) throws Crypto1010Exception {
-        if (description != null && !description.isBlank()) {
-            throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
-        }
+    public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
 
         List<Wallet> wallets = walletManager.getWallets();
         if (wallets.isEmpty()) {

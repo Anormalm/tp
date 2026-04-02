@@ -4,6 +4,8 @@ import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Block;
 import seedu.crypto1010.model.Blockchain;
 
+import java.util.Scanner;
+
 public class ViewBlockCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: viewblock INDEX
@@ -26,7 +28,7 @@ public class ViewBlockCommand extends Command {
     }
 
     @Override
-    public void execute(String description, Blockchain blockchain) throws Crypto1010Exception {
+    public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
         Integer index = parseIndex(indexText);
         if (index == null) {
             throw new Crypto1010Exception(INDEX_PARSE_ERROR);

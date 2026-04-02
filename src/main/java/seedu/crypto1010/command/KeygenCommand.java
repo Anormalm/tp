@@ -6,6 +6,8 @@ import seedu.crypto1010.model.Key;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
+import java.util.Scanner;
+
 public class KeygenCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: keygen w/WALLET_NAME
@@ -32,7 +34,7 @@ public class KeygenCommand extends Command {
     }
 
     @Override
-    public void execute(String description, Blockchain blockchain) throws Crypto1010Exception {
+    public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
         String walletName = parseArguments(arguments);
         Wallet wallet = walletManager.findWallet(walletName)
                 .orElseThrow(() -> new Crypto1010Exception(WALLET_NOT_FOUND_ERROR));

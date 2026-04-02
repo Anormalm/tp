@@ -8,6 +8,7 @@ import seedu.crypto1010.service.TransferRequest;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -66,7 +67,7 @@ public class SendCommand extends Command {
     }
 
     @Override
-    public void execute(String description, Blockchain blockchain) throws Crypto1010Exception {
+    public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
         ParsedArgs parsed = parseArguments(arguments);
         if (parsed == null) {
             throw new Crypto1010Exception(INVALID_FORMAT_ERROR);

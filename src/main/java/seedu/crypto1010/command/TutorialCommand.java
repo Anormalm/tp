@@ -21,7 +21,7 @@ public class TutorialCommand extends Command {
     private static final String WELCOME_MESSAGE = "Welcome to the tutorial!";
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid tutorial format. Use tutorial start";
 
-    String[] instructions = {
+    private static final String[] instructions = {
         "create w/alice",
         "create w/bob",
         "list",
@@ -40,7 +40,7 @@ public class TutorialCommand extends Command {
         "tutorial exit"
     };
 
-    String[] tutorialMessages = {
+    private static final String[] tutorialMessages = {
         "First, let's start by creating a new wallet called \"alice\"",
         "Next, let's create another wallet called \"bob\"",
         "Let's look at the wallets that we have created",
@@ -54,8 +54,8 @@ public class TutorialCommand extends Command {
         "Remember the amount of money that each wallet has before the transaction\n" +
                 "Before we send money, let's use the help command to learn how to send money",
         "Now we are ready to send money!\n" +
-                "Let's get bob to send 3 dollars to alice\n" +
-                "For the destination, remember to use the address of alice's wallet we obtained from earlier",
+            "Let's get bob to send 3 dollars to alice\n" +
+            "For the destination, remember to use the address of alice's wallet we obtained from earlier",
         "Now that the transaction is successful, let's check the balance of the wallets again starting with alice",
         "And now bob",
         "Notice how there was a fee deducted from bob's wallet in addition to the amount that he sent to alice\n" +
@@ -66,16 +66,18 @@ public class TutorialCommand extends Command {
                 "You are now ready to start your own simulated crypto blockchain!"
     };
 
-    public TutorialCommand() {
+    private final String arguments;
+
+    public TutorialCommand(String arguments) {
         super(HELP_DESCRIPTION);
+        this.arguments = arguments;
     }
 
-    public void execute (String description, Blockchain blockchain) throws Crypto1010Exception {
-        if (!description.equals("start")) {
+    public void execute (Blockchain blockchain, Scanner in) throws Crypto1010Exception {
+        if (!arguments.equals("start")) {
             throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
         }
         Blockchain tutorialBlockchain = Blockchain.createDefault();
-        Scanner in = new Scanner(System.in);
         WalletManager walletManager = new WalletManager();
         Parser parser = new Parser(walletManager);
 
@@ -94,10 +96,8 @@ public class TutorialCommand extends Command {
             } else if (input.equals(instructions[index]) ||
                     (index == 9 && input.startsWith(instructions[index].substring(0,19)))) {
                 Command c = parser.parse(input);
-                String[] components = input.split("\\s+", 2);
-                String descriptions = components.length > 1 ? components[1] : "";
                 try {
-                    c.execute(descriptions, tutorialBlockchain);
+                    c.execute(tutorialBlockchain);
                     index++;
                 } catch (Crypto1010Exception e) {
                     System.out.println(ERROR_MESSAGE);

@@ -1,7 +1,6 @@
 package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Block;
@@ -162,16 +161,6 @@ class  ValidateCommandTest {
                 "Blockchain is invalid. Reason: Invalid block index at Block 1."
                         + System.lineSeparator(),
                 output);
-    }
-
-    @Test
-    void execute_withUnexpectedArguments_throwsFormatError() {
-        Blockchain blockchain = Blockchain.createDefault();
-        ValidateCommand command = new ValidateCommand();
-
-        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class,
-                () -> command.execute("extra", blockchain));
-        assertEquals("Error: Invalid validate format. Use: validate", exception.getMessage());
     }
 
     private String runCommand(Command command, Blockchain blockchain) {

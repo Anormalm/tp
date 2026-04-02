@@ -7,6 +7,7 @@ import seedu.crypto1010.model.WalletManager;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Scanner;
 
 public class HistoryCommand extends Command {
     private static final String HELP_DESCRIPTION = """
@@ -32,7 +33,7 @@ public class HistoryCommand extends Command {
     }
 
     @Override
-    public void execute(String description, Blockchain blockchain) throws Crypto1010Exception {
+    public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
         String walletName = parseArguments(arguments);
         Wallet wallet = walletManager.findWallet(walletName)
                 .orElseThrow(() -> new Crypto1010Exception(WALLET_NOT_FOUND_ERROR));

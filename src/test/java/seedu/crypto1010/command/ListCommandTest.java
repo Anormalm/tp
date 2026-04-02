@@ -30,7 +30,7 @@ class ListCommandTest {
     }
 
     @Test
-    void execute_existingWallets_printsWalletNames() throws Crypto1010Exception {
+    void execute_existingWallets_printsWalletNames() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
@@ -77,17 +77,6 @@ class ListCommandTest {
                 "Wallets:",
                 "1. alice | Currency: btc | Address: Generate keys first") + System.lineSeparator();
         assertEquals(expected, output);
-    }
-
-    @Test
-    void execute_withUnexpectedArguments_throwsFormatError() {
-        Blockchain blockchain = Blockchain.createDefault();
-        WalletManager walletManager = new WalletManager();
-        ListCommand command = new ListCommand(walletManager);
-
-        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class,
-                () -> command.execute("extra", blockchain));
-        assertEquals("Error: Invalid list format. Use: list", exception.getMessage());
     }
 
     @Test

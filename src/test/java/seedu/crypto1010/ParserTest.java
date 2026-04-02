@@ -6,6 +6,7 @@ import seedu.crypto1010.command.BalanceCommand;
 import seedu.crypto1010.command.Command;
 import seedu.crypto1010.command.CrossSendCommand;
 import seedu.crypto1010.command.HistoryCommand;
+import seedu.crypto1010.command.ViewChainCommand;
 import seedu.crypto1010.model.WalletManager;
 
 import org.junit.jupiter.api.Test;
@@ -36,5 +37,14 @@ class ParserTest {
         Command command = parser.parse("crossSend acc/receiver amt/1 curr/btc");
 
         assertInstanceOf(CrossSendCommand.class, command);
+    }
+
+    @Test
+    void parse_viewChainCommand_returnsViewChainCommand() {
+        Parser parser = new Parser(new WalletManager());
+
+        Command command = parser.parse("viewchain");
+
+        assertInstanceOf(ViewChainCommand.class, command);
     }
 }

@@ -6,6 +6,7 @@ import seedu.crypto1010.model.WalletManager;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Scanner;
 
 public class BalanceCommand extends Command {
     private static final String HELP_DESCRIPTION = """
@@ -30,7 +31,7 @@ public class BalanceCommand extends Command {
     }
 
     @Override
-    public void execute(String description, Blockchain blockchain) throws Crypto1010Exception {
+    public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
         String walletName = parseArguments(arguments);
         String trimmedWalletName = walletName.trim();
         if (!walletManager.hasWallet(trimmedWalletName)) {

@@ -1,8 +1,11 @@
 package seedu.crypto1010.command;
 
 import seedu.crypto1010.Parser;
+import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
+
+import java.util.Scanner;
 
 public class HelpCommand extends Command {
     private static final String COMMAND_PREFIX = "c/";
@@ -27,7 +30,7 @@ public class HelpCommand extends Command {
     }
 
     @Override
-    public void execute(String description, Blockchain blockchain) {
+    public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
         WalletManager walletManager = new WalletManager();
         Parser parser = new Parser(walletManager);
 
@@ -47,21 +50,19 @@ public class HelpCommand extends Command {
                 System.out.println(HELP_MESSAGE);
             } else {
                 if (!arguments.startsWith(COMMAND_PREFIX)) {
-                    System.out.println(INVALID_FORMAT_ERROR);
-                    return;
+                    throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
                 }
 
                 String commandName = arguments.substring(COMMAND_PREFIX.length()).trim();
                 if (commandName.isEmpty() || commandName.chars().anyMatch(Character::isWhitespace)) {
-                    System.out.println(INVALID_FORMAT_ERROR);
-                    return;
+                    throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
                 }
 
                 Command c = parser.parse(commandName);
-                System.out.println(c.getFormatLine());
+                c.displayHelpDescription();
             }
         } catch (IllegalArgumentException e) {
-            System.out.println(INVALID_FORMAT_ERROR);
+            throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
         }
     }
 }

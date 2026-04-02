@@ -16,8 +16,13 @@ My main scope was the blockchain core (`Blockchain`, `Block`) and the transfer-t
 - chain-wide validation semantics (structure, linkage, transaction format, and running-balance checks).
 - Integrated transfer recording flow so successful `send` operations append transactions through a controlled model path.
 - Strengthened persistence safety by validating loaded blockchain data before accepting it into runtime.
+- Added safeguards to prevent data overwrite when load fails by disabling save for affected components in that session.
+- Added the `viewchain` command to provide expert users with a compact blockchain summary (total blocks, total transactions, compact block list).
 
 ### Contributions to the User Guide
+- Documented startup authentication behavior (`login`/`register`) and account-scoped data model.
+- Updated command documentation for `crossSend` and `viewchain`, including examples and command summary entries.
+- Maintained data and persistence notes to reflect account-specific storage paths and current address/key persistence behavior.
 
 ### Contributions to the Developer Guide
 - Wrote/updated the Blockchain and Block implementation details:
@@ -28,9 +33,16 @@ My main scope was the blockchain core (`Blockchain`, `Block`) and the transfer-t
 - validation sequence diagram.
 - send-to-append sequence diagram.
 - blockchain/block class diagram.
+- Added implementation notes and manual test guidance for newly introduced command behavior (`viewchain`) and account-scoped persistence flow.
 
 ### Contributions to team-based tasks
 - Helped align blockchain behavior with command and storage layers so validation rules are enforced consistently in CLI and load-time paths.
 - Contributed to documentation quality by expanding technical rationale, limitations, and future-extension direction for blockchain internals.
+- Performed integration fixes across parser, command registry, tests, and docs to keep feature additions release-ready.
 
 ### Review/mentoring contributions
+- Reviewed teammate changes for command parsing, storage behavior, and test coverage consistency.
+- Helped identify and prioritize correctness issues (load/save safety, parser edge cases, documentation mismatches) before merge.
+
+### Contributions beyond the project team
+- Reported and analyzed project-level defects through GitHub issues and followed through with implementation and documentation updates.

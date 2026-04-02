@@ -10,6 +10,7 @@ The application is designed for educational use and records transactions in a si
 + #### [Startup Authentication](#startup-authentication)
 + #### [Features](#features)
   + #### [Display command help: `help`](#help-display-command-help)
+  + #### [Enter tutorial mode: `tutorial`](#tutorial-enter-tutorial-mode)
   + #### [Create a wallet: `create`](#create-create-a-wallet)
   + #### [List wallets: `list`](#list-list-wallets)
   + #### [Generate keys for a wallet: `keygen`](#keygen-generate-keys-for-a-wallet)
@@ -18,6 +19,7 @@ The application is designed for educational use and records transactions in a si
   + #### [Cross-account transfer: `crossSend`](#crosssend-cross-account-transfer)
   + #### [Show wallet send history: `history`](#history-show-wallet-send-history)
   + #### [Validate blockchain integrity: `validate`](#validate-validate-blockchain-integrity)
+  + #### [View blockchain overview: `viewchain`](#viewchain-view-blockchain-overview)
   + #### [View one block: `viewblock`](#viewblock-view-one-block)
   + #### [Save and terminate: `exit`](#exit-save-and-terminate)
 + #### [Coming Soon](#coming-soon)
@@ -97,16 +99,16 @@ The application is designed for educational use and records transactions in a si
     `validate dsja 2190` will be interpreted as `validate`  
     <br/>
 ### `help`: Display command help
-Format: `help [COMMAND]`
+Format: `help [c/COMMAND]`
 
-- If no command is provided (or an invalid one is provided), all commands are listed.
+- If no command is provided, all commands are listed.
 - If a valid command is provided, detailed help for that command is shown.
 
 Examples:
 - `help`
 - `help c/send`
 
-### `tutorial`: Enters tutorial mode
+### `tutorial`: Enter tutorial mode
 Format: `tutorial start`
 
 - Enters an interactive tutorial mode that guides you through the basic features of Crypto1010 step by step.
@@ -199,6 +201,17 @@ Format: `validate`
 - Verifies hashes, previous-hash links, and transaction data quality for all blocks.
 - Reports either success or the first detected failure reason.
 
+### `viewchain`: View blockchain overview
+Format: `viewchain`
+
+- Displays a blockchain summary with:
+  - total number of blocks
+  - total number of transactions across all blocks
+  - compact list of blocks (index, transaction count, timestamp, shortened hash)
+
+Example:
+- `viewchain`
+
 ### `viewblock`: View one block
 Format: `viewblock INDEX`
 
@@ -223,7 +236,8 @@ Based on planned work tracked in project discussions/issues, the next user-facin
 This feature is not available yet in the current release.
 ---
 ## Command Summary
-- `help [COMMAND]`
+- `help [c/COMMAND]`
+- `tutorial`
 - `create w/WALLET_NAME [curr/CURRENCY]`
 - `list`
 - `keygen w/WALLET_NAME`
@@ -232,6 +246,7 @@ This feature is not available yet in the current release.
 - `crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY`
 - `history w/WALLET_NAME`
 - `validate`
+- `viewchain`
 - `viewblock INDEX`
 - `exit`
 ---
