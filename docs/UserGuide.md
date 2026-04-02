@@ -10,6 +10,7 @@ The application is designed for educational use and records transactions in a si
 + #### [Startup Authentication](#startup-authentication)
 + #### [Features](#features)
   + #### [Display command help: `help`](#help-display-command-help)
+  + #### [Enter tutorial mode: `tutorial`](#tutorial-enter-tutorial-mode)
   + #### [Create a wallet: `create`](#create-create-a-wallet)
   + #### [List wallets: `list`](#list-list-wallets)
   + #### [Generate keys for a wallet: `keygen`](#keygen-generate-keys-for-a-wallet)
@@ -97,7 +98,7 @@ The application is designed for educational use and records transactions in a si
     `validate dsja 2190` will be interpreted as `validate`  
     <br/>
 ### `help`: Display command help
-Format: `help [COMMAND]`
+Format: `help [c/COMMAND]`
 
 - If no command is provided (or an invalid one is provided), all commands are listed.
 - If a valid command is provided, detailed help for that command is shown.
@@ -106,7 +107,7 @@ Examples:
 - `help`
 - `help c/send`
 
-### `tutorial`: Enters tutorial mode
+### `tutorial`: Enter tutorial mode
 Format: `tutorial start`
 
 - Enters an interactive tutorial mode that guides you through the basic features of Crypto1010 step by step.
