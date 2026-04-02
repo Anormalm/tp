@@ -202,7 +202,7 @@ hex string with `0x` prefix to match an Ethereum-format address.
 - Stores an optional currency code in addition to its name.
 - Currency code is normalised at construction time via `CurrencyCode.normalizeOrDefault()`, keeping currency comparison consistent
 
-`WalletManeger` design choices:
+`WalletManager` design choices:
 - `createWallet()` enforces three invariants before constructing a wallet:
 name is non-blank and contains no reserved pipe delimiter (|), no wallet with the same name already exists,
 and no wallet with the same non-generic currency already exists.
@@ -245,7 +245,7 @@ Validation sequence:
 1. parse prefixes
 2. if no arguments provided, display general help message listing all commands
 3. if `c/COMMAND` is provided, extract the command keyword
-4. verfiy the command exists
+4. verify the command exists
 5. retrieve the corresponding command's help description
 6. display the format and usage details of the specified command
 
