@@ -232,6 +232,15 @@ Diagram source:
 - It validates `w/WALLET_NAME`, resolves the wallet case-insensitively through `WalletManager`, and prints numbered entries.
 - The command is intentionally wallet-local: it shows recorded outgoing send history, not a reconstructed blockchain-wide ledger view.
 
+### `viewchain` command implementation
+- `ViewChainCommand` is a read-only blockchain overview command.
+- It validates strict format (`viewchain` without extra arguments).
+- It computes:
+  - total blocks from `blockchain.getBlocks().size()`
+  - total transactions by summing each block's transaction count
+- It prints a compact per-block view containing index, transaction count, timestamp, and a shortened hash preview.
+- This gives expert users a fast chain summary before drilling into individual blocks with `viewblock`.
+
 ### Persistence implementation
 - `AccountStorage` persists hashed credentials in `data/accounts/credentials.txt`.
 - `BlockchainStorage` serializes blockchain state to `data/accounts/USERNAME/blockchain.json`.
@@ -267,6 +276,7 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 | v2.1 | user | send funds to another account with the same currency | move balances between login accounts without exchanges |
 | v1.0 | user | view my wallet send history | review past outgoing transfers |
 | v1.0 | user | validate the blockchain | confirm chain integrity after modifications |
+| v2.2 | expert user | view a blockchain overview | quickly inspect chain size and per-block summaries |
 | v1.0 | user | inspect a specific block | view exact block-level transaction data |
 
 ### Planned enhancement: cross-account address resolution
@@ -349,6 +359,9 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 1. Validate chain:
    - `validate`
    - Expected: valid-chain success message unless data is corrupted.
+1. View blockchain overview:
+   - `viewchain`
+   - Expected: total block count, total transaction count, and compact block rows are printed.
 1. View block details:
    - `viewblock 1`
    - Expected: full block metadata and transaction list.

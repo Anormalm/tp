@@ -16,6 +16,7 @@ public enum CommandWord {
 
     // Blockchain related commands
     VALIDATE("validate", "validates block chain integrity"),
+    VIEWCHAIN("viewchain", "displays blockchain overview"),
     VIEWBLOCK("viewblock", "displays details of the block");
 
     private final String command;
