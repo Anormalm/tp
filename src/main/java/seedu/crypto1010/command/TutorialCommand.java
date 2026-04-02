@@ -42,7 +42,7 @@ public class TutorialCommand extends Command {
 
     String[] tutorialMessages = {
         "First, let's start by creating a new wallet called \"alice\"",
-        "Next, we let's create another wallet called \"bob\"",
+        "Next, let's create another wallet called \"bob\"",
         "Let's look at the wallets that we have created",
         "Notice that both wallets do not have addresses yet!\n" +
                 "Let's first generate a key pair for alice",
