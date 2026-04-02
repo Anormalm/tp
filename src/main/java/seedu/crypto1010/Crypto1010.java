@@ -14,8 +14,11 @@ import seedu.crypto1010.storage.WalletStorage;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Crypto1010 {
+    private static final Logger LOGGER = Logger.getLogger(Crypto1010.class.getName());
     private static final String DIVIDER =
             "============================================================";
     private static final String ACCOUNT_ACCESS_HEADER = "Crypto1010 Account Access";
@@ -69,11 +72,15 @@ public class Crypto1010 {
                 try {
                     c = parser.parse(message);
                 } catch (IllegalArgumentException e) {
+                    LOGGER.log(Level.FINE, "Command parse failed for input: " + message, e);
                     System.out.println("Error: Invalid command. Use: help");
                     continue;
                 }
+                long startNs = System.nanoTime();
                 if (c instanceof ExitCommand) {
                     c.execute(blockchain, in);
+                    long durationMs = (System.nanoTime() - startNs) / 1_000_000;
+                    LOGGER.info(() -> "Command executed successfully: exit (" + durationMs + " ms)");
                     saveData(
                             blockchainStorage,
                             walletStorage,
@@ -84,6 +91,9 @@ public class Crypto1010 {
                     break;
                 }
                 c.execute(blockchain, in);
+                long durationMs = (System.nanoTime() - startNs) / 1_000_000;
+                String commandName = c.getClass().getSimpleName();
+                LOGGER.info(() -> "Command executed successfully: " + commandName + " (" + durationMs + " ms)");
                 saveData(
                         blockchainStorage,
                         walletStorage,
@@ -92,6 +102,7 @@ public class Crypto1010 {
                         allowBlockchainSave,
                         allowWalletSave);
             } catch (Crypto1010Exception e) {
+                LOGGER.log(Level.WARNING, "Command execution failed.", e);
                 System.out.println(e.getMessage());
             }
         }
