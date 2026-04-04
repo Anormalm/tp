@@ -94,7 +94,10 @@ public class CrossAccountTransferService {
                 normalizedRecipientAccountName,
                 normalizedCurrencyCode,
                 amount)));
-        senderWalletForSave.addTransaction(buildHistoryEntry(normalizedRecipientAccountName, amount, normalizedCurrencyCode));
+        senderWalletForSave.addTransaction(buildHistoryEntry(
+                normalizedRecipientAccountName,
+                amount,
+                normalizedCurrencyCode));
 
         persistTransfer(
                 senderWalletStorage,
