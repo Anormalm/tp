@@ -12,6 +12,8 @@ import seedu.crypto1010.storage.WalletStorage;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,6 +25,7 @@ public class CrossAccountTransferService {
     static final String DUPLICATE_CURRENCY_WALLET_ERROR =
             "Error: Multiple wallets found for currency '%s'. Use exactly one wallet per currency.";
     static final String ACCOUNT_DATA_LOAD_ERROR = "Error: Failed to load account data.";
+    static final String SENDER_DATA_SAVE_ERROR = "Error: Failed to save sender account data.";
     static final String RECIPIENT_DATA_LOAD_ERROR = "Error: Failed to load recipient account data.";
     static final String RECIPIENT_DATA_SAVE_ERROR = "Error: Failed to save recipient account data.";
 
@@ -67,19 +70,48 @@ public class CrossAccountTransferService {
         WalletStorage recipientWalletStorage = new WalletStorage(storageAnchor, normalizedRecipientAccountName);
         BlockchainStorage recipientBlockchainStorage =
                 new BlockchainStorage(storageAnchor, normalizedRecipientAccountName);
+        WalletStorage senderWalletStorage = new WalletStorage(storageAnchor, currentAccountName);
+        BlockchainStorage senderBlockchainStorage = new BlockchainStorage(storageAnchor, currentAccountName);
 
         WalletManager recipientWalletManager = loadRecipientWalletManager(recipientWalletStorage);
         Blockchain recipientBlockchain = loadRecipientBlockchain(recipientBlockchainStorage);
+        WalletManager recipientWalletManagerBefore = copyWalletManager(recipientWalletManager);
+        Blockchain recipientBlockchainBefore = copyBlockchain(recipientBlockchain);
+
+        WalletManager senderWalletManagerForSave = copyWalletManager(currentWalletManager);
+        Blockchain senderBlockchainForSave = copyBlockchain(senderBlockchain);
+        Wallet senderWalletForSave = resolveSingleCurrencyWallet(senderWalletManagerForSave, normalizedCurrencyCode);
 
         RecipientWalletResolution recipientResolution =
                 resolveOrCreateRecipientWallet(recipientWalletManager, normalizedCurrencyCode);
 
-        saveRecipientWalletManager(recipientWalletStorage, recipientWalletManager);
         recipientBlockchain.addTransactions(List.of(formatRecipientTransaction(
                 recipientResolution.wallet().getName(),
                 normalizedCurrencyCode,
                 amount)));
-        saveRecipientBlockchain(recipientBlockchainStorage, recipientBlockchain);
+        senderBlockchainForSave.addTransactions(List.of(formatSenderTransaction(
+                senderWalletForSave.getName(),
+                normalizedRecipientAccountName,
+                normalizedCurrencyCode,
+                amount)));
+        senderWalletForSave.addTransaction(buildHistoryEntry(
+                normalizedRecipientAccountName,
+                amount,
+                normalizedCurrencyCode));
+
+        persistTransfer(
+                senderWalletStorage,
+                senderBlockchainStorage,
+                senderWalletManagerForSave,
+                senderBlockchainForSave,
+                copyWalletManager(currentWalletManager),
+                copyBlockchain(senderBlockchain),
+                recipientWalletStorage,
+                recipientBlockchainStorage,
+                recipientWalletManager,
+                recipientBlockchain,
+                recipientWalletManagerBefore,
+                recipientBlockchainBefore);
 
         senderBlockchain.addTransactions(List.of(formatSenderTransaction(
                 senderWallet.getName(),
@@ -195,6 +227,75 @@ public class CrossAccountTransferService {
         }
     }
 
+    private void persistTransfer(
+            WalletStorage senderWalletStorage,
+            BlockchainStorage senderBlockchainStorage,
+            WalletManager senderWalletManagerAfter,
+            Blockchain senderBlockchainAfter,
+            WalletManager senderWalletManagerBefore,
+            Blockchain senderBlockchainBefore,
+            WalletStorage recipientWalletStorage,
+            BlockchainStorage recipientBlockchainStorage,
+            WalletManager recipientWalletManagerAfter,
+            Blockchain recipientBlockchainAfter,
+            WalletManager recipientWalletManagerBefore,
+            Blockchain recipientBlockchainBefore) throws Crypto1010Exception {
+        try {
+            saveRecipientWalletManager(recipientWalletStorage, recipientWalletManagerAfter);
+            saveRecipientBlockchain(recipientBlockchainStorage, recipientBlockchainAfter);
+            saveSenderWalletManager(senderWalletStorage, senderWalletManagerAfter);
+            saveSenderBlockchain(senderBlockchainStorage, senderBlockchainAfter);
+        } catch (Crypto1010Exception saveFailure) {
+            rollbackPersistedTransfer(
+                    senderWalletStorage,
+                    senderBlockchainStorage,
+                    senderWalletManagerBefore,
+                    senderBlockchainBefore,
+                    recipientWalletStorage,
+                    recipientBlockchainStorage,
+                    recipientWalletManagerBefore,
+                    recipientBlockchainBefore);
+            throw saveFailure;
+        }
+    }
+
+    private void rollbackPersistedTransfer(
+            WalletStorage senderWalletStorage,
+            BlockchainStorage senderBlockchainStorage,
+            WalletManager senderWalletManagerBefore,
+            Blockchain senderBlockchainBefore,
+            WalletStorage recipientWalletStorage,
+            BlockchainStorage recipientBlockchainStorage,
+            WalletManager recipientWalletManagerBefore,
+            Blockchain recipientBlockchainBefore) throws Crypto1010Exception {
+        try {
+            recipientWalletStorage.save(recipientWalletManagerBefore);
+            recipientBlockchainStorage.save(recipientBlockchainBefore);
+            senderWalletStorage.save(senderWalletManagerBefore);
+            senderBlockchainStorage.save(senderBlockchainBefore);
+        } catch (IOException rollbackFailure) {
+            throw new Crypto1010Exception("Error: Transfer save failed and rollback did not complete.");
+        }
+    }
+
+    private void saveSenderWalletManager(WalletStorage senderWalletStorage, WalletManager senderWalletManager)
+            throws Crypto1010Exception {
+        try {
+            senderWalletStorage.save(senderWalletManager);
+        } catch (IOException e) {
+            throw new Crypto1010Exception(SENDER_DATA_SAVE_ERROR);
+        }
+    }
+
+    private void saveSenderBlockchain(BlockchainStorage senderBlockchainStorage, Blockchain senderBlockchain)
+            throws Crypto1010Exception {
+        try {
+            senderBlockchainStorage.save(senderBlockchain);
+        } catch (IOException e) {
+            throw new Crypto1010Exception(SENDER_DATA_SAVE_ERROR);
+        }
+    }
+
     private String buildHistoryEntry(String recipientAccountName, BigDecimal amount, String currencyCode) {
         return "crossSend acc/" + recipientAccountName
                 + " amt/" + amount.stripTrailingZeros().toPlainString()
@@ -203,6 +304,30 @@ public class CrossAccountTransferService {
 
     private String normalizeAccountName(String accountName) {
         return accountName == null ? "" : accountName.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private WalletManager copyWalletManager(WalletManager original) {
+        WalletManager copy = new WalletManager();
+        for (Wallet wallet : original.getWallets()) {
+            Wallet walletCopy = copy.createWallet(wallet.getName(), wallet.getCurrencyCode());
+            for (String history : wallet.getTransactionHistory()) {
+                walletCopy.addTransaction(history);
+            }
+        }
+        return copy;
+    }
+
+    private Blockchain copyBlockchain(Blockchain original) {
+        List<seedu.crypto1010.model.Block> copiedBlocks = new ArrayList<>();
+        for (seedu.crypto1010.model.Block block : original.getBlocks()) {
+            copiedBlocks.add(new seedu.crypto1010.model.Block(
+                    block.getIndex(),
+                    LocalDateTime.from(block.getTimestampValue()),
+                    block.getPreviousHash(),
+                    new ArrayList<>(block.getTransactions()),
+                    block.getCurrentHash()));
+        }
+        return new Blockchain(copiedBlocks);
     }
 
     private record RecipientWalletResolution(Wallet wallet, boolean wasCreated) {
