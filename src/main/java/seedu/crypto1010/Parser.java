@@ -10,6 +10,7 @@ import seedu.crypto1010.command.HelpCommand;
 import seedu.crypto1010.command.HistoryCommand;
 import seedu.crypto1010.command.KeygenCommand;
 import seedu.crypto1010.command.ListCommand;
+import seedu.crypto1010.command.LogoutCommand;
 import seedu.crypto1010.command.SendCommand;
 import seedu.crypto1010.command.TutorialCommand;
 import seedu.crypto1010.command.ValidateCommand;
@@ -69,6 +70,7 @@ public class Parser {
             case VIEWCHAIN -> new ViewChainCommand();
             case VIEWBLOCK -> new ViewBlockCommand(arguments);
             case EXIT -> new ExitCommand();
+            case LOGOUT -> new LogoutCommand();
             case SEND -> new SendCommand(arguments, walletManager);
             case KEYGEN -> new KeygenCommand(arguments, walletManager);
             case TUTORIAL -> new TutorialCommand(arguments);

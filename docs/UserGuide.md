@@ -21,6 +21,7 @@ The application is designed for educational use and records transactions in a si
   + #### [Validate blockchain integrity: `validate`](#validate-validate-blockchain-integrity)
   + #### [View blockchain overview: `viewchain`](#viewchain-view-blockchain-overview)
   + #### [View one block: `viewblock`](#viewblock-view-one-block)
+  + #### [Log out of the current account: `logout`](#logout-log-out-of-the-current-account)
   + #### [Save and terminate: `exit`](#exit-save-and-terminate)
 + #### [Coming Soon](#coming-soon)
 + #### [Command Summary](#command-summary)
@@ -47,6 +48,7 @@ The application is designed for educational use and records transactions in a si
 - On launch, Crypto1010 requires an account before loading any wallets or blockchain data.
 - Choose `register` if you are a new user. Registration logs you in immediately after the account is created.
 - Choose `login` if you already have an account.
+- Use `logout` after login if you want to return to account access and switch users without closing the app.
 - Usernames are case-insensitive and must be 3-20 characters using letters, numbers, `_`, or `-`.
 - Passwords must be at least 6 characters long.
 
@@ -225,6 +227,13 @@ Format: `viewblock INDEX`
 Example:
 - `viewblock 2`
 
+### `logout`: Log out of the current account
+Format: `logout`
+
+- Returns you to the account access menu without closing Crypto1010.
+- After entering `logout`, Crypto1010 prompts for confirmation.
+- Type `y` to confirm logout or `n` to stay in the current account.
+
 ### `exit`: Save and terminate
 Format: `exit`
 
@@ -253,6 +262,7 @@ This feature is not available yet in the current release.
 - `validate`
 - `viewchain`
 - `viewblock INDEX`
+- `logout`
 - `exit`
 <br>
 

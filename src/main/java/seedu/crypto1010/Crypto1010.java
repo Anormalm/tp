@@ -4,6 +4,7 @@ import seedu.crypto1010.auth.AuthenticationException;
 import seedu.crypto1010.auth.AuthenticationService;
 import seedu.crypto1010.command.Command;
 import seedu.crypto1010.command.ExitCommand;
+import seedu.crypto1010.command.LogoutCommand;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
@@ -33,11 +34,20 @@ public class Crypto1010 {
         Scanner in = new Scanner(System.in);
         InteractiveShell shell = InteractiveShell.create(in);
         AuthenticationService authenticationService = loadAuthenticationService();
-        String accountUsername = authenticateUser(shell, authenticationService);
-        if (accountUsername == null) {
-            return;
-        }
+        while (true) {
+            String accountUsername = authenticateUser(shell, authenticationService);
+            if (accountUsername == null) {
+                return;
+            }
 
+            SessionOutcome sessionOutcome = runAuthenticatedSession(in, accountUsername);
+            if (sessionOutcome == SessionOutcome.EXIT) {
+                return;
+            }
+        }
+    }
+
+    private static SessionOutcome runAuthenticatedSession(Scanner in, String accountUsername) {
         printWelcome(accountUsername);
         BlockchainStorage blockchainStorage = new BlockchainStorage(Crypto1010.class, accountUsername);
         WalletStorage walletStorage = new WalletStorage(Crypto1010.class, accountUsername);
@@ -67,7 +77,7 @@ public class Crypto1010 {
                         walletManager,
                         allowBlockchainSave,
                         allowWalletSave);
-                break;
+                return SessionOutcome.EXIT;
             }
             try {
                 Command c;
@@ -90,8 +100,9 @@ public class Crypto1010 {
                             walletManager,
                             allowBlockchainSave,
                             allowWalletSave);
-                    break;
+                    return SessionOutcome.EXIT;
                 }
+
                 c.execute(blockchain, in);
                 long durationMs = (System.nanoTime() - startNs) / 1_000_000;
                 String commandName = c.getClass().getSimpleName();
@@ -103,6 +114,11 @@ public class Crypto1010 {
                         walletManager,
                         allowBlockchainSave,
                         allowWalletSave);
+
+                if (c instanceof LogoutCommand logoutCommand && logoutCommand.isLogoutConfirmed()) {
+                    System.out.println("Logged out from " + accountUsername + ".");
+                    return SessionOutcome.LOGOUT;
+                }
             } catch (Crypto1010Exception e) {
                 LOGGER.log(Level.WARNING, "Command execution failed.", e);
                 System.out.println(e.getMessage());
@@ -253,6 +269,11 @@ public class Crypto1010 {
                 System.out.println("Failed to save wallet data.");
             }
         }
+    }
+
+    private enum SessionOutcome {
+        LOGOUT,
+        EXIT
     }
 
     private record LoadResult<T>(T data, boolean loadedSuccessfully) {

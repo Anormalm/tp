@@ -13,7 +13,7 @@ Crypto1010 is implemented as a modular command-line application with clear separ
 - `Crypto1010` manages the main loop, input capture, and save/load lifecycle.
 - `auth` package manages account registration, login, and password hashing.
 - `Parser` maps raw user input to concrete command objects.
-- `command` package implements user-facing functionality (`create`, `send`, `crossSend`, `balance`, etc.).
+- `command` package implements user-facing functionality (`create`, `send`, `crossSend`, `balance`, `logout`, etc.).
 - `model` package contains core blockchain and wallet logic.
 - `service` package centralizes transfer recording so blockchain writes and wallet history stay aligned, including cross-account transfers.
 - `storage` package persists account credentials plus account-scoped blockchain and wallet data.
@@ -26,6 +26,7 @@ Crypto1010 is implemented as a modular command-line application with clear separ
 5. A concrete `Command` subclass is instantiated.
 6. `Command.execute(...)` mutates/queries model state.
 7. `Crypto1010` saves account-scoped blockchain and wallet state after successful command execution.
+8. If `logout` is confirmed, `Crypto1010` returns to the authentication menu and starts a new account-scoped session.
 
 ### Adding a new command
 - Add the new keyword and description to `CommandWord` so it is exposed through `help`.
@@ -278,6 +279,13 @@ Validation sequence:
 3. verify no wallet with the same non-generic currency exists 
 4. delegate wallet construction to `WalletManager` via `createWallet()`
 
+### `logout` command implementation
+- `LogoutCommand` is argument-free and interactive.
+- It prompts the user with `Confirm logout? (y/n)`.
+- `y` marks the command as confirmed and returns control to `Crypto1010`.
+- `n` cancels logout and leaves the current authenticated session running.
+- Invalid confirmation input is rejected and the prompt repeats until `y` or `n` is entered.
+
 ### `keygen` command implementation
 `KeygenCommand` uses prefix-based argument parsing:
 - required: `w/`
@@ -474,6 +482,14 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
    - Login as `receiver`.
    - `list`
    - Expected: a `btc` wallet exists if one was not already present.
+1. Logout and switch account:
+   - Log in as any existing account.
+   - `logout`
+   - Enter `n`.
+   - Expected: logout is cancelled and the session continues.
+   - `logout`
+   - Enter `y`.
+   - Expected: account access menu is shown again and you can `login` or `register` as a different user.
 1. Validate chain:
    - `validate`
    - Expected: valid-chain success message unless data is corrupted.
