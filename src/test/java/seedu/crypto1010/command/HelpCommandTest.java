@@ -86,4 +86,23 @@ public class HelpCommandTest {
         String output = outputStream.toString();
         assertTrue(output.contains("Format: history w/WALLET_NAME"));
     }
+
+    @Test
+    public void execute_helpForLogoutCommand_showsCommandFormat() throws Crypto1010Exception {
+        HelpCommand helpCommand = new HelpCommand("c/logout");
+        Blockchain blockchain = Blockchain.createDefault();
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            helpCommand.execute(blockchain);
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Format: logout"));
+    }
 }

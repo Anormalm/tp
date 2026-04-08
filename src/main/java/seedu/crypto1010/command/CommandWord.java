@@ -3,6 +3,7 @@ package seedu.crypto1010.command;
 public enum CommandWord {
     HELP("help", "lists all commands"),
     EXIT("exit", "exits the program"),
+    LOGOUT("logout", "logs out of the current account"),
     TUTORIAL("tutorial", "gives instructions on how to use the commands"),
 
     // Wallet related commands
