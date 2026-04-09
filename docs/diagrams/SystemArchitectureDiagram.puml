@@ -1,0 +1,29 @@
+@startuml
+title Crypto1010 - High-Level Architecture
+left to right direction
+skinparam componentStyle rectangle
+
+actor User
+
+component "InteractiveShell\n(CLI I/O)" as UI
+component "Crypto1010\n(Application Loop)" as App
+component "Parser" as Parser
+component "Command Layer\n(Command + subclasses)" as CommandLayer
+component "Service Layer\n(Transaction/CrossAccount Transfer)" as ServiceLayer
+component "Model Layer\n(Blockchain, Wallet, WalletManager)" as ModelLayer
+component "Storage Layer\n(Account/Wallet/Blockchain Storage)" as StorageLayer
+component "Auth Layer\n(AuthenticationService)" as AuthLayer
+
+User --> UI
+UI --> App
+App --> AuthLayer
+App --> Parser
+Parser --> CommandLayer
+CommandLayer --> ServiceLayer
+CommandLayer --> ModelLayer
+ServiceLayer --> ModelLayer
+App --> StorageLayer
+ServiceLayer --> StorageLayer
+StorageLayer --> ModelLayer
+
+@enduml
