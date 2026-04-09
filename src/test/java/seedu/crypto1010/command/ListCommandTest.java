@@ -39,11 +39,16 @@ class ListCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join(System.lineSeparator(),
-                "Wallets:",
-                "1. alice | Address: Generate keys first",
-                "2. bob | Address: Generate keys first") + System.lineSeparator();
-        assertEquals(expected, output);
+        String expected = "\nWallets:\n" +
+                "====================================================================================\n" +
+                String.format("%-4s %-20s %-12s %-44s\n", "No.", "Wallet Name", "Currency", "Address") +
+                "------------------------------------------------------------------------------------\n" +
+                String.format("%-4d %-20s %-12s %-44s\n", 1, "alice", "-", "Generate keys first") +
+                String.format("%-4d %-20s %-12s %-44s\n", 2, "bob", "-", "Generate keys first") +
+                "====================================================================================\n";
+        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
     }
 
     @Test
@@ -58,10 +63,15 @@ class ListCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join(System.lineSeparator(),
-                "Wallets:",
-                "1. alice | Address: " + alice.getAddress()) + System.lineSeparator();
-        assertEquals(expected, output);
+        String expected = "\nWallets:\n" +
+                "====================================================================================\n" +
+                String.format("%-4s %-20s %-12s %-44s\n", "No.", "Wallet Name", "Currency", "Address") +
+                "------------------------------------------------------------------------------------\n" +
+                String.format("%-4d %-20s %-12s %-44s\n", 1, "alice", "-", alice.getAddress()) +
+                "====================================================================================\n";
+        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
     }
 
     @Test
@@ -73,10 +83,15 @@ class ListCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join(System.lineSeparator(),
-                "Wallets:",
-                "1. alice | Currency: btc | Address: Generate keys first") + System.lineSeparator();
-        assertEquals(expected, output);
+        String expected = "\nWallets:\n" +
+                "====================================================================================\n" +
+                String.format("%-4s %-20s %-12s %-44s\n", "No.", "Wallet Name", "Currency", "Address") +
+                "------------------------------------------------------------------------------------\n" +
+                String.format("%-4d %-20s %-12s %-44s\n", 1, "alice", "btc", "Generate keys first") +
+                "====================================================================================\n";
+        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
     }
 
     @Test

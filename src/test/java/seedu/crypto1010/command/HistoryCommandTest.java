@@ -37,11 +37,16 @@ class HistoryCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join(System.lineSeparator(),
-                "Transaction history for alice:",
-                "1. to/0xabc amt/1 speed/standard fee/0.001",
-                "2. to/0xdef amt/2 speed/manual fee/0.1 note/rent") + System.lineSeparator();
-        assertEquals(expected, output);
+        String expected = "\nTransaction history for alice:\n" +
+                "============================================================\n" +
+                String.format("%-4s %-54s\n", "No.", "Transaction") +
+                "------------------------------------------------------------\n" +
+                String.format("%-4d %-54s\n", 1, "to/0xabc amt/1 speed/standard fee/0.001") +
+                String.format("%-4d %-54s\n", 2, "to/0xdef amt/2 speed/manual fee/0.1 note/rent") +
+                "============================================================\n";
+        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
     }
 
     @Test

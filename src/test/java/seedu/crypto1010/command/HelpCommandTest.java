@@ -29,9 +29,8 @@ public class HelpCommandTest {
         }
 
         String output = outputStream.toString();
-        assertTrue(output.contains(
-                "For more details about each command type 'help c/COMMAND', eg. 'help c/list'"
-        ));
+        assertTrue(output.contains("For more details about each command type 'help c/COMMAND', eg. 'help c/list'"));
+        assertTrue(output.contains("=============================="));
     }
 
     @Test
@@ -63,9 +62,8 @@ public class HelpCommandTest {
         }
 
         String output = outputStream.toString();
-        assertTrue(output.contains(
-                "Format: send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]"
-        ));
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertTrue(normOutput.contains("Format: send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]"));
     }
 
     @Test
@@ -84,7 +82,8 @@ public class HelpCommandTest {
         }
 
         String output = outputStream.toString();
-        assertTrue(output.contains("Format: history w/WALLET_NAME"));
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertTrue(normOutput.contains("Format: history w/WALLET_NAME"));
     }
 
     @Test
@@ -103,6 +102,7 @@ public class HelpCommandTest {
         }
 
         String output = outputStream.toString();
-        assertTrue(output.contains("Format: logout"));
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertTrue(normOutput.contains("Format: logout"));
     }
 }

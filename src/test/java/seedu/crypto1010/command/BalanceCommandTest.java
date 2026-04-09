@@ -25,52 +25,73 @@ class BalanceCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals("Balance of bob: 5.00000000" + System.lineSeparator(), output);
+        String expected = "\nWallet Balance\n" +
+            "========================================\n" +
+            String.format("%-16s: %s\n", "Wallet", "bob") +
+            String.format("%-16s: %s\n", "Balance", "5.00000000") +
+            "========================================\n";
+        String normExpected = expected.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
     }
 
     @Test
-    void execute_decimalBalance_roundsToEightDecimalPlaces() {
+        void execute_decimalBalance_roundsToEightDecimalPlaces() {
         Blockchain blockchain = new Blockchain(List.of(
-                new Block(
-                        0,
-                        LocalDateTime.of(2026, 2, 12, 14, 30, 21),
-                        "0000000000000000",
-                        List.of("Genesis Block")),
-                new Block(
-                        1,
-                        LocalDateTime.of(2026, 2, 12, 14, 35, 2),
-                        "prev-hash",
-                        List.of("miner -> alice : 1.234567895"))));
+            new Block(
+                0,
+                LocalDateTime.of(2026, 2, 12, 14, 30, 21),
+                "0000000000000000",
+                List.of("Genesis Block")),
+            new Block(
+                1,
+                LocalDateTime.of(2026, 2, 12, 14, 35, 2),
+                "prev-hash",
+                List.of("miner -> alice : 1.234567895"))));
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
         BalanceCommand command = new BalanceCommand("w/alice", walletManager);
 
         String output = runCommand(command, blockchain);
 
-        assertEquals("Balance of alice: 1.23456790" + System.lineSeparator(), output);
-    }
+        String expected = "\nWallet Balance\n" +
+            "========================================\n" +
+            String.format("%-16s: %s\n", "Wallet", "alice") +
+            String.format("%-16s: %s\n", "Balance", "1.23456790") +
+            "========================================\n";
+        String normExpected = expected.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
+        }
 
     @Test
-    void execute_selfTransfer_keepsNetZeroBalance() {
+        void execute_selfTransfer_keepsNetZeroBalance() {
         Blockchain blockchain = new Blockchain(List.of(
-                new Block(
-                        0,
-                        LocalDateTime.of(2026, 2, 12, 14, 30, 21),
-                        "0000000000000000",
-                        List.of("Genesis Block")),
-                new Block(
-                        1,
-                        LocalDateTime.of(2026, 2, 12, 14, 35, 2),
-                        "prev-hash",
-                        List.of("alice -> alice : 5"))));
+            new Block(
+                0,
+                LocalDateTime.of(2026, 2, 12, 14, 30, 21),
+                "0000000000000000",
+                List.of("Genesis Block")),
+            new Block(
+                1,
+                LocalDateTime.of(2026, 2, 12, 14, 35, 2),
+                "prev-hash",
+                List.of("alice -> alice : 5"))));
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
         BalanceCommand command = new BalanceCommand("w/alice", walletManager);
 
         String output = runCommand(command, blockchain);
 
-        assertEquals("Balance of alice: 0.00000000" + System.lineSeparator(), output);
-    }
+        String expected = "\nWallet Balance\n" +
+            "========================================\n" +
+            String.format("%-16s: %s\n", "Wallet", "alice") +
+            String.format("%-16s: %s\n", "Balance", "0.00000000") +
+            "========================================\n";
+        String normExpected = expected.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
+        }
 
     @Test
     void execute_blankWalletNameAfterPrefix_throwsException() {

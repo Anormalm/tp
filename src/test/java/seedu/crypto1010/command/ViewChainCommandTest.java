@@ -13,6 +13,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class ViewChainCommandTest {
+    // Helper to normalize output for robust comparison
+    private String normalizeOutput(String s) {
+        return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+    }
     @Test
     void execute_validFormat_printsBlockchainOverview() {
         Blockchain blockchain = Blockchain.createDefault();
@@ -22,14 +26,16 @@ class ViewChainCommandTest {
 
         Block genesis = blockchain.getBlock(0);
         Block secondBlock = blockchain.getBlock(1);
-        assertTrue(output.contains("Blockchain Overview:"));
-        assertTrue(output.contains("Total blocks: 2"));
-        assertTrue(output.contains("Total transactions: 4"));
-        assertTrue(output.contains("Blocks:"));
-        assertTrue(output.contains("0 | tx=1 | time=2026-02-12 14:30:21 | hash="
-                + compactHash(genesis.getCurrentHash())));
-        assertTrue(output.contains("1 | tx=3 | time=2026-02-12 14:35:02 | hash="
-                + compactHash(secondBlock.getCurrentHash())));
+        String norm = normalizeOutput(output);
+        assertTrue(norm.contains("Blockchain Overview:"));
+        assertTrue(norm.contains("Total blocks      : 2"));
+        assertTrue(norm.contains("Total transactions: 4"));
+        assertTrue(norm.contains("Blocks:"));
+        assertTrue(norm.contains("================================================================================"));
+        assertTrue(norm.contains(String.format("%-6s %-10s %-20s %-40s", "Index", "Tx Count", "Timestamp", "Hash Preview")));
+        assertTrue(norm.contains("--------------------------------------------------------------------------------"));
+        assertTrue(norm.contains(String.format("%-6d %-10d %-20s %-40s", 0, 1, "2026-02-12 14:30:21", compactHash(genesis.getCurrentHash()))));
+        assertTrue(norm.contains(String.format("%-6d %-10d %-20s %-40s", 1, 3, "2026-02-12 14:35:02", compactHash(secondBlock.getCurrentHash()))));
     }
 
     @Test
@@ -40,8 +46,9 @@ class ViewChainCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertTrue(output.contains("Total blocks: 1"));
-        assertTrue(output.contains("Total transactions: 1"));
+        String norm = normalizeOutput(output);
+        assertTrue(norm.contains("Total blocks      : 1"));
+        assertTrue(norm.contains("Total transactions: 1"));
     }
 
     private java.time.LocalDateTime blockchainTime() {

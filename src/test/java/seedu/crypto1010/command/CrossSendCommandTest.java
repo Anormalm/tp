@@ -27,6 +27,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class CrossSendCommandTest {
+        // Helper to normalize output for robust comparison
+        private String normalizeOutput(String s) {
+                return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+        }
     @TempDir
     Path tempDir;
 
@@ -56,8 +60,10 @@ class CrossSendCommandTest {
 
         String output = runCommand(command, senderBlockchain);
 
-        assertTrue(output.contains("Cross-account transfer completed successfully."));
-        assertTrue(output.contains("Recipient wallet was created automatically."));
+        String norm = normalizeOutput(output);
+        assertTrue(norm.contains("Cross-account transfer completed successfully."));
+        assertTrue(norm.contains("Recipient wallet was created automatically."));
+        assertTrue(norm.contains("============================================================"));
         assertEquals(new BigDecimal("8"), senderBlockchain.getPreciseBalance("main"));
         assertEquals(1, senderWallet.getTransactionHistory().size());
         assertEquals("crossSend acc/receiver amt/2 curr/btc", senderWallet.getTransactionHistory().get(0));
@@ -88,7 +94,9 @@ class CrossSendCommandTest {
 
         String output = runCommand(command, senderBlockchain);
 
-        assertTrue(output.contains("Recipient wallet: vault"));
+                String normOutput = normalizeOutput(output);
+                assertTrue(normOutput.contains(String.format("%-18s: %s", "Recipient wallet", "vault")));
+                assertTrue(normOutput.contains("============================================================"));
         assertEquals(new BigDecimal("3.5"), senderBlockchain.getPreciseBalance("main"));
         Blockchain recipientBlockchain = new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
         assertEquals(new BigDecimal("1.5"), recipientBlockchain.getPreciseBalance("vault"));

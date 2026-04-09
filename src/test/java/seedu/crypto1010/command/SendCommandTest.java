@@ -18,6 +18,10 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class SendCommandTest {
+    // Helper to normalize output for robust comparison
+    private String normalizeOutput(String s) {
+        return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+    }
     private static final String ETH_ADDRESS = "0x1111111111111111111111111111111111111111";
     private static final String BTC_ADDRESS = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080";
     private static final String SOL_ADDRESS = "So11111111111111111111111111111111111111112";
@@ -31,13 +35,15 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "Transaction sent successfully." + System.lineSeparator()
-                + "Wallet: bob" + System.lineSeparator()
-                + "To: " + ETH_ADDRESS + System.lineSeparator()
-                + "Amount: 4" + System.lineSeparator()
-                + "Speed: standard" + System.lineSeparator()
-                + "Fee: 0.0010" + System.lineSeparator();
-        assertEquals(expected, output);
+        String expected = "\nTransaction sent successfully.\n"
+            + "============================================================\n"
+            + String.format("%-12s: %s\n", "Wallet", "bob")
+            + String.format("%-12s: %s\n", "To", ETH_ADDRESS)
+            + String.format("%-12s: %s\n", "Amount", "4")
+            + String.format("%-12s: %s\n", "Speed", "standard")
+            + String.format("%-12s: %s\n", "Fee", "0.0010")
+            + "============================================================\n";
+        assertEquals(normalizeOutput(expected), normalizeOutput(output));
 
         assertEquals(3, blockchain.size());
         assertEquals(new BigDecimal("0.999"), blockchain.getPreciseBalance("bob"));
@@ -104,8 +110,8 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertTrue(output.contains("Speed: manual"));
-        assertTrue(output.contains("Fee: 0.5"));
+        assertTrue(normalizeOutput(output).contains(String.format("%-12s: %s", "Speed", "manual")));
+        assertTrue(normalizeOutput(output).contains(String.format("%-12s: %s", "Fee", "0.5")));
         assertEquals(new BigDecimal("0.5"), blockchain.getPreciseBalance("network-fee"));
         Wallet wallet = walletManager.findWallet("bob").orElse(null);
         assertNotNull(wallet);
@@ -123,8 +129,8 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertTrue(output.contains("Transaction sent successfully."));
-        assertTrue(output.contains("Note: repay w/alice tomorrow"));
+        assertTrue(normalizeOutput(output).contains("Transaction sent successfully."));
+        assertTrue(normalizeOutput(output).contains("Note        : repay w/alice tomorrow"));
         Wallet wallet = walletManager.findWallet("bob").orElse(null);
         assertNotNull(wallet);
         assertTrue(wallet.getTransactionHistory().get(0).contains("note/repay w/alice tomorrow"));
@@ -139,8 +145,8 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertTrue(output.contains("Transaction sent successfully."));
-        assertTrue(output.contains("To: " + BTC_ADDRESS));
+        assertTrue(normalizeOutput(output).contains("Transaction sent successfully."));
+        assertTrue(normalizeOutput(output).contains(String.format("To          : %s", BTC_ADDRESS)));
     }
 
     @Test
@@ -152,8 +158,8 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertTrue(output.contains("Transaction sent successfully."));
-        assertTrue(output.contains("To: " + SOL_ADDRESS));
+        assertTrue(normalizeOutput(output).contains("Transaction sent successfully."));
+        assertTrue(normalizeOutput(output).contains(String.format("To          : %s", SOL_ADDRESS)));
     }
 
     @Test
