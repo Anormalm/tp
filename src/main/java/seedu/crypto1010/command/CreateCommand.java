@@ -56,11 +56,14 @@ public class CreateCommand extends Command {
         }
 
         Wallet wallet = walletManager.createWallet(walletName, currencyCode);
-        if (CurrencyCode.isGeneric(currencyCode)) {
-            System.out.println("Wallet created: " + wallet.getName());
-        } else {
-            System.out.println("Wallet created: " + wallet.getName() + " | Currency: " + currencyCode);
+        System.out.println();
+        System.out.println("Wallet Created");
+        System.out.println("=".repeat(40));
+        System.out.printf("%-12s: %s%n", "Wallet", wallet.getName());
+        if (!CurrencyCode.isGeneric(currencyCode)) {
+            System.out.printf("%-12s: %s%n", "Currency", currencyCode);
         }
+        System.out.println("=".repeat(40));
     }
 
     private String resolveArguments(String description) {

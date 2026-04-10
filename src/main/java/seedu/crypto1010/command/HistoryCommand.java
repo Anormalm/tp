@@ -44,10 +44,15 @@ public class HistoryCommand extends Command {
             return;
         }
 
+        System.out.println();
         System.out.println("Transaction history for " + wallet.getName() + ":");
+        System.out.println("=".repeat(60));
+        System.out.printf("%-4s %-54s%n", "No.", "Transaction");
+        System.out.println("-".repeat(60));
         for (int i = 0; i < transactionHistory.size(); i++) {
-            System.out.println((i + 1) + ". " + transactionHistory.get(i));
+            System.out.printf("%-4d %-54s%n", i + 1, transactionHistory.get(i));
         }
+        System.out.println("=".repeat(60));
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {

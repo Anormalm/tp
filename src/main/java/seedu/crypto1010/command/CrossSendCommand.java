@@ -65,15 +65,18 @@ public class CrossSendCommand extends Command {
                 normalizedCurrency,
                 blockchain);
 
+        System.out.println();
         System.out.println("Cross-account transfer completed successfully.");
-        System.out.println("From wallet: " + result.senderWalletName());
-        System.out.println("To account: " + parsedArgs.accountName().toLowerCase());
-        System.out.println("Recipient wallet: " + result.recipientWalletName());
-        System.out.println("Amount: " + amount.stripTrailingZeros().toPlainString());
-        System.out.println("Currency: " + normalizedCurrency);
+        System.out.println("=".repeat(60));
+        System.out.printf("%-18s: %s%n", "From wallet", result.senderWalletName());
+        System.out.printf("%-18s: %s%n", "To account", parsedArgs.accountName().toLowerCase());
+        System.out.printf("%-18s: %s%n", "Recipient wallet", result.recipientWalletName());
+        System.out.printf("%-18s: %s%n", "Amount", amount.stripTrailingZeros().toPlainString());
+        System.out.printf("%-18s: %s%n", "Currency", normalizedCurrency);
         if (result.recipientWalletCreated()) {
-            System.out.println("Recipient wallet was created automatically.");
+            System.out.printf("%-18s: %s%n", "Info", "Recipient wallet was created automatically.");
         }
+        System.out.println("=".repeat(60));
     }
 
     private ParsedArgs parseArguments(String args) {

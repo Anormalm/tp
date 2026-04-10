@@ -39,7 +39,12 @@ public class BalanceCommand extends Command {
         }
         BigDecimal balance = blockchain.getPreciseBalance(trimmedWalletName);
 
-        System.out.println("Balance of " + trimmedWalletName + ": " + formatBalance(balance));
+        System.out.println();
+        System.out.println("Wallet Balance");
+        System.out.println("=".repeat(40));
+        System.out.printf("%-16s: %s%n", "Wallet", trimmedWalletName);
+        System.out.printf("%-16s: %s%n", "Balance", formatBalance(balance));
+        System.out.println("=".repeat(40));
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {

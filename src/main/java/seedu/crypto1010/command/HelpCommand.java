@@ -36,17 +36,17 @@ public class HelpCommand extends Command {
 
         try {
             if (arguments.isEmpty()) {
+                System.out.println();
+                System.out.println("Available Commands");
+                System.out.println("=".repeat(40));
+                System.out.printf("%-14s | %s%n", "Command", "Description");
+                System.out.println("-".repeat(40));
                 for (CommandWord c : CommandWord.values()) {
                     assert c.getCommand() != null : "command word should have a command";
                     assert c.getDescription() != null : "command word should have a description";
-
-                    System.out.print("  ");
-                    System.out.print(c.getCommand());
-                    for (int i = 0; i < COMMAND_LIST_COLUMN_WIDTH - c.getCommand().length(); i++) {
-                        System.out.print(" ");
-                    }
-                    System.out.println(c.getDescription());
+                    System.out.printf("%-14s | %s%n", c.getCommand(), c.getDescription());
                 }
+                System.out.println("=".repeat(40));
                 System.out.println(HELP_MESSAGE);
             } else {
                 if (!arguments.startsWith(COMMAND_PREFIX)) {

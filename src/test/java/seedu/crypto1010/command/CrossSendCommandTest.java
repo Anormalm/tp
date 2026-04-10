@@ -1,3 +1,4 @@
+// ...existing code...
 package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +31,11 @@ class CrossSendCommandTest {
     @TempDir
     Path tempDir;
 
+    // Helper to normalize output for robust comparison
+    private String normalizeOutput(String s) {
+        return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+    }
+
     @BeforeEach
     void setUp() throws Exception {
         System.setProperty("crypto1010.dataDir", tempDir.toString());
@@ -56,19 +62,23 @@ class CrossSendCommandTest {
 
         String output = runCommand(command, senderBlockchain);
 
-        assertTrue(output.contains("Cross-account transfer completed successfully."));
-        assertTrue(output.contains("Recipient wallet was created automatically."));
+        String norm = normalizeOutput(output);
+        assertTrue(norm.contains("Cross-account transfer completed successfully."));
+        assertTrue(norm.contains("Recipient wallet was created automatically."));
+        assertTrue(norm.contains("============================================================"));
         assertEquals(new BigDecimal("8"), senderBlockchain.getPreciseBalance("main"));
         assertEquals(1, senderWallet.getTransactionHistory().size());
         assertEquals("crossSend acc/receiver amt/2 curr/btc", senderWallet.getTransactionHistory().get(0));
 
-        WalletManager recipientWalletManager = new WalletStorage(CrossSendCommandTest.class, "receiver").load();
+        WalletManager recipientWalletManager =
+                new WalletStorage(CrossSendCommandTest.class, "receiver").load();
         assertEquals(1, recipientWalletManager.getWallets().size());
         Wallet recipientWallet = recipientWalletManager.getWallets().get(0);
         assertEquals("btc", recipientWallet.getName());
         assertEquals("btc", recipientWallet.getCurrencyCode());
 
-        Blockchain recipientBlockchain = new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
+        Blockchain recipientBlockchain =
+                new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
         assertEquals(new BigDecimal("2"), recipientBlockchain.getPreciseBalance("btc"));
     }
 
@@ -88,9 +98,12 @@ class CrossSendCommandTest {
 
         String output = runCommand(command, senderBlockchain);
 
-        assertTrue(output.contains("Recipient wallet: vault"));
+        String normOutput = normalizeOutput(output);
+        assertTrue(normOutput.contains(String.format("%-18s: %s", "Recipient wallet", "vault")));
+        assertTrue(normOutput.contains("============================================================"));
         assertEquals(new BigDecimal("3.5"), senderBlockchain.getPreciseBalance("main"));
-        Blockchain recipientBlockchain = new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
+        Blockchain recipientBlockchain =
+                new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
         assertEquals(new BigDecimal("1.5"), recipientBlockchain.getPreciseBalance("vault"));
     }
 

@@ -27,16 +27,23 @@ public class ViewChainCommand extends Command {
                 .mapToInt(block -> block.getTransactions().size())
                 .sum();
 
+        System.out.println();
         System.out.println("Blockchain Overview:");
-        System.out.println("Total blocks: " + blocks.size());
+        System.out.println("Total blocks      : " + blocks.size());
         System.out.println("Total transactions: " + totalTransactions);
+        System.out.println();
         System.out.println("Blocks:");
+        System.out.println("=".repeat(80));
+        System.out.printf("%-6s %-10s %-20s %-40s%n", "Index", "Tx Count", "Timestamp", "Hash Preview");
+        System.out.println("-".repeat(80));
         for (Block block : blocks) {
-            System.out.println(block.getIndex()
-                    + " | tx=" + block.getTransactions().size()
-                    + " | time=" + block.getTimestamp()
-                    + " | hash=" + compactHash(block.getCurrentHash()));
+            System.out.printf("%-6d %-10d %-20s %-40s%n",
+                    block.getIndex(),
+                    block.getTransactions().size(),
+                    block.getTimestamp(),
+                    compactHash(block.getCurrentHash()));
         }
+        System.out.println("=".repeat(80));
     }
 
     private String compactHash(String hash) {

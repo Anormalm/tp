@@ -138,15 +138,18 @@ public class SendCommand extends Command {
     }
 
     private void printTransferSummary(TransferRequest transferRequest) {
+        System.out.println();
         System.out.println("Transaction sent successfully.");
-        System.out.println("Wallet: " + transferRequest.getSenderWalletName());
-        System.out.println("To: " + transferRequest.getRecipientAddress());
-        System.out.println("Amount: " + transferRequest.getAmount().toPlainString());
-        System.out.println("Speed: " + transferRequest.getSpeedLabel());
-        System.out.println("Fee: " + transferRequest.getFee().toPlainString());
+        System.out.println("=".repeat(60));
+        System.out.printf("%-12s: %s%n", "Wallet", transferRequest.getSenderWalletName());
+        System.out.printf("%-12s: %s%n", "To", transferRequest.getRecipientAddress());
+        System.out.printf("%-12s: %s%n", "Amount", transferRequest.getAmount().toPlainString());
+        System.out.printf("%-12s: %s%n", "Speed", transferRequest.getSpeedLabel());
+        System.out.printf("%-12s: %s%n", "Fee", transferRequest.getFee().toPlainString());
         if (transferRequest.getNote() != null) {
-            System.out.println("Note: " + transferRequest.getNote());
+            System.out.printf("%-12s: %s%n", "Note", transferRequest.getNote());
         }
+        System.out.println("=".repeat(60));
     }
 
     private ParsedArgs parseArguments(String args) {

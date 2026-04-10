@@ -38,14 +38,22 @@ public class ViewBlockCommand extends Command {
         }
 
         Block block = blockchain.getBlock(index);
-        System.out.println("Block Index   : " + block.getIndex());
-        System.out.println("Timestamp     : " + block.getTimestamp());
-        System.out.println("Previous Hash : " + block.getPreviousHash());
-        System.out.println("Current Hash  : " + block.getCurrentHash());
+        System.out.println();
+        System.out.println("Block Details:");
+        System.out.println("=".repeat(80));
+        System.out.printf("%-18s: %s%n", "Block Index", block.getIndex());
+        System.out.printf("%-18s: %s%n", "Timestamp", block.getTimestamp());
+        System.out.printf("%-18s: %s%n", "Previous Hash", block.getPreviousHash());
+        System.out.printf("%-18s: %s%n", "Current Hash", block.getCurrentHash());
+        System.out.println("-".repeat(80));
         System.out.println("Transactions:");
+        System.out.printf("%-4s %-74s%n", "No.", "Transaction");
+        System.out.println("-".repeat(80));
+        int txNo = 1;
         for (String transaction : block.getTransactions()) {
-            System.out.println(transaction);
+            System.out.printf("%-4d %-74s%n", txNo++, transaction);
         }
+        System.out.println("=".repeat(80));
     }
 
     private Integer parseIndex(String rawIndex) {

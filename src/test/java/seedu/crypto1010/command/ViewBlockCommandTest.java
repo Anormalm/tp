@@ -12,6 +12,10 @@ import java.io.PrintStream;
 import org.junit.jupiter.api.Test;
 
 class ViewBlockCommandTest {
+    // Helper to normalize output for robust comparison
+    private String normalizeOutput(String s) {
+        return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+    }
     @Test
     void execute_validIndex_printsBlockDetails() {
         Blockchain blockchain = Blockchain.createDefault();
@@ -19,16 +23,21 @@ class ViewBlockCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals(
-                "Block Index   : 1" + System.lineSeparator()
-                        + "Timestamp     : 2026-02-12 14:35:02" + System.lineSeparator()
-                        + "Previous Hash : " + blockchain.getBlock(1).getPreviousHash() + System.lineSeparator()
-                        + "Current Hash  : " + blockchain.getBlock(1).getCurrentHash() + System.lineSeparator()
-                        + "Transactions:" + System.lineSeparator()
-                        + "network -> alice : 10" + System.lineSeparator()
-                        + "alice -> bob : 10" + System.lineSeparator()
-                        + "bob -> carol : 5" + System.lineSeparator(),
-                output);
+        String expected = "\nBlock Details:\n"
+            + "================================================================================\n"
+            + String.format("%-18s: %d\n", "Block Index", 1)
+            + String.format("%-18s: %s\n", "Timestamp", "2026-02-12 14:35:02")
+            + String.format("%-18s: %s\n", "Previous Hash", blockchain.getBlock(1).getPreviousHash())
+            + String.format("%-18s: %s\n", "Current Hash", blockchain.getBlock(1).getCurrentHash())
+            + "--------------------------------------------------------------------------------\n"
+            + "Transactions:\n"
+            + String.format("%-4s %-74s\n", "No.", "Transaction")
+            + "--------------------------------------------------------------------------------\n"
+            + String.format("%-4d %-74s\n", 1, "network -> alice : 10")
+            + String.format("%-4d %-74s\n", 2, "alice -> bob : 10")
+            + String.format("%-4d %-74s\n", 3, "bob -> carol : 5")
+            + "================================================================================\n";
+        assertEquals(normalizeOutput(expected), normalizeOutput(output));
     }
 
     @Test

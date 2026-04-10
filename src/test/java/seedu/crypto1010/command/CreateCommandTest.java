@@ -21,7 +21,13 @@ class CreateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals("Wallet created: alice" + System.lineSeparator(), output);
+        String expected = "\nWallet Created\n" +
+            "========================================\n" +
+            String.format("%-12s: %s\n", "Wallet", "alice") +
+            "========================================\n";
+        String normExpected = expected.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
         assertEquals(1, walletManager.getWallets().size());
         assertEquals("alice", walletManager.getWallets().get(0).getName());
     }
@@ -34,7 +40,14 @@ class CreateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals("Wallet created: alice | Currency: btc" + System.lineSeparator(), output);
+        String expected = "\nWallet Created\n" +
+            "========================================\n" +
+            String.format("%-12s: %s\n", "Wallet", "alice") +
+            String.format("%-12s: %s\n", "Currency", "btc") +
+            "========================================\n";
+        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
         assertEquals("btc", walletManager.getWallets().get(0).getCurrencyCode());
     }
 
@@ -118,7 +131,13 @@ class CreateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals("Wallet created: alice" + System.lineSeparator(), output);
+        String expected = "\nWallet Created\n" +
+            "========================================\n" +
+            String.format("%-12s: %s\n", "Wallet", "alice") +
+            "========================================\n";
+        String normExpected = expected.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        String normOutput = output.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
+        assertEquals(normExpected, normOutput);
         assertEquals(1, walletManager.getWallets().size());
     }
 

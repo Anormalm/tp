@@ -36,21 +36,27 @@ public class ListCommand extends Command {
             return;
         }
 
+        // Table headers
+        String headerFormat = "%-4s %-20s %-12s %-44s";
+        String rowFormat =   "%-4d %-20s %-12s %-44s";
+        System.out.println();
         System.out.println("Wallets:");
+        System.out.println("=".repeat(84));
+        System.out.printf(headerFormat + "%n", "No.", "Wallet Name", "Currency", "Address");
+        System.out.println("-".repeat(84));
         for (int i = 0; i < wallets.size(); i++) {
             Wallet wallet = wallets.get(i);
             String walletName = validateWalletName(wallet);
-            System.out.print((i + 1) + ". " + walletName);
-            if (!CurrencyCode.isGeneric(wallet.getCurrencyCode())) {
-                System.out.print(" | Currency: " + wallet.getCurrencyCode());
-            }
-            System.out.print(" | Address: ");
+            String currency = CurrencyCode.isGeneric(wallet.getCurrencyCode()) ? "-" : wallet.getCurrencyCode();
+            String address;
             try {
-                System.out.println(wallet.getAddress());
+                address = wallet.getAddress();
             } catch (Crypto1010Exception e) {
-                System.out.println(e.getMessage());
+                address = e.getMessage();
             }
+            System.out.printf(rowFormat + "%n", i + 1, walletName, currency, address);
         }
+        System.out.println("=".repeat(84));
     }
 
     private String validateWalletName(Wallet wallet) throws Crypto1010Exception {
