@@ -1,3 +1,4 @@
+// Ensure file ends with a newline
 package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -1,3 +1,4 @@
+// Ensure file ends with a newline
 package seedu.crypto1010.command;
 
 import org.junit.jupiter.api.Test;
