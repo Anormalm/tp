@@ -154,7 +154,7 @@ class CreateCommandTest {
         CreateCommand command = new CreateCommand("w/alice curr/b", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
-        assertEquals("Error: CURRENCY must be 2-10 letters or digits. "
+        assertEquals("Error: CURRENCY must be 2-10 alphanumeric characters. "
                 + "Use: create w/WALLET_NAME [curr/CURRENCY]", exception.getMessage());
     }
 
