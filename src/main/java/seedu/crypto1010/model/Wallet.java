@@ -61,11 +61,13 @@ public class Wallet {
         if (keys == null || keys.length < 2 || keys[0] == null || keys[1] == null) {
             throw new IllegalArgumentException(INVALID_KEYS_ERROR);
         }
+        String generatedAddress = keys[0].getWalletAddress();
+        if (generatedAddress == null || generatedAddress.isBlank()) {
+            throw new IllegalArgumentException(INVALID_KEYS_ERROR);
+        }
+
         this.publicKey = keys[0];
         this.privateKey = keys[1];
-        address = publicKey.getWalletAddress();
-        assert publicKey != null : "public key must not be null";
-        assert privateKey != null : "private key must not be null";
-        assert address != null && !address.isBlank() : "wallet address must be initialized";
+        this.address = generatedAddress;
     }
 }
