@@ -29,7 +29,7 @@ public class CreateCommand extends Command {
     private static final String INVALID_FORMAT_ERROR =
             "Error: Invalid create format. Use: create w/WALLET_NAME [curr/CURRENCY]";
     private static final String CREATE_FORMAT = "Use: create w/WALLET_NAME [curr/CURRENCY]";
-    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 letters or digits.";
+    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 alphanumeric characters.";
     private static final String CURRENCY_GENERIC_NOT_ALLOWED_ERROR =
             "Error: CURRENCY must be specific. Omit curr/ to create a generic wallet.";
     private static final String WALLET_PREFIX = "w/";

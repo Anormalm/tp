@@ -184,7 +184,7 @@ class CrossSendCommandTest {
                 Crypto1010Exception.class,
                 () -> command.execute(senderBlockchain));
 
-        assertEquals("Error: CURRENCY must be 2-10 letters or digits. "
+        assertEquals("Error: CURRENCY must be 2-10 alphanumeric characters. "
                 + "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY", exception.getMessage());
     }
 

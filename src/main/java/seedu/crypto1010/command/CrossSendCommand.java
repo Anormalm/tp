@@ -29,7 +29,7 @@ public class CrossSendCommand extends Command {
             + "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY";
     private static final String AMOUNT_INVALID_ERROR = "Error: Amount must be a positive number.";
     private static final String ACCOUNT_INVALID_ERROR = "Error: ACCOUNT_NAME is invalid.";
-    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 letters or digits.";
+    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 alphanumeric characters.";
     private static final String COMMAND_FORMAT = "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY";
 
     private final String arguments;
