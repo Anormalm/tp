@@ -429,10 +429,10 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 ### Manual test cases
 1. Authentication:
    - Launch the app.
-   - Choose `register`.
+   - At `Choice:`, enter `2` (or `register`).
    - Enter a username and password.
    - Expected: account is created and the app logs in to that account.
-   - Relaunch the app and choose `login` with the same credentials.
+   - Relaunch the app and at `Choice:`, enter `1` (or `login`) with the same credentials.
    - Expected: login succeeds and the same account data is loaded.
 1. Help
    - `help`
