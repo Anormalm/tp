@@ -29,7 +29,7 @@ The following sequence diagram shows the standard command path after a user is a
 2. `Crypto1010` passes the raw input to `Parser`.
 3. `Parser` constructs a concrete `Command` object.
 4. `Crypto1010` executes the command with the current in-memory `Blockchain` and `WalletManager`.
-5. On success, `Crypto1010` persists both blockchain and wallet states.
+5. On success, `Crypto1010` persists both blockchain and wallet states when save is enabled for that session.
 
 ### Adding a new command
 1. Add the new keyword and description to `CommandWord` so it appears in `help`.
@@ -266,10 +266,11 @@ Validation sequence:
    - display instructional message
    - prompt user to enter the expected command
 6. read user input from `Scanner`
-7. if input equals `tutorial exit` or `exit`, terminate tutorial and print exit message
-8. if input matches expected instruction (with special handling for dynamic inputs like `send`), execute command using parser
-9. if execution fails or input is incorrect, display error message and repeat step
-10. continue until all tutorial steps are completed or user exits
+7. if input equals `tutorial exit`, terminate tutorial and print tutorial exit message
+8. if input equals `exit`, trigger global application exit
+9. if input matches expected instruction (with special handling for dynamic inputs like `send`), execute command using parser
+10. if execution fails or input is incorrect, display error message and repeat step
+11. continue until all tutorial steps are completed or user exits
 
 ### `create` command implementation
 CreateCommand uses prefix-based argument parsing:
@@ -370,6 +371,7 @@ Key design points shown in the diagram:
 - `WalletStorage` persists wallet names, wallet currencies, and transaction history in `data/accounts/USERNAME/wallets.txt`.
 - On startup, `Crypto1010` authenticates first, then loads blockchain and wallet data for the current account only.
 - If loading fails, the app falls back to a default blockchain and/or an empty wallet list.
+- After a load failure, save is disabled for that data type in the current session to avoid overwriting possibly corrupted files.
 
 ## Product scope
 

@@ -1,8 +1,8 @@
 # Hu Lifan - Project Portfolio Page
 
 ## Overview
-Crypto1010 is a CLI-based blockchain learning application that lets users create wallets, send funds, and validate chain integrity locally.  
-My main scope was the blockchain core (`Blockchain`, `Block`) and the transfer-to-block recording pipeline, with emphasis on deterministic validation and tamper detection.
+Crypto1010 is a CLI-based blockchain learning application that lets users create wallets, transfer funds, and validate chain integrity locally.  
+My primary scope was implementation ownership of blockchain/transfer internals plus release hardening through bug triaging and fixes during PE-D.
 
 ## Summary of Contributions
 
@@ -11,38 +11,60 @@ My main scope was the blockchain core (`Blockchain`, `Block`) and the transfer-t
 
 ### Enhancements implemented
 - Implemented and refined the `Blockchain`/`Block` subsystem as the single source of truth for:
-- block creation/linkage (`previousHash`, index continuity).
-- deterministic hash-based integrity checking.
-- chain-wide validation semantics (structure, linkage, transaction format, and running-balance checks).
+  - block creation/linkage (`previousHash`, index continuity)
+  - deterministic hash-based integrity checking
+  - chain-wide validation semantics (structure, linkage, transaction format, running-balance checks)
 - Integrated transfer recording flow so successful `send` operations append transactions through a controlled model path.
 - Strengthened persistence safety by validating loaded blockchain data before accepting it into runtime.
 - Added safeguards to prevent data overwrite when load fails by disabling save for affected components in that session.
-- Added the `viewchain` command to provide expert users with a compact blockchain summary (total blocks, total transactions, compact block list).
+- Added `viewchain` command support for compact blockchain overview (total blocks, total transactions, compact block list).
+
+### Bug fixing and triaging (PE-D focus)
+- Triaged and resolved multiple PE-D findings across functionality and docs, including parser correctness, command behavior consistency, persistence edge cases, and tutorial/session flow.
+- Representative issues fixed include:
+  - `#183` (`CreateCommand.resolveArguments` dead no-op)
+  - `#182` (`Wallet.setKeys` validation sequencing)
+  - `#179` (`create ... curr/generic` handling)
+  - `#167` (user-facing warning noise for invalid commands)
+  - `#164` (DG startup instruction mismatch)
+  - `#152` (tutorial `exit` behavior)
+  - `#150` (extreme scientific notation freeze prevention)
+  - `#141` (UG quick start for end users)
+  - `#140` (blank blockchain file load behavior)
+  - registration UX fix for immediate username validation on invalid input (related to `#138`)
+- Triage approach used:
+  - Reproduce from exact tester steps first
+  - Classify as real bug vs accepted behavior
+  - Apply minimal safe fix
+  - Update tests/docs to prevent regressions and clarify expected behavior
 
 ### Contributions to the User Guide
 - Documented startup authentication behavior (`login`/`register`) and account-scoped data model.
 - Updated command documentation for `crossSend` and `viewchain`, including examples and command summary entries.
+- Updated quick-start and behavior notes to better reflect real user and jar-run paths.
 - Maintained data and persistence notes to reflect account-specific storage paths and current address/key persistence behavior.
 
 ### Contributions to the Developer Guide
 - Wrote/updated the Blockchain and Block implementation details:
-- architecture-level ownership of validation and append invariants.
-- component-level design rationale and trade-offs.
-- alternatives considered for validation and append APIs.
+  - architecture-level ownership of validation and append invariants
+  - component-level design rationale and trade-offs
+  - alternatives considered for validation and append APIs
 - Added/updated UML diagrams for this area:
-- validation sequence diagram.
-- send-to-append sequence diagram.
-- blockchain/block class diagram.
-- Added implementation notes and manual test guidance for newly introduced command behavior (`viewchain`) and account-scoped persistence flow.
+  - validation sequence diagram
+  - send-to-append sequence diagram
+  - blockchain/block class diagram
+- Updated DG implementation and manual-testing details to stay aligned with current behavior after bug fixes.
 
 ### Contributions to team-based tasks
 - Helped align blockchain behavior with command and storage layers so validation rules are enforced consistently in CLI and load-time paths.
-- Contributed to documentation quality by expanding technical rationale, limitations, and future-extension direction for blockchain internals.
-- Performed integration fixes across parser, command registry, tests, and docs to keep feature additions release-ready.
+- Performed integration fixes across parser, command registry, tests, and docs to keep releases stable.
+- Coordinated bug triaging decisions with teammates (fix now / doc clarify / accept-as-designed) to reduce duplicate work during PE.
 
 ### Review/mentoring contributions
 - Reviewed teammate changes for command parsing, storage behavior, and test coverage consistency.
 - Helped identify and prioritize correctness issues (load/save safety, parser edge cases, documentation mismatches) before merge.
+- Supported teammate bug investigations by reproducing reports and narrowing root causes before patching.
 
 ### Contributions beyond the project team
 - Reported and analyzed project-level defects through GitHub issues and followed through with implementation and documentation updates.
+- Contributed structured PE-D triage reasoning (severity, reproducibility, expected behavior) that improved issue turnaround and consistency.

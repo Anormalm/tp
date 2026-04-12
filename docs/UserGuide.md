@@ -1,4 +1,5 @@
-# Crypto1010 User Guide  
+# Crypto1010 User Guide
+
 ## Introduction
 Crypto1010 is a command-line blockchain wallet simulator. It supports account login/registration, wallet creation, key generation, wallet-to-address transfers, account-to-account transfers, balance queries, wallet history lookup, and blockchain validation.
 
@@ -45,7 +46,6 @@ The application is designed for educational use and records transactions in a si
    ```powershell
    .\gradlew run
    ```
-<br>
 
 ---
 ## Startup Authentication
@@ -57,57 +57,36 @@ The application is designed for educational use and records transactions in a si
 - Passwords must be at least 6 characters long.
 
 ## Features
-**NOTE**
 ### Command Formatting
-+ First tokens must always be the command word.  
-    e.g. in `viewblock INDEX`,  
-    ✅ `viewblock 2`  
-    ❌ `2 viewblock`  
-    <br/>
-+ Words in `UPPER_CASE` are the parameters to be supplied by the user.  
-    These parameters **MUST** be filled in.  
-    e.g. in `viewblock INDEX`,  
-    ✅ `viewblock 2`  
-    ❌ `viewblock`  
-    <br/>
-+ Parameters in the format `[UPPER_CASE]` are optional.  
-    e.g. in `help [c/COMMAND]`  
-    ✅ `help`  
-    ✅ `help c/create`  
-    <br/>
-+ Parameters in the format `/type UPPER_CASE` must include `/type` in the input.   
-    e.g. in `create w/WALLET_NAME`  
-    ✅ `create w/alice`  
-    ❌ `create alice`  
-    <br/>
-+ Parameters in the format `/type UPPER_CASE` must include the exact `/type` in the input.   
-    e.g. in `create w/WALLET_NAME`  
-    ✅ `create w/alice`  
-    ❌ `create name/alice`  
-    <br/>
-+ Parameters in the format `/type UPPER_CASE` are prefix-based, and spacing support may differ by command parser implementation.  
-    e.g. in `create w/WALLET_NAME`  
-    ✅ `create w/alice`  
-    ❌ `create alice`  
-    <br/>
-+ Parameters must be separated by spaces.   
-    e.g. in `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT`  
-    ✅ `send w/bob to/0x1111111111111111111111111111111111111111 amt/1.5`  
-    ✅ `send    w/bob    to/0x1111111111111111111111111111111111111111    amt/1.5`  
-    ❌ `send w/bobto/0x1111111111111111111111111111111111111111amt/1.5`  
-    <br/>
-+ Parameters that are numbers must be written in numerical form not spelled out, and must be non-negative.  
-    e.g in `mark TASK_INDEX`  
-    ✅ `viewblock 2`  
-    ❌ `viewblock two`   
-    ❌ `viewblock -2`  
-    <br/>
-+ Commands that do not take in parameters will ignore any parameter provided.  
-    Such commands include `validate`.  
-    e.g. in `validate`  
-    `validate dsja 2190` will be interpreted as `validate`  
-    <br/>
-<br>
++ First token must be the command word.  
+  e.g. in `viewblock INDEX`  
+  [OK] `viewblock 2`  
+  [X] `2 viewblock`
++ Words in `UPPER_CASE` are required parameters.  
+  e.g. in `viewblock INDEX`  
+  [OK] `viewblock 2`  
+  [X] `viewblock`
++ Parameters in `[UPPER_CASE]` are optional.  
+  e.g. in `help [c/COMMAND]`  
+  [OK] `help`  
+  [OK] `help c/create`
++ Prefix parameters must include the exact prefix.  
+  e.g. in `create w/WALLET_NAME`  
+  [OK] `create w/alice`  
+  [X] `create alice`  
+  [X] `create name/alice`
++ Parameters must be separated by spaces.  
+  e.g. in `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT`  
+  [OK] `send w/bob to/0x1111111111111111111111111111111111111111 amt/1.5`  
+  [OK] `send    w/bob    to/0x1111111111111111111111111111111111111111    amt/1.5`  
+  [X] `send w/bobto/0x1111111111111111111111111111111111111111amt/1.5`
++ Number parameters must be numeric and non-negative where required by the command.  
+  e.g. in `viewblock INDEX`  
+  [OK] `viewblock 2`  
+  [X] `viewblock two`  
+  [X] `viewblock -2`
++ Commands without parameters ignore extra trailing text.  
+  e.g. `validate anything` is interpreted as `validate`.
 
 ### `help`: Display command help
 Format: `help [c/COMMAND]`
@@ -123,14 +102,14 @@ Examples:
 Format: `tutorial start`
 
 - Enters an interactive tutorial mode that guides you through the basic features of Crypto1010 step by step.
-- Guides users on using all the basic commands available
-- Does not affect wallets and blockchains, all changes made are isolated and temporary
-- User can exit this mode by typing `tutorial exit` at anytime
+- Uses isolated temporary tutorial data and does not affect your account data.
+- Type `tutorial exit` to leave tutorial mode.
+- Type `exit` during tutorial to exit the app globally.
 
 ### `create`: Create a wallet
 Format: `create w/WALLET_NAME [curr/CURRENCY]`
 
-- Creates a wallet for the current account and persists it on save/exit.
+- Creates a wallet for the current account and persists it on save.
 - Wallet names are unique (case-insensitive).
 - `curr/` is optional.
 - A wallet tagged with a specific currency can be used by `crossSend`.
@@ -144,7 +123,7 @@ Examples:
 ### `list`: List wallets
 Format: `list`
 
-- Shows all wallets created in the current session.
+- Shows all wallets in the current account (including previously saved wallets loaded at login).
 - Wallets created with a specific currency display that currency in the list.
 
 ### `keygen`: Generate keys for a wallet
@@ -152,7 +131,9 @@ Format: `keygen w/WALLET_NAME`
 
 - Generates a public/private key pair for an existing wallet.
 - Fails if the wallet does not exist.
-- Must be done to send transactions as keygen also creates wallet address
+- Generates a wallet address for that wallet.
+- Key generation is required if you want this wallet to have a local address (for receiving to that local address).
+- `send` does not require sender key generation.
 
 Example:
 - `keygen w/alice`
@@ -177,6 +158,7 @@ Format: `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/F
 - If `fee/` is provided, it overrides speed-based fee.
 - Address validation supports Ethereum, Bitcoin, and Solana address formats.
 - Total deduction = `AMOUNT + FEE`.
+- `note/` captures the remainder of input after it appears, so place it last.
 
 Examples:
 - `send w/bob to/0x1111111111111111111111111111111111111111 amt/1.5`
@@ -241,7 +223,9 @@ Format: `logout`
 ### `exit`: Save and terminate
 Format: `exit`
 
-- Saves blockchain data and exits the program.
+- Exits the program.
+- Data is saved when the current account data was loaded successfully.
+- If load failed due to corrupted data, save is intentionally disabled to avoid overwriting files.
 
 ---
 ## Coming Soon
@@ -252,6 +236,7 @@ Based on planned work tracked in project discussions/issues, the next user-facin
 - Persist generated keys and wallet addresses across restarts so account-to-account interactions are easier to continue.
 
 This feature is not available yet in the current release.
+
 ---
 ## Command Summary
 - `help [c/COMMAND]`
@@ -268,7 +253,6 @@ This feature is not available yet in the current release.
 - `viewblock INDEX`
 - `logout`
 - `exit`
-<br>
 
 ---
 ## Data and Persistence
@@ -276,7 +260,8 @@ This feature is not available yet in the current release.
 - Each account has its own blockchain data at `data/accounts/USERNAME/blockchain.json`.
 - Each account has its own wallet names, wallet currencies, and wallet send history at `data/accounts/USERNAME/wallets.txt`.
 - Generated keys and wallet addresses are not currently persisted; run `keygen` again after restarting if you need an address.
-<br>
+- Missing or blank blockchain files are treated as no data yet and default data is loaded.
+- Corrupted blockchain or wallet data triggers safe fallback, and saving is disabled to avoid overwriting that account's files.
 
 ---
 ## FAQ
@@ -290,7 +275,7 @@ This feature is not available yet in the current release.
 **A**: Wallet names and send history are persisted, but generated keys and wallet addresses are not. Run `keygen w/WALLET_NAME` again.
 
 **Q**: Can I transfer to a wallet name directly?  
-**A**: `send` still requires a recipient address string in `to/`. For direct account-to-account transfer, use `crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY`.
+**A**: `send` requires a recipient address string in `to/`. For direct account-to-account transfer, use `crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY`.
 
 **Q**: What does `history` show?  
 **A**: `history w/WALLET_NAME` shows the wallet's recorded outgoing send history, not every blockchain transfer involving that wallet.
