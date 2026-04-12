@@ -7,6 +7,7 @@ import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
+import java.io.Console;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -61,6 +62,13 @@ public final class InteractiveShell {
                 // Fall back to plain prompt if masking support is unavailable.
             }
         }
+
+        Console console = System.console();
+        if (console != null) {
+            char[] input = console.readPassword("%s ", prompt);
+            return input == null ? null : new String(input).strip();
+        }
+
         return readPlain(prompt);
     }
 

@@ -6,42 +6,59 @@ import java.util.List;
 public final class CliVisuals {
     private static final int PANEL_WIDTH = 72;
     private static final int LEGACY_WIDTH = 60;
+    private static final boolean COLORS_ENABLED = System.console() != null && System.getenv("NO_COLOR") == null;
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_CYAN = "\u001B[36m";
+    private static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_MAGENTA = "\u001B[35m";
 
     private CliVisuals() {
     }
 
     public static void printPanel(String title, List<String> lines) {
-        System.out.println("+" + "-".repeat(PANEL_WIDTH - 2) + "+");
-        System.out.println("| " + fit(title, PANEL_WIDTH - 4) + " |");
-        System.out.println("+" + "-".repeat(PANEL_WIDTH - 2) + "+");
+        String border = "+" + "-".repeat(PANEL_WIDTH - 2) + "+";
+        System.out.println(accent(border));
+        System.out.println(accent("| ") + titleText(fit(title, PANEL_WIDTH - 4)) + accent(" |"));
+        System.out.println(accent(border));
         for (String line : safeLines(lines)) {
             for (String wrapped : wrapLine(line, PANEL_WIDTH - 4)) {
-                System.out.println("| " + fit(wrapped, PANEL_WIDTH - 4) + " |");
+                System.out.println(accent("| ") + fit(wrapped, PANEL_WIDTH - 4) + accent(" |"));
             }
         }
-        System.out.println("+" + "-".repeat(PANEL_WIDTH - 2) + "+");
+        System.out.println(accent(border));
     }
 
     public static void printInfo(String message) {
-        System.out.println(message);
+        System.out.println(color(message, ANSI_GREEN));
     }
 
     public static void printWarning(String message) {
-        System.out.println(message);
+        System.out.println(color(message, ANSI_YELLOW));
     }
 
     public static void printError(String message) {
-        System.out.println(message);
+        System.out.println(color(message, ANSI_RED));
     }
 
     public static void printLegacySection(String title, List<String> lines) {
         String divider = "=".repeat(LEGACY_WIDTH);
-        System.out.println(divider);
-        System.out.println(title);
+        System.out.println(accent(divider));
+        System.out.println(titleText(title));
         for (String line : safeLines(lines)) {
             System.out.println(line == null ? "" : line);
         }
-        System.out.println(divider);
+        System.out.println(accent(divider));
+    }
+
+    public static void printLogo(List<String> logoLines, String slogan) {
+        for (String line : safeLines(logoLines)) {
+            System.out.println(color(line, ANSI_MAGENTA));
+        }
+        if (slogan != null && !slogan.isBlank()) {
+            System.out.println(color(slogan, ANSI_CYAN));
+        }
     }
 
     public static void printTable(String title, List<String> headers, List<List<String>> rows) {
@@ -128,5 +145,20 @@ public final class CliVisuals {
             return value.substring(0, width);
         }
         return value + " ".repeat(width - value.length());
+    }
+
+    private static String accent(String text) {
+        return color(text, ANSI_CYAN);
+    }
+
+    private static String titleText(String text) {
+        return color(text, ANSI_MAGENTA);
+    }
+
+    private static String color(String text, String ansiColor) {
+        if (!COLORS_ENABLED) {
+            return text;
+        }
+        return ansiColor + text + ANSI_RESET;
     }
 }
