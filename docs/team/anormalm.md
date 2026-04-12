@@ -18,6 +18,15 @@ My primary scope was implementation ownership of blockchain/transfer internals p
 - Strengthened persistence safety by validating loaded blockchain data before accepting it into runtime.
 - Added safeguards to prevent data overwrite when load fails by disabling save for affected components in that session.
 - Added `viewchain` command support for compact blockchain overview (total blocks, total transactions, compact block list).
+- Implemented CLI UI upgrades for jar users:
+  - centralized visual rendering via `CliVisuals`
+  - startup branding (logo + slogan)
+  - authenticated shell prompt format (`username@crypto1010 ~`)
+  - interactive tab auto-completion with pre-login and post-login suggestion scopes
+- Added CLI robustness/security hardening:
+  - sanitized terminal output to prevent control-sequence/ANSI injection from user-provided content
+  - moved startup logo loading to bundled classpath resources (jar-safe, avoids CWD spoofing)
+  - enforced wallet-name max length to reduce UI truncation/spoofing risk
 
 ### Bug fixing and triaging (PE-D focus)
 - Triaged and resolved multiple PE-D findings across functionality and docs, including parser correctness, command behavior consistency, persistence edge cases, and tutorial/session flow.
@@ -37,12 +46,17 @@ My primary scope was implementation ownership of blockchain/transfer internals p
   - Classify as real bug vs accepted behavior
   - Apply minimal safe fix
   - Update tests/docs to prevent regressions and clarify expected behavior
+  - Re-run unit, checkstyle, and text-ui regression after each fix batch
 
 ### Contributions to the User Guide
 - Documented startup authentication behavior (`login`/`register`) and account-scoped data model.
 - Updated command documentation for `crossSend` and `viewchain`, including examples and command summary entries.
 - Updated quick-start and behavior notes to better reflect real user and jar-run paths.
 - Maintained data and persistence notes to reflect account-specific storage paths and current address/key persistence behavior.
+- Added/updated CLI usability documentation:
+  - startup branding and authenticated prompt format
+  - tab auto-completion scope before and after login
+  - terminal constraints for completion behavior
 
 ### Contributions to the Developer Guide
 - Wrote/updated the Blockchain and Block implementation details:
@@ -54,6 +68,8 @@ My primary scope was implementation ownership of blockchain/transfer internals p
   - send-to-append sequence diagram
   - blockchain/block class diagram
 - Updated DG implementation and manual-testing details to stay aligned with current behavior after bug fixes.
+- Added implementation notes for shell/completer architecture and mode switching between authentication and command phases.
+- Added manual testing steps for tab completion scope transitions.
 
 ### Contributions to team-based tasks
 - Helped align blockchain behavior with command and storage layers so validation rules are enforced consistently in CLI and load-time paths.

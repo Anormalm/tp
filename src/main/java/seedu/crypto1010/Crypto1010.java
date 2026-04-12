@@ -3,6 +3,7 @@ package seedu.crypto1010;
 import seedu.crypto1010.auth.AuthenticationException;
 import seedu.crypto1010.auth.AuthenticationService;
 import seedu.crypto1010.command.Command;
+import seedu.crypto1010.command.CommandWord;
 import seedu.crypto1010.command.ExitCommand;
 import seedu.crypto1010.command.LogoutCommand;
 import seedu.crypto1010.command.TutorialCommand;
@@ -13,6 +14,7 @@ import seedu.crypto1010.storage.AccountStorage;
 import seedu.crypto1010.storage.BlockchainStorage;
 import seedu.crypto1010.storage.WalletStorage;
 import seedu.crypto1010.ui.CliVisuals;
+import seedu.crypto1010.ui.CommandAutoCompleter;
 import seedu.crypto1010.ui.InteractiveShell;
 
 import java.io.BufferedReader;
@@ -22,10 +24,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class Crypto1010 {
     private static final Logger LOGGER = Logger.getLogger(Crypto1010.class.getName());
@@ -34,13 +36,21 @@ public class Crypto1010 {
             "Error: Invalid selection. Choose login, register, or exit.";
     private static final String STARTUP_SLOGAN = "Learn blockchain by building and breaking it safely.";
     private static final String LOGO_RESOURCE_PATH = "config/crypto1010logo.txt";
+    private static final String COMMAND_PROMPT_FORMAT = "%s@crypto1010 ~";
+    private static final List<String> AUTH_SUGGESTIONS = List.of("1", "2", "3", "login", "register", "exit");
+    private static final List<String> COMMAND_SUGGESTIONS = Stream.concat(
+                    Stream.of(CommandWord.values()).map(CommandWord::getCommand),
+                    Stream.of("crosssend"))
+            .toList();
 
     /**
      * Main entry-point for the java.crypto1010.Crypto1010 application.
      */
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
-        InteractiveShell shell = InteractiveShell.create(in);
+        CommandAutoCompleter completer = new CommandAutoCompleter(AUTH_SUGGESTIONS, COMMAND_SUGGESTIONS);
+        completer.setAuthMode(true);
+        InteractiveShell shell = InteractiveShell.create(in, completer);
         printOpeningBranding();
         AuthenticationService authenticationService = loadAuthenticationService();
         while (true) {
@@ -49,7 +59,7 @@ public class Crypto1010 {
                 return;
             }
 
-            SessionOutcome sessionOutcome = runAuthenticatedSession(in, accountUsername);
+            SessionOutcome sessionOutcome = runAuthenticatedSession(in, shell, completer, accountUsername);
             if (sessionOutcome == SessionOutcome.EXIT) {
                 return;
             }
@@ -72,7 +82,11 @@ public class Crypto1010 {
         }
     }
 
-    private static SessionOutcome runAuthenticatedSession(Scanner in, String accountUsername) {
+    private static SessionOutcome runAuthenticatedSession(
+            Scanner in,
+            InteractiveShell shell,
+            CommandAutoCompleter completer,
+            String accountUsername) {
         printWelcome(accountUsername);
         BlockchainStorage blockchainStorage = new BlockchainStorage(Crypto1010.class, accountUsername);
         WalletStorage walletStorage = new WalletStorage(Crypto1010.class, accountUsername);
@@ -88,13 +102,27 @@ public class Crypto1010 {
         if (!allowWalletSave) {
             System.out.println("Wallet save is disabled to avoid overwriting existing data after load failure.");
         }
+        completer.setWalletManager(walletManager);
+        completer.setAuthMode(false);
         Parser parser = new Parser(walletManager, accountUsername, Crypto1010.class);
 
         while (true) {
             String message;
             try {
-                message = in.nextLine().strip();
-            } catch (NoSuchElementException e) {
+                message = shell.readCommand(buildCommandPrompt(accountUsername));
+            } catch (RuntimeException e) {
+                completer.setAuthMode(true);
+                saveData(
+                        blockchainStorage,
+                        walletStorage,
+                        blockchain,
+                        walletManager,
+                        allowBlockchainSave,
+                        allowWalletSave);
+                return SessionOutcome.EXIT;
+            }
+            if (message == null) {
+                completer.setAuthMode(true);
                 saveData(
                         blockchainStorage,
                         walletStorage,
@@ -152,6 +180,8 @@ public class Crypto1010 {
 
                 if (c instanceof LogoutCommand logoutCommand && logoutCommand.isLogoutConfirmed()) {
                     System.out.println("Logged out from " + accountUsername + ".");
+                    completer.setWalletManager(null);
+                    completer.setAuthMode(true);
                     return SessionOutcome.LOGOUT;
                 }
             } catch (Crypto1010Exception e) {
@@ -273,6 +303,10 @@ public class Crypto1010 {
                 "Logged in as: " + accountUsername,
                 "Manage wallets, send transactions, and inspect your blockchain quickly.",
                 "Try: create w/MainWallet | list | help"));
+    }
+
+    private static String buildCommandPrompt(String accountUsername) {
+        return COMMAND_PROMPT_FORMAT.formatted(accountUsername);
     }
 
     private static LoadResult<Blockchain> loadBlockchain(BlockchainStorage storage) {
