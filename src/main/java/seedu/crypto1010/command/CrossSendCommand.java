@@ -5,8 +5,11 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.CurrencyCode;
 import seedu.crypto1010.model.WalletManager;
 import seedu.crypto1010.service.CrossAccountTransferService;
+import seedu.crypto1010.ui.CliVisuals;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -65,18 +68,16 @@ public class CrossSendCommand extends Command {
                 normalizedCurrency,
                 blockchain);
 
-        System.out.println();
-        System.out.println("Cross-account transfer completed successfully.");
-        System.out.println("=".repeat(60));
-        System.out.printf("%-18s: %s%n", "From wallet", result.senderWalletName());
-        System.out.printf("%-18s: %s%n", "To account", parsedArgs.accountName().toLowerCase());
-        System.out.printf("%-18s: %s%n", "Recipient wallet", result.recipientWalletName());
-        System.out.printf("%-18s: %s%n", "Amount", amount.stripTrailingZeros().toPlainString());
-        System.out.printf("%-18s: %s%n", "Currency", normalizedCurrency);
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(List.of("From wallet", result.senderWalletName()));
+        rows.add(List.of("To account", parsedArgs.accountName().toLowerCase()));
+        rows.add(List.of("Recipient wallet", result.recipientWalletName()));
+        rows.add(List.of("Amount", amount.stripTrailingZeros().toPlainString()));
+        rows.add(List.of("Currency", normalizedCurrency));
         if (result.recipientWalletCreated()) {
-            System.out.printf("%-18s: %s%n", "Info", "Recipient wallet was created automatically.");
+            rows.add(List.of("Info", "Recipient wallet was created automatically."));
         }
-        System.out.println("=".repeat(60));
+        CliVisuals.printKeyValuePanel("Cross-Account Transfer Completed", rows);
     }
 
     private ParsedArgs parseArguments(String args) {

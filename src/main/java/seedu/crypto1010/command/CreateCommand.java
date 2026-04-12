@@ -5,7 +5,10 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.CurrencyCode;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -58,14 +61,12 @@ public class CreateCommand extends Command {
         }
 
         Wallet wallet = walletManager.createWallet(walletName, currencyCode);
-        System.out.println();
-        System.out.println("Wallet Created");
-        System.out.println("=".repeat(40));
-        System.out.printf("%-12s: %s%n", "Wallet", wallet.getName());
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(List.of("Wallet", wallet.getName()));
         if (!CurrencyCode.isGeneric(currencyCode)) {
-            System.out.printf("%-12s: %s%n", "Currency", currencyCode);
+            rows.add(List.of("Currency", currencyCode));
         }
-        System.out.println("=".repeat(40));
+        CliVisuals.printKeyValuePanel("Wallet Created", rows);
     }
 
     private ParsedCreateArguments parseArguments(String args) throws Crypto1010Exception {
