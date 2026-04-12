@@ -38,9 +38,8 @@ public class Crypto1010 {
     private static final String LOGO_RESOURCE_PATH = "config/crypto1010logo.txt";
     private static final String COMMAND_PROMPT_FORMAT = "%s@crypto1010 ~";
     private static final List<String> AUTH_SUGGESTIONS = List.of("1", "2", "3", "login", "register", "exit");
-    private static final List<String> COMMAND_SUGGESTIONS = Stream.concat(
-                    Stream.of(CommandWord.values()).map(CommandWord::getCommand),
-                    Stream.of("crosssend"))
+    private static final List<String> COMMAND_SUGGESTIONS = Stream.of(CommandWord.values())
+            .map(CommandWord::getCommand)
             .toList();
 
     /**
