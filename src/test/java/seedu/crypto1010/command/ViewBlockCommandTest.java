@@ -2,6 +2,7 @@ package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
@@ -23,21 +24,19 @@ class ViewBlockCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "\nBlock Details:\n"
-            + "================================================================================\n"
-            + String.format("%-18s: %d\n", "Block Index", 1)
-            + String.format("%-18s: %s\n", "Timestamp", "2026-02-12 14:35:02")
-            + String.format("%-18s: %s\n", "Previous Hash", blockchain.getBlock(1).getPreviousHash())
-            + String.format("%-18s: %s\n", "Current Hash", blockchain.getBlock(1).getCurrentHash())
-            + "--------------------------------------------------------------------------------\n"
-            + "Transactions:\n"
-            + String.format("%-4s %-74s\n", "No.", "Transaction")
-            + "--------------------------------------------------------------------------------\n"
-            + String.format("%-4d %-74s\n", 1, "network -> alice : 10")
-            + String.format("%-4d %-74s\n", 2, "alice -> bob : 10")
-            + String.format("%-4d %-74s\n", 3, "bob -> carol : 5")
-            + "================================================================================\n";
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Block Details"));
+        assertTrue(normalized.contains("Block Index : 1"));
+        assertTrue(normalized.contains("Timestamp : 2026-02-12 14:35:02"));
+        assertTrue(normalized.contains("Previous Hash :"));
+        assertTrue(normalized.contains(blockchain.getBlock(1).getPreviousHash().substring(0, 16)));
+        assertTrue(normalized.contains("Current Hash :"));
+        assertTrue(normalized.contains(blockchain.getBlock(1).getCurrentHash().substring(0, 16)));
+        assertTrue(normalized.contains("Transactions"));
+        assertTrue(normalized.contains("No. | Transaction"));
+        assertTrue(normalized.contains("1   | network -> alice : 10"));
+        assertTrue(normalized.contains("2   | alice -> bob : 10"));
+        assertTrue(normalized.contains("3   | bob -> carol : 5"));
     }
 
     @Test

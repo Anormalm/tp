@@ -2,6 +2,7 @@ package seedu.crypto1010.command;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
+import seedu.crypto1010.ui.CliVisuals;
 
 import java.util.Scanner;
 
@@ -33,24 +34,24 @@ public class LogoutCommand extends Command {
 
         logoutConfirmed = false;
         while (true) {
-            System.out.println(CONFIRMATION_PROMPT);
+            CliVisuals.printInfo(CONFIRMATION_PROMPT);
             if (!in.hasNextLine()) {
-                System.out.println(LOGOUT_CANCELLED_MESSAGE);
+                CliVisuals.printInfo(LOGOUT_CANCELLED_MESSAGE);
                 return;
             }
 
             String confirmation = in.nextLine().strip();
             if ("y".equalsIgnoreCase(confirmation)) {
                 logoutConfirmed = true;
-                System.out.println(LOGGING_OUT_MESSAGE);
+                CliVisuals.printInfo(LOGGING_OUT_MESSAGE);
                 return;
             }
             if ("n".equalsIgnoreCase(confirmation)) {
-                System.out.println(LOGOUT_CANCELLED_MESSAGE);
+                CliVisuals.printInfo(LOGOUT_CANCELLED_MESSAGE);
                 return;
             }
 
-            System.out.println(INVALID_CONFIRMATION);
+            CliVisuals.printError(INVALID_CONFIRMATION);
         }
     }
 

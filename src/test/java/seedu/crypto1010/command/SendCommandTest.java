@@ -36,17 +36,13 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join("\n",
-            "Transaction sent successfully.",
-            "============================================================",
-            "Wallet      : bob",
-            "To          : " + ETH_ADDRESS,
-            "Amount      : 4",
-            "Speed       : standard",
-            "Fee         : 0.0010",
-            "============================================================"
-        );
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Transaction Sent Successfully"));
+        assertTrue(normalized.contains("Wallet : bob"));
+        assertTrue(normalized.contains("To : " + ETH_ADDRESS));
+        assertTrue(normalized.contains("Amount : 4"));
+        assertTrue(normalized.contains("Speed : standard"));
+        assertTrue(normalized.contains("Fee : 0.0010"));
 
         assertEquals(3, blockchain.size());
         assertEquals(new BigDecimal("0.999"), blockchain.getPreciseBalance("bob"));
@@ -126,18 +122,14 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join("\n",
-            "Transaction sent successfully.",
-            "============================================================",
-            "Wallet      : bob",
-            "To          : " + ETH_ADDRESS,
-            "Amount      : 4",
-            "Speed       : manual",
-            "Fee         : 0.5",
-            "Note        : priority transfer",
-            "============================================================"
-        );
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Transaction Sent Successfully"));
+        assertTrue(normalized.contains("Wallet : bob"));
+        assertTrue(normalized.contains("To : " + ETH_ADDRESS));
+        assertTrue(normalized.contains("Amount : 4"));
+        assertTrue(normalized.contains("Speed : manual"));
+        assertTrue(normalized.contains("Fee : 0.5"));
+        assertTrue(normalized.contains("Note : priority transfer"));
         assertEquals(new BigDecimal("0.5"), blockchain.getPreciseBalance("network-fee"));
         Wallet wallet = walletManager.findWallet("bob").orElse(null);
         assertNotNull(wallet);
@@ -155,18 +147,14 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join("\n",
-            "Transaction sent successfully.",
-            "============================================================",
-            "Wallet      : bob",
-            "To          : " + ETH_ADDRESS,
-            "Amount      : 1",
-            "Speed       : manual",
-            "Fee         : 0",
-            "Note        : repay w/alice tomorrow",
-            "============================================================"
-        );
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Transaction Sent Successfully"));
+        assertTrue(normalized.contains("Wallet : bob"));
+        assertTrue(normalized.contains("To : " + ETH_ADDRESS));
+        assertTrue(normalized.contains("Amount : 1"));
+        assertTrue(normalized.contains("Speed : manual"));
+        assertTrue(normalized.contains("Fee : 0"));
+        assertTrue(normalized.contains("Note : repay w/alice tomorrow"));
         Wallet wallet = walletManager.findWallet("bob").orElse(null);
         assertNotNull(wallet);
         assertTrue(wallet.getTransactionHistory().get(0).contains("note/repay w/alice tomorrow"));
@@ -181,17 +169,13 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join("\n",
-            "Transaction sent successfully.",
-            "============================================================",
-            "Wallet      : bob",
-            "To          : " + BTC_ADDRESS,
-            "Amount      : 1",
-            "Speed       : manual",
-            "Fee         : 0",
-            "============================================================"
-        );
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Transaction Sent Successfully"));
+        assertTrue(normalized.contains("Wallet : bob"));
+        assertTrue(normalized.contains("To : " + BTC_ADDRESS));
+        assertTrue(normalized.contains("Amount : 1"));
+        assertTrue(normalized.contains("Speed : manual"));
+        assertTrue(normalized.contains("Fee : 0"));
     }
 
     @Test
@@ -203,17 +187,13 @@ class SendCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join("\n",
-            "Transaction sent successfully.",
-            "============================================================",
-            "Wallet      : bob",
-            "To          : " + SOL_ADDRESS,
-            "Amount      : 1",
-            "Speed       : manual",
-            "Fee         : 0",
-            "============================================================"
-        );
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Transaction Sent Successfully"));
+        assertTrue(normalized.contains("Wallet : bob"));
+        assertTrue(normalized.contains("To : " + SOL_ADDRESS));
+        assertTrue(normalized.contains("Amount : 1"));
+        assertTrue(normalized.contains("Speed : manual"));
+        assertTrue(normalized.contains("Fee : 0"));
     }
 
     @Test

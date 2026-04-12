@@ -5,7 +5,9 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.Key;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class KeygenCommand extends Command {
@@ -39,7 +41,9 @@ public class KeygenCommand extends Command {
         Wallet wallet = walletManager.findWallet(walletName)
                 .orElseThrow(() -> new Crypto1010Exception(WALLET_NOT_FOUND_ERROR));
         wallet.setKeys(Key.generateKeyPair());
-        System.out.println(KEY_PAIR_GENERATION_SUCCESSFUL);
+        CliVisuals.printKeyValuePanel("Key Pair Generated", List.of(
+                List.of("Wallet", wallet.getName()),
+                List.of("Address", wallet.getAddress())));
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {

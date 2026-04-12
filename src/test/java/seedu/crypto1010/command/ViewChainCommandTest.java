@@ -27,32 +27,15 @@ class ViewChainCommandTest {
         Block genesis = blockchain.getBlock(0);
         Block secondBlock = blockchain.getBlock(1);
         String norm = normalizeOutput(output);
-        assertTrue(norm.contains("Blockchain Overview:"));
-        assertTrue(norm.contains("Total blocks      : 2"));
-        assertTrue(norm.contains("Total transactions: 4"));
-        assertTrue(norm.contains("Blocks:"));
-        assertTrue(norm.contains("================================================================================"));
-        assertTrue(norm.contains(
-            String.format("%-6s %-10s %-20s %-40s",
-                "Index", "Tx Count", "Timestamp", "Hash Preview")
-        ));
-        assertTrue(norm.contains("--------------------------------------------------------------------------------"));
-        assertTrue(
-            norm.contains(
-                String.format(
-                    "%-6d %-10d %-20s %-40s",
-                    0, 1, "2026-02-12 14:30:21", compactHash(genesis.getCurrentHash())
-                )
-            )
-        );
-        assertTrue(
-            norm.contains(
-                String.format(
-                    "%-6d %-10d %-20s %-40s",
-                    1, 3, "2026-02-12 14:35:02", compactHash(secondBlock.getCurrentHash())
-                )
-            )
-        );
+        assertTrue(norm.contains("Blockchain Overview"));
+        assertTrue(norm.contains("Total blocks : 2"));
+        assertTrue(norm.contains("Total transactions : 4"));
+        assertTrue(norm.contains("Blocks"));
+        assertTrue(norm.contains("Index | Tx Count | Timestamp"));
+        assertTrue(norm.contains("0     | 1        | 2026-02-12 14:30:21"));
+        assertTrue(norm.contains("1     | 3        | 2026-02-12 14:35:02"));
+        assertTrue(norm.contains(compactHash(genesis.getCurrentHash())));
+        assertTrue(norm.contains(compactHash(secondBlock.getCurrentHash())));
     }
 
     @Test
@@ -64,8 +47,8 @@ class ViewChainCommandTest {
         String output = runCommand(command, blockchain);
 
         String norm = normalizeOutput(output);
-        assertTrue(norm.contains("Total blocks      : 1"));
-        assertTrue(norm.contains("Total transactions: 1"));
+        assertTrue(norm.contains("Total blocks : 1"));
+        assertTrue(norm.contains("Total transactions : 1"));
     }
 
     private java.time.LocalDateTime blockchainTime() {

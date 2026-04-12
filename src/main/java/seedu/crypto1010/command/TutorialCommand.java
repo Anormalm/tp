@@ -4,7 +4,10 @@ import seedu.crypto1010.Parser;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class TutorialCommand extends Command {
@@ -90,12 +93,9 @@ public class TutorialCommand extends Command {
 
         int index = 0;
 
-        System.out.println(WELCOME_MESSAGE);
+        CliVisuals.printPanel("Tutorial", List.of(WELCOME_MESSAGE));
         while (index < instructions.length) {
-            System.out.println();
-            System.out.println(tutorialMessages[index]);
-            System.out.println(INSTRUCTION_MESSAGE);
-            System.out.println(instructions[index]);
+            CliVisuals.printPanel("Tutorial Step " + (index + 1) + "/" + instructions.length, buildStepLines(index));
             String input = in.nextLine().strip();
             if (input.equals("exit")) {
                 exitRequested = true;
@@ -111,16 +111,31 @@ public class TutorialCommand extends Command {
                     c.execute(tutorialBlockchain);
                     index++;
                 } catch (Crypto1010Exception e) {
-                    System.out.println(ERROR_MESSAGE);
+                    CliVisuals.printWarning(ERROR_MESSAGE);
                 }
             } else {
-                System.out.println(ERROR_MESSAGE);
+                CliVisuals.printWarning(ERROR_MESSAGE);
             }
         }
-        System.out.println(EXIT_MESSAGE);
+        CliVisuals.printInfo(EXIT_MESSAGE);
     }
 
     public boolean isExitRequested() {
         return exitRequested;
+    }
+
+    private List<String> buildStepLines(int index) {
+        List<String> lines = new ArrayList<>();
+        lines.addAll(splitMultiline(tutorialMessages[index]));
+        lines.add(INSTRUCTION_MESSAGE);
+        lines.add(instructions[index]);
+        return lines;
+    }
+
+    private List<String> splitMultiline(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of("");
+        }
+        return List.of(text.split("\\R"));
     }
 }

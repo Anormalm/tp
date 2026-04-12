@@ -63,9 +63,13 @@ class CrossSendCommandTest {
         String output = runCommand(command, senderBlockchain);
 
         String norm = normalizeOutput(output);
-        assertTrue(norm.contains("Cross-account transfer completed successfully."));
+        assertTrue(norm.contains("Cross-Account Transfer Completed"));
+        assertTrue(norm.contains("From wallet : main"));
+        assertTrue(norm.contains("To account : receiver"));
+        assertTrue(norm.contains("Recipient wallet : btc"));
+        assertTrue(norm.contains("Amount : 2"));
+        assertTrue(norm.contains("Currency : btc"));
         assertTrue(norm.contains("Recipient wallet was created automatically."));
-        assertTrue(norm.contains("============================================================"));
         assertEquals(new BigDecimal("8"), senderBlockchain.getPreciseBalance("main"));
         assertEquals(1, senderWallet.getTransactionHistory().size());
         assertEquals("crossSend acc/receiver amt/2 curr/btc", senderWallet.getTransactionHistory().get(0));
@@ -99,8 +103,12 @@ class CrossSendCommandTest {
         String output = runCommand(command, senderBlockchain);
 
         String normOutput = normalizeOutput(output);
-        assertTrue(normOutput.contains(String.format("%-18s: %s", "Recipient wallet", "vault")));
-        assertTrue(normOutput.contains("============================================================"));
+        assertTrue(normOutput.contains("Cross-Account Transfer Completed"));
+        assertTrue(normOutput.contains("From wallet : main"));
+        assertTrue(normOutput.contains("To account : receiver"));
+        assertTrue(normOutput.contains("Recipient wallet : vault"));
+        assertTrue(normOutput.contains("Amount : 1.5"));
+        assertTrue(normOutput.contains("Currency : btc"));
         assertEquals(new BigDecimal("3.5"), senderBlockchain.getPreciseBalance("main"));
         Blockchain recipientBlockchain =
                 new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();

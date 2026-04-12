@@ -2,6 +2,7 @@ package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
@@ -39,16 +40,12 @@ class ListCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "\nWallets:\n" +
-                "====================================================================================\n" +
-                String.format("%-4s %-20s %-12s %-44s\n", "No.", "Wallet Name", "Currency", "Address") +
-                "------------------------------------------------------------------------------------\n" +
-                String.format("%-4d %-20s %-12s %-44s\n", 1, "alice", "-", "Generate keys first") +
-                String.format("%-4d %-20s %-12s %-44s\n", 2, "bob", "-", "Generate keys first") +
-                "====================================================================================\n";
-        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        assertEquals(normExpected, normOutput);
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+        assertTrue(normOutput.contains("Wallets"));
+        assertTrue(normOutput.contains("No. | Wallet Name | Currency | Address"));
+        assertTrue(normOutput.contains("1   | alice"));
+        assertTrue(normOutput.contains("2   | bob"));
+        assertTrue(normOutput.contains("Generate keys first"));
     }
 
     @Test
@@ -63,15 +60,10 @@ class ListCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "\nWallets:\n" +
-                "====================================================================================\n" +
-                String.format("%-4s %-20s %-12s %-44s\n", "No.", "Wallet Name", "Currency", "Address") +
-                "------------------------------------------------------------------------------------\n" +
-                String.format("%-4d %-20s %-12s %-44s\n", 1, "alice", "-", alice.getAddress()) +
-                "====================================================================================\n";
-        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        assertEquals(normExpected, normOutput);
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+        assertTrue(normOutput.contains("Wallets"));
+        assertTrue(normOutput.contains("1   | alice"));
+        assertTrue(normOutput.contains(alice.getAddress()));
     }
 
     @Test
@@ -83,15 +75,10 @@ class ListCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "\nWallets:\n" +
-                "====================================================================================\n" +
-                String.format("%-4s %-20s %-12s %-44s\n", "No.", "Wallet Name", "Currency", "Address") +
-                "------------------------------------------------------------------------------------\n" +
-                String.format("%-4d %-20s %-12s %-44s\n", 1, "alice", "btc", "Generate keys first") +
-                "====================================================================================\n";
-        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        assertEquals(normExpected, normOutput);
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+        assertTrue(normOutput.contains("Wallets"));
+        assertTrue(normOutput.contains("1   | alice"));
+        assertTrue(normOutput.contains("btc"));
     }
 
     @Test

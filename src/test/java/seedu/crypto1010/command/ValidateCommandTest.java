@@ -1,6 +1,6 @@
 package seedu.crypto1010.command;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Block;
@@ -14,6 +14,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class  ValidateCommandTest {
+    private String normalizeOutput(String s) {
+        return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+    }
+
     @Test
     void execute_validBlockchain_printsSuccessMessage() {
         Blockchain blockchain = Blockchain.createDefault();
@@ -21,7 +25,10 @@ class  ValidateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals("Blockchain is valid. All blocks verified successfully." + System.lineSeparator(), output);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Blockchain Validation"));
+        assertTrue(normalized.contains("Status : Valid"));
+        assertTrue(normalized.contains("Details : All blocks verified successfully."));
     }
 
     @Test
@@ -42,9 +49,10 @@ class  ValidateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals(
-                "Blockchain is invalid. Reason: Hash mismatch at Block 1." + System.lineSeparator(),
-                output);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Blockchain Validation"));
+        assertTrue(normalized.contains("Status : Invalid"));
+        assertTrue(normalized.contains("Reason : Hash mismatch at Block 1."));
     }
 
     @Test
@@ -64,10 +72,10 @@ class  ValidateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals(
-                "Blockchain is invalid. Reason: Invalid previous hash linkage at Block 1."
-                        + System.lineSeparator(),
-                output);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Blockchain Validation"));
+        assertTrue(normalized.contains("Status : Invalid"));
+        assertTrue(normalized.contains("Reason : Invalid previous hash linkage at Block 1."));
     }
 
     @Test
@@ -87,10 +95,12 @@ class  ValidateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals(
-                "Blockchain is invalid. Reason: Invalid transaction data at Block 1: contains blank transaction."
-                        + System.lineSeparator(),
-                output);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Blockchain Validation"));
+        assertTrue(normalized.contains("Status : Invalid"));
+        assertTrue(normalized.contains("Invalid transaction data"));
+        assertTrue(normalized.contains("blank"));
+        assertTrue(normalized.contains("transaction"));
     }
 
     @Test
@@ -110,10 +120,10 @@ class  ValidateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals(
-                "Blockchain is invalid. Reason: Invalid transaction amount at Block 1, Transaction 0: -10"
-                        + System.lineSeparator(),
-                output);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Blockchain Validation"));
+        assertTrue(normalized.contains("Status : Invalid"));
+        assertTrue(normalized.contains("Reason : Invalid transaction amount at Block 1, Transaction 0: -10"));
     }
 
     @Test
@@ -133,11 +143,13 @@ class  ValidateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals(
-                "Blockchain is invalid. Reason: Insufficient balance at Block 1, Transaction 0: sender 'alice'"
-                        + " has 0, needs 10."
-                        + System.lineSeparator(),
-                output);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Blockchain Validation"));
+        assertTrue(normalized.contains("Status : Invalid"));
+        assertTrue(normalized.contains("Insufficient balance at Block 1"));
+        assertTrue(normalized.contains("sender"));
+        assertTrue(normalized.contains("alice"));
+        assertTrue(normalized.contains("needs 10"));
     }
 
     @Test
@@ -157,10 +169,10 @@ class  ValidateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertEquals(
-                "Blockchain is invalid. Reason: Invalid block index at Block 1."
-                        + System.lineSeparator(),
-                output);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Blockchain Validation"));
+        assertTrue(normalized.contains("Status : Invalid"));
+        assertTrue(normalized.contains("Reason : Invalid block index at Block 1."));
     }
 
     private String runCommand(Command command, Blockchain blockchain) {

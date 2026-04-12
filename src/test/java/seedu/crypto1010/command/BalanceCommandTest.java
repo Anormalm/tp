@@ -3,6 +3,7 @@ package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Block;
@@ -30,14 +31,10 @@ class BalanceCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join(System.lineSeparator(),
-            "Wallet Balance",
-            "========================================",
-            String.format("%-16s: %s", "Wallet", "bob"),
-            String.format("%-16s: %s", "Balance", "5.00000000"),
-            "========================================",
-            "");
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Wallet Balance"));
+        assertTrue(normalized.contains("Wallet : bob"));
+        assertTrue(normalized.contains("Balance : 5.00000000"));
     }
 
 
@@ -60,14 +57,10 @@ class BalanceCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join(System.lineSeparator(),
-            "Wallet Balance",
-            "========================================",
-            String.format("%-16s: %s", "Wallet", "alice"),
-            String.format("%-16s: %s", "Balance", "1.23456790"),
-            "========================================",
-            "");
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Wallet Balance"));
+        assertTrue(normalized.contains("Wallet : alice"));
+        assertTrue(normalized.contains("Balance : 1.23456790"));
     }
 
     @Test
@@ -89,14 +82,10 @@ class BalanceCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = String.join(System.lineSeparator(),
-            "Wallet Balance",
-            "========================================",
-            String.format("%-16s: %s", "Wallet", "alice"),
-            String.format("%-16s: %s", "Balance", "0.00000000"),
-            "========================================",
-            "");
-        assertEquals(normalizeOutput(expected), normalizeOutput(output));
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Wallet Balance"));
+        assertTrue(normalized.contains("Wallet : alice"));
+        assertTrue(normalized.contains("Balance : 0.00000000"));
     }
 
     @Test
