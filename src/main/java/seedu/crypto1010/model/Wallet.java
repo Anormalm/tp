@@ -60,7 +60,7 @@ public class Wallet {
         return Collections.unmodifiableList(transactionHistory);
     }
 
-    public void setKeys(KeyPair keys) throws Crypto1010Exception {
+    public void setKeys(KeyPair keys) {
         String generatedAddress = keys.getWalletAddress();
         if (generatedAddress == null || generatedAddress.isBlank()) {
             throw new IllegalArgumentException(INVALID_KEYS_ERROR);
