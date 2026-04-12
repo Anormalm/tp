@@ -17,6 +17,7 @@ Crypto1010 is implemented as a modular command-line application with clear separ
 - `service` package centralizes transaction logic shared across commands.
 - `model` package contains core blockchain and wallet state plus invariants.
 - `storage` package persists account credentials and account-scoped blockchain/wallet data.
+- `ui` package manages CLI rendering (`CliVisuals`) and interactive input (`InteractiveShell`, `CommandAutoCompleter`).
 
 ![High-level architecture diagram](diagrams/SystemArchitectureDiagram.png)
 
@@ -30,6 +31,19 @@ The following sequence diagram shows the standard command path after a user is a
 3. `Parser` constructs a concrete `Command` object.
 4. `Crypto1010` executes the command with the current in-memory `Blockchain` and `WalletManager`.
 5. On success, `Crypto1010` persists both blockchain and wallet states when save is enabled for that session.
+
+### CLI shell, prompt, and tab completion
+- `InteractiveShell` wraps JLine when a non-dumb terminal is available; otherwise it falls back to scanner input.
+- `Crypto1010` uses a shared shell and a mode-aware `CommandAutoCompleter` across the full app lifecycle.
+- Completion scopes are switched explicitly:
+  - pre-login (auth mode): `1`, `2`, `3`, `login`, `register`, `exit`
+  - post-login (command mode): command words plus context-aware prefix/value suggestions
+  - post-logout: returns to pre-login scope
+- Prompt format in authenticated sessions is `USERNAME@crypto1010 ~`.
+
+Design rationale:
+- A single shell/completer instance avoids terminal reinitialization issues that can break completion after login.
+- Explicit mode switching prevents suggestion leakage between authentication and command execution contexts.
 
 ### Adding a new command
 1. Add the new keyword and description to `CommandWord` so it appears in `help`.
@@ -436,6 +450,10 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
    - Expected: account is created and the app logs in to that account.
    - Relaunch the app and at `Choice:`, enter `1` (or `login`) with the same credentials.
    - Expected: login succeeds and the same account data is loaded.
+   - Press `Tab` at `Choice:`.
+   - Expected: only auth-scope suggestions (`1`, `2`, `3`, `login`, `register`, `exit`) are offered.
+   - After successful login, press `Tab` in command prompt.
+   - Expected: command-scope suggestions are offered, and auth menu suggestions are no longer offered.
 1. Help
    - `help`
    - Expected: prints out the list of commands

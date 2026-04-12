@@ -10,6 +10,7 @@ The application is designed for educational use and records transactions in a si
 + #### [Quick Start](#quick-start)
 + #### [Startup Authentication](#startup-authentication)
 + #### [Features](#features)
+  + #### [CLI Productivity Features](#cli-productivity-features)
   + #### [Display command help: `help`](#help-display-command-help)
   + #### [Enter tutorial mode: `tutorial`](#tutorial-enter-tutorial-mode)
   + #### [Create a wallet: `create`](#create-create-a-wallet)
@@ -53,10 +54,20 @@ The application is designed for educational use and records transactions in a si
 - Choose `register` if you are a new user. Registration logs you in immediately after the account is created.
 - Choose `login` if you already have an account.
 - Use `logout` after login if you want to return to account access and switch users without closing the app.
+- Before login, the account menu supports tab suggestions for `1`, `2`, `3`, `login`, `register`, and `exit`.
 - Usernames are case-insensitive and must be 3-20 characters using letters, numbers, `_`, or `-`.
 - Passwords must be at least 6 characters long.
 
 ## Features
+### CLI Productivity Features
+- On launch, Crypto1010 prints an ASCII logo and startup slogan.
+- During authenticated command mode, the prompt is `USERNAME@crypto1010 ~`.
+- Tab auto-completion is context-aware:
+  - Before login: suggests only `1`, `2`, `3`, `login`, `register`, `exit`.
+  - After login: suggests command words and relevant prefixes/values (for example `w/`, `curr/`, `speed/`).
+  - After logout: returns to pre-login suggestion scope.
+- Tab completion requires a non-dumb interactive terminal. It may be unavailable in some IDE run consoles.
+
 ### Command Formatting
 + First token must be the command word.  
   e.g. in `viewblock INDEX`  
