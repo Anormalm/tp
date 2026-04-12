@@ -5,6 +5,7 @@ import java.util.List;
 
 public final class CliVisuals {
     private static final int PANEL_WIDTH = 72;
+    private static final int LEGACY_WIDTH = 60;
 
     private CliVisuals() {
     }
@@ -19,6 +20,28 @@ public final class CliVisuals {
             }
         }
         System.out.println("+" + "-".repeat(PANEL_WIDTH - 2) + "+");
+    }
+
+    public static void printInfo(String message) {
+        System.out.println(message);
+    }
+
+    public static void printWarning(String message) {
+        System.out.println(message);
+    }
+
+    public static void printError(String message) {
+        System.out.println(message);
+    }
+
+    public static void printLegacySection(String title, List<String> lines) {
+        String divider = "=".repeat(LEGACY_WIDTH);
+        System.out.println(divider);
+        System.out.println(title);
+        for (String line : safeLines(lines)) {
+            System.out.println(line == null ? "" : line);
+        }
+        System.out.println(divider);
     }
 
     public static void printTable(String title, List<String> headers, List<List<String>> rows) {

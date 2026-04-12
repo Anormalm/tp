@@ -12,9 +12,12 @@ import seedu.crypto1010.model.WalletManager;
 import seedu.crypto1010.storage.AccountStorage;
 import seedu.crypto1010.storage.BlockchainStorage;
 import seedu.crypto1010.storage.WalletStorage;
+import seedu.crypto1010.ui.CliVisuals;
 import seedu.crypto1010.ui.InteractiveShell;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -22,8 +25,6 @@ import java.util.logging.Logger;
 
 public class Crypto1010 {
     private static final Logger LOGGER = Logger.getLogger(Crypto1010.class.getName());
-    private static final String DIVIDER =
-            "============================================================";
     private static final String ACCOUNT_ACCESS_HEADER = "Crypto1010 Account Access";
     private static final String ACCOUNT_SELECTION_ERROR =
             "Error: Invalid selection. Choose login, register, or exit.";
@@ -181,15 +182,14 @@ public class Crypto1010 {
     }
 
     private static void printAuthenticationMenu(AuthenticationService authenticationService) {
-        System.out.println(DIVIDER);
-        System.out.println(ACCOUNT_ACCESS_HEADER);
+        List<String> lines = new ArrayList<>();
         if (!authenticationService.hasRegisteredAccounts()) {
-            System.out.println("No registered accounts found. Register to get started.");
+            lines.add("No registered accounts found. Register to get started.");
         }
-        System.out.println("1. login");
-        System.out.println("2. register");
-        System.out.println("3. exit");
-        System.out.println(DIVIDER);
+        lines.add("1. login");
+        lines.add("2. register");
+        lines.add("3. exit");
+        CliVisuals.printLegacySection(ACCOUNT_ACCESS_HEADER, lines);
     }
 
     private static String handleLogin(InteractiveShell shell, AuthenticationService authenticationService) {
@@ -246,12 +246,10 @@ public class Crypto1010 {
     }
 
     private static void printWelcome(String accountUsername) {
-        System.out.println(DIVIDER);
-        System.out.println("Welcome to Crypto1010");
-        System.out.println("Logged in as: " + accountUsername);
-        System.out.println("Manage wallets, send transactions, and inspect your blockchain quickly.");
-        System.out.println("Try: create w/MainWallet | list | help");
-        System.out.println(DIVIDER);
+        CliVisuals.printLegacySection("Welcome to Crypto1010", List.of(
+                "Logged in as: " + accountUsername,
+                "Manage wallets, send transactions, and inspect your blockchain quickly.",
+                "Try: create w/MainWallet | list | help"));
     }
 
     private static LoadResult<Blockchain> loadBlockchain(BlockchainStorage storage) {
