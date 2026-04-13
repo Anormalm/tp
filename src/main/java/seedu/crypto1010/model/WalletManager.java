@@ -41,7 +41,8 @@ public class WalletManager {
             throw new Crypto1010Exception("wallet already exists: " + normalizedName);
         }
         if (!CurrencyCode.isGeneric(normalizedCurrency) && hasWalletForCurrency(normalizedCurrency)) {
-            throw new Crypto1010Exception("wallet currency already exists: " + normalizedCurrency);
+            throw new Crypto1010Exception("Error: a wallet for that currency already exists in this account." +
+                                                  "Use: create w/WALLET_NAME [curr/CURRENCY]");
         }
         Wallet wallet = new Wallet(normalizedName, normalizedCurrency);
         wallets.add(wallet);

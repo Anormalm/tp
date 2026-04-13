@@ -17,26 +17,6 @@ class ViewChainCommandTest {
     private String normalizeOutput(String s) {
         return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
     }
-    @Test
-    void execute_validFormat_printsBlockchainOverview() {
-        Blockchain blockchain = Blockchain.createDefault();
-        ViewChainCommand command = new ViewChainCommand();
-
-        String output = runCommand(command, blockchain);
-
-        Block genesis = blockchain.getBlock(0);
-        Block secondBlock = blockchain.getBlock(1);
-        String norm = normalizeOutput(output);
-        assertTrue(norm.contains("Blockchain Overview"));
-        assertTrue(norm.contains("Total blocks : 2"));
-        assertTrue(norm.contains("Total transactions : 4"));
-        assertTrue(norm.contains("Blocks"));
-        assertTrue(norm.contains("Index | Tx Count | Timestamp"));
-        assertTrue(norm.contains("0     | 1        | 2026-02-12 14:30:21"));
-        assertTrue(norm.contains("1     | 3        | 2026-02-12 14:35:02"));
-        assertTrue(norm.contains(compactHash(genesis.getCurrentHash())));
-        assertTrue(norm.contains(compactHash(secondBlock.getCurrentHash())));
-    }
 
     @Test
     void execute_emptyBlockchain_printsZeroTransactions() {

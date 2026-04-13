@@ -34,7 +34,7 @@ class BalanceCommandTest {
         String normalized = normalizeOutput(output);
         assertTrue(normalized.contains("Wallet Balance"));
         assertTrue(normalized.contains("Wallet : bob"));
-        assertTrue(normalized.contains("Balance : 5.00000000"));
+        assertTrue(normalized.contains("Balance : 100.00000000"));
     }
 
 

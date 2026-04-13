@@ -86,11 +86,11 @@ public class CreateCommand extends Command {
                     throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
                 }
                 String parsedCurrency = token.substring(CURRENCY_PREFIX.length()).trim();
-                if (!CurrencyCode.isValidSpecificCurrency(parsedCurrency)) {
-                    throw new Crypto1010Exception(CURRENCY_INVALID_ERROR + " " + CREATE_FORMAT);
-                }
                 if (CurrencyCode.isGeneric(parsedCurrency)) {
                     throw new Crypto1010Exception(CURRENCY_GENERIC_NOT_ALLOWED_ERROR + " " + CREATE_FORMAT);
+                }
+                if (!CurrencyCode.isValidSpecificCurrency(parsedCurrency)) {
+                    throw new Crypto1010Exception(CURRENCY_INVALID_ERROR + " " + CREATE_FORMAT);
                 }
                 currencyCode = CurrencyCode.normalize(parsedCurrency);
                 continue;
