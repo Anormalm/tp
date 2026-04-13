@@ -20,12 +20,8 @@ import java.util.regex.Pattern;
  */
 public class SendCommand extends Command {
     private static final Pattern ETH_ADDRESS_PATTERN = Pattern.compile("^0x[a-fA-F0-9]{40}$");
-    private static final Pattern BTC_LEGACY_ADDRESS_PATTERN =
+    private static final Pattern BTC_ADDRESS_PATTERN =
             Pattern.compile("^[13][A-HJ-NP-Za-km-z1-9]{25,34}$");
-    private static final Pattern BTC_BECH32_ADDRESS_PATTERN =
-            Pattern.compile("^(bc1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}"
-                    + "|BC1[QPZRY9X8GF2TVDW0S3JN54KHCE6MUA7L]{11,71})$");
-    private static final Pattern SOL_ADDRESS_PATTERN = Pattern.compile("^[1-9A-HJ-NP-Za-km-z]{32,44}$");
 
     private static final String DEFAULT_SPEED = "standard";
     private static final String MANUAL_SPEED_LABEL = "manual";
@@ -48,6 +44,7 @@ public class SendCommand extends Command {
             Supported SPEED values: speed/slow, speed/standard, speed/fast
             If fee/FEE is provided, it overrides any speed/SPEED
             If neither speed/ nor fee/ is provided, speed/standard is used by default
+            note/MEMO must be the last argument if provided
             Sends cryptocurrency from one wallet to another address
             """;
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid send format. Use: send w/WALLET_NAME"
@@ -264,7 +261,16 @@ public class SendCommand extends Command {
     private String extractNoteValue(String[] tokens, int noteTokenIndex) {
         StringBuilder noteBuilder = new StringBuilder(tokens[noteTokenIndex].substring(NOTE_PREFIX.length()));
         for (int i = noteTokenIndex + 1; i < tokens.length; i++) {
-            noteBuilder.append(" ").append(tokens[i]);
+            String token = tokens[i];
+            // if a known prefix appears after note/, reject the whole command
+            if (token.startsWith(WALLET_PREFIX)
+                    || token.startsWith(RECIPIENT_PREFIX)
+                    || token.startsWith(AMOUNT_PREFIX)
+                    || token.startsWith(SPEED_PREFIX)
+                    || token.startsWith(FEE_PREFIX)) {
+                return null;
+            }
+            noteBuilder.append(" ").append(token);
         }
         String noteValue = noteBuilder.toString().trim();
         return noteValue.isEmpty() ? null : noteValue;
@@ -327,9 +333,7 @@ public class SendCommand extends Command {
             return false;
         }
         return ETH_ADDRESS_PATTERN.matcher(address).matches()
-                || BTC_LEGACY_ADDRESS_PATTERN.matcher(address).matches()
-                || BTC_BECH32_ADDRESS_PATTERN.matcher(address).matches()
-                || SOL_ADDRESS_PATTERN.matcher(address).matches();
+                || BTC_ADDRESS_PATTERN.matcher(address).matches();
     }
 
     /**
