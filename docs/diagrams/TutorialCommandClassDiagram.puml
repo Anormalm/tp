@@ -1,0 +1,61 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+abstract class Command {
+    - helpDescription: String
+    + execute(blockchain: Blockchain, in: Scanner)
+}
+
+class TutorialCommand {
+    - {static} instructions: String[]
+    - {static} steps: String[]
+    - {static} tutorialMessages: String[]
+    - arguments: String
+    - exitRequested: boolean
+
+    + TutorialCommand(arguments: String)
+    + execute(blockchain: Blockchain, in: Scanner)
+    + isExitRequested(): boolean
+    - buildStepLines(index: int): List<String>
+    - splitMultiline(text: String): List<String>
+}
+
+class Parser {
+    + parse(input: String): Command
+}
+
+class WalletManager {
+}
+
+class Blockchain {
+    + {static} createDefault(): Blockchain
+}
+
+class CliVisuals {
+    + {static} printPanel(title: String, lines: List<String>)
+    + {static} printWarning(message: String)
+    + {static} printInfo(message: String)
+}
+
+class ExitCommand {
+    + execute(blockchain: Blockchain, in: Scanner)
+}
+
+class Scanner {
+}
+
+' inheritance
+Command <|-- TutorialCommand
+
+' solid relationships (strong coupling / key collaborators)
+TutorialCommand --> CliVisuals
+Parser --> WalletManager
+
+' dotted relationships (temporary / method-level dependencies)
+TutorialCommand ..> Parser : uses
+TutorialCommand ..> WalletManager : creates locally
+TutorialCommand ..> Blockchain : creates tutorial instance
+TutorialCommand ..> ExitCommand : instantiates
+TutorialCommand ..> Scanner : input source
+
+@enduml

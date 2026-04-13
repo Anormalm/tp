@@ -243,6 +243,114 @@ The subsystem spans three model classes:
 - Keypairs/addresses are currently in-memory only and are not persisted across restarts.
 - Crypto model is educational and does not implement full production wallet standards end-to-end.
 
+### Tutorial
+This section documents the tutorial enhancement.
+
+#### Component-level design
+
+`TutorialCommand` design choices:
+- Encapsulates the full tutorial flow within a single command execution cycle.
+- Maintains a step index (`int index`) to track progression through predefined tutorial stages.
+- Uses static arrays (`instructions[]`, `steps[]`, `tutorialMessages[]`) to define deterministic tutorial content.
+- Operates on a separate blockchain instance (`Blockchain.createDefault()`) to isolate tutorial execution.
+- Delegates command interpretation to `Parser` and execution to dynamically resolved `Command` objects.
+
+Why this design:
+- Ensures tutorial state is fully self-contained and does not interfere with user-managed blockchain data.
+- Enables reproducible step-by-step execution for educational purposes.
+- Centralises tutorial logic within a single command, reducing cross-component coupling.
+
+---
+
+#### Structural view (class diagram)
+![Tutorial Class Diagram](diagrams/TutorialCommandClassDiagram.png)
+
+---
+
+#### Input handling and execution loop
+
+The tutorial uses a blocking input loop based on `Scanner.nextLine()`:
+
+- Each iteration renders the current tutorial step via `CliVisuals.printPanel(...)`.
+- The system waits for user input before progressing.
+- Input is validated against the expected instruction for the current step.
+
+Control flow behaviour:
+1. If input matches `"exit"`:
+   - Immediately triggers `ExitCommand`
+   - Terminates the entire application
+
+2. If input matches `"tutorial exit"`:
+   - Breaks tutorial loop and exits tutorial mode only
+
+3. If input matches expected instruction:
+   - Parsed via `Parser.parse(input)`
+   - Executed on `tutorialBlockchain`
+   - Advances step index
+
+4. Otherwise:
+   - Displays error message via `CliVisuals.printWarning(ERROR_MESSAGE)`
+   - Repeats current step
+
+---
+#### Tutorial Execution Flow
+![Tutorial Sequence Diagram](diagrams/TutorialSequenceDiagram.png)
+
+---
+
+#### Tutorial data model
+
+The tutorial content is defined as static arrays:
+
+- `instructions[]`: expected user inputs
+- `steps[]`: step titles for UI rendering
+- `tutorialMessages[]`: explanatory content per step
+
+Rationale:
+- Ensures strict alignment between explanation, instruction, and execution.
+- Enables deterministic step progression without runtime generation overhead.
+- Simplifies testing by making expected inputs explicit and index-driven.
+
+---
+
+#### Error handling strategy
+
+Two layers of error handling are used:
+
+1. **Input-level validation**
+   - Invalid commands trigger `CliVisuals.printWarning(ERROR_MESSAGE)`
+   - Does not advance tutorial state
+
+2. **Execution-level validation**
+   - `Crypto1010Exception` is caught during command execution
+   - Prevents tutorial crash and preserves current step
+
+---
+
+#### Design considerations
+
+**Isolation of state**
+- Separate `tutorialBlockchain` prevents contamination of user data.
+
+**Strict step control**
+- User input must match given String exactly to continue (except for address which is non-deterministic).
+- Index-based progression ensures linear, deterministic tutorial flow.
+
+**Reuse of command system**
+- Avoids duplicating logic by reusing `Parser` + `Command` execution pipeline.
+
+**UI abstraction**
+- All output is delegated to `CliVisuals`, ensuring separation of logic and presentation.
+
+---
+
+#### Limitations
+
+- Linear progression only (no branching tutorial paths).
+- Strict input matching reduces flexibility for users.
+- Tutorial content is hardcoded, requiring code changes for updates.
+- Blocking input loop limits extensibility for asynchronous interaction models.
+
 ### `help` command implementation
 HelpCommand uses prefix-based argument parsing:
 - optional c/COMMAND
