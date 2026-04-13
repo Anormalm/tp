@@ -57,7 +57,13 @@ public class BalanceCommand extends Command {
     }
 
     private String formatBalance(BigDecimal balance) {
-        return balance.setScale(8, RoundingMode.HALF_UP).toPlainString();
+        BigDecimal rounded = balance.setScale(8, RoundingMode.HALF_UP);
+        // If rounded is zero but actual balance is non-zero, show scientific notation
+        if (rounded.compareTo(BigDecimal.ZERO) == 0 && balance.compareTo(BigDecimal.ZERO) != 0) {
+            // Use scientific notation with up to 8 decimal places in mantissa
+            return String.format("%.8e", balance);
+        }
+        return rounded.toPlainString();
     }
 
 }

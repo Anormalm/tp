@@ -2,6 +2,7 @@ package seedu.crypto1010.command;
 
 import org.junit.jupiter.api.Test;
 import seedu.crypto1010.model.Blockchain;
+import seedu.crypto1010.exceptions.Crypto1010Exception;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class HelpCommandTest {
 
     @Test
-    public void execute_noCommand_showsGeneralHelpMessage() {
+    public void execute_noCommand_showsGeneralHelpMessage() throws Crypto1010Exception {
         HelpCommand helpCommand = new HelpCommand("");
         Blockchain blockchain = Blockchain.createDefault();
 
@@ -20,7 +21,7 @@ public class HelpCommandTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            helpCommand.execute("", blockchain);
+                helpCommand.execute(blockchain);
         } finally {
             System.setOut(originalOut);
         }
@@ -32,7 +33,7 @@ public class HelpCommandTest {
     }
 
     @Test
-    public void execute_invalidCommand_showsErrorMessage() {
+    public void execute_invalidCommand_showsErrorMessage() throws Crypto1010Exception {
         HelpCommand helpCommand = new HelpCommand("c/invalidCommand");
         Blockchain blockchain = Blockchain.createDefault();
 
@@ -41,7 +42,7 @@ public class HelpCommandTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            helpCommand.execute("", blockchain);
+                helpCommand.execute(blockchain);
         } finally {
             System.setOut(originalOut);
         }
@@ -53,7 +54,7 @@ public class HelpCommandTest {
     }
 
     @Test
-    public void execute_helpForSpecificCommand_showsCommandFormat() {
+    public void execute_helpForSpecificCommand_showsCommandFormat() throws Crypto1010Exception {
         HelpCommand helpCommand = new HelpCommand("c/send");
         Blockchain blockchain = Blockchain.createDefault();
 
@@ -62,7 +63,7 @@ public class HelpCommandTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            helpCommand.execute("", blockchain);
+                helpCommand.execute(blockchain);
         } finally {
             System.setOut(originalOut);
         }
@@ -75,7 +76,7 @@ public class HelpCommandTest {
     }
 
     @Test
-    public void execute_helpForHistoryCommand_showsCommandFormat() {
+    public void execute_helpForHistoryCommand_showsCommandFormat() throws Crypto1010Exception {
         HelpCommand helpCommand = new HelpCommand("c/history");
         Blockchain blockchain = Blockchain.createDefault();
 
@@ -84,7 +85,7 @@ public class HelpCommandTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            helpCommand.execute("", blockchain);
+                helpCommand.execute(blockchain);
         } finally {
             System.setOut(originalOut);
         }
