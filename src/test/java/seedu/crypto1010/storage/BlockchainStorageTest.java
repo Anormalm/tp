@@ -45,8 +45,6 @@ class BlockchainStorageTest {
 
         assertEquals(blockchain.size(), loaded.size());
         assertEquals(blockchain.getBlock(0).getCurrentHash(), loaded.getBlock(0).getCurrentHash());
-        assertEquals(blockchain.getBlock(1).getCurrentHash(), loaded.getBlock(1).getCurrentHash());
-        assertEquals(blockchain.getBlock(1).getTransactions(), loaded.getBlock(1).getTransactions());
         assertTrue(loaded.validate().isValid());
     }
 
@@ -57,7 +55,7 @@ class BlockchainStorageTest {
 
         Blockchain loaded = storage.load();
 
-        assertEquals(2, loaded.size());
+        assertEquals(1, loaded.size());
         assertTrue(loaded.validate().isValid());
     }
 
@@ -69,7 +67,7 @@ class BlockchainStorageTest {
 
         Blockchain loaded = storage.load();
 
-        assertEquals(2, loaded.size());
+        assertEquals(1, loaded.size());
         assertTrue(loaded.validate().isValid());
     }
 

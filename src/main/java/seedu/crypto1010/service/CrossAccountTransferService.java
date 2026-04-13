@@ -326,10 +326,7 @@ public class CrossAccountTransferService {
         return accountName == null ? "" : accountName.trim().toLowerCase(Locale.ROOT);
     }
 
-    /**
-     * Copies only the wallet metadata and transaction history needed for persistence rollback.
-     */
-    private WalletManager copyWalletManager(WalletManager original) {
+    private WalletManager copyWalletManager(WalletManager original) throws Crypto1010Exception {
         WalletManager copy = new WalletManager();
         for (Wallet wallet : original.getWallets()) {
             Wallet walletCopy = copy.createWallet(wallet.getName(), wallet.getCurrencyCode());

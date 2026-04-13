@@ -31,7 +31,7 @@ class ListCommandTest {
     }
 
     @Test
-    void execute_existingWallets_printsWalletNames() {
+    void execute_existingWallets_printsWalletNames() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
@@ -67,7 +67,7 @@ class ListCommandTest {
     //    }
 
     @Test
-    void execute_walletWithSpecificCurrency_printsCurrency() {
+    void execute_walletWithSpecificCurrency_printsCurrency() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice", "btc");

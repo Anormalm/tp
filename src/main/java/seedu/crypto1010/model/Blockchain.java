@@ -44,12 +44,12 @@ public class Blockchain {
                 GENESIS_PREVIOUS_HASH,
                 List.of("Genesis Block"));
         defaultBlocks.add(genesis);
-        defaultBlocks.add(new Block(
-                1,
-                LocalDateTime.of(2026, 2, 12, 14, 35, 2),
-                genesis.getCurrentHash(),
-                List.of("network -> alice : 10", "alice -> bob : 10", "bob -> carol : 5")));
         return new Blockchain(defaultBlocks);
+    }
+
+    public static boolean isExemptAccount(String normalizedAccountName) {
+        return EXEMPT_BALANCE_ACCOUNTS.contains(normalizedAccountName)
+                || normalizedAccountName.startsWith(EXTERNAL_ACCOUNT_PREFIX);
     }
 
     public int size() {
@@ -218,14 +218,6 @@ public class Blockchain {
         return ValidationResult.valid();
     }
 
-    private boolean isExemptAccount(String normalizedAccountName) {
-        return EXEMPT_BALANCE_ACCOUNTS.contains(normalizedAccountName)
-                || normalizedAccountName.startsWith(EXTERNAL_ACCOUNT_PREFIX);
-    }
-
-    /**
-     * Logs the failure reason before returning an invalid result for the caller to display.
-     */
     private ValidationResult invalidWithLog(String reason) {
         LOGGER.warning(reason);
         return ValidationResult.invalid(reason);

@@ -7,6 +7,7 @@ import org.jline.reader.Candidate;
 import org.jline.reader.ParsedLine;
 import org.junit.jupiter.api.Test;
 
+import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.WalletManager;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ class CommandAutoCompleterTest {
     }
 
     @Test
-    void complete_commandModeWalletPrefix_suggestsExistingWalletNames() {
+    void complete_commandModeWalletPrefix_suggestsExistingWalletNames() throws Crypto1010Exception {
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
         walletManager.createWallet("bob");

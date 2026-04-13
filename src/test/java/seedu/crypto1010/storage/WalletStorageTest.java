@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
@@ -39,10 +40,14 @@ class WalletStorageTest {
     @Test
     void saveThenLoad_persistsWalletsAndHistory() throws IOException {
         WalletManager manager = new WalletManager();
-        Wallet alice = manager.createWallet("alice");
-        Wallet bob = manager.createWallet("bob");
-        alice.addTransaction("to/0xabc amt/1 speed/standard fee/0.001");
-        bob.addTransaction("to/0xdef amt/2 speed/manual fee/0.1 note/rent");
+        try {
+            Wallet alice = manager.createWallet("alice");
+            Wallet bob = manager.createWallet("bob");
+            alice.addTransaction("to/0xabc amt/1 speed/standard fee/0.001");
+            bob.addTransaction("to/0xdef amt/2 speed/manual fee/0.1 note/rent");
+        } catch (Crypto1010Exception e) {
+            throw new IOException(e.getMessage());
+        }
 
         WalletStorage storage = new WalletStorage(WalletStorageTest.class);
         storage.save(manager);
@@ -62,7 +67,11 @@ class WalletStorageTest {
     @Test
     void saveThenLoad_persistsWalletCurrency() throws IOException {
         WalletManager manager = new WalletManager();
-        manager.createWallet("alice", "btc");
+        try {
+            manager.createWallet("alice", "btc");
+        } catch (Crypto1010Exception e) {
+            throw new RuntimeException(e);
+        }
 
         WalletStorage storage = new WalletStorage(WalletStorageTest.class);
         storage.save(manager);

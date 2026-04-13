@@ -1,5 +1,6 @@
 package seedu.crypto1010.storage;
 
+import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
@@ -54,7 +55,7 @@ public class WalletStorage {
                 String currencyCode = walletFields.length == 2 ? unescape(walletFields[1]) : null;
                 try {
                     currentWallet = walletManager.createWallet(walletName, currencyCode);
-                } catch (IllegalArgumentException e) {
+                } catch (Crypto1010Exception e) {
                     throw new IOException("Invalid wallet data: " + e.getMessage(), e);
                 }
                 continue;

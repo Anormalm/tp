@@ -21,6 +21,12 @@ Crypto1010 is implemented as a modular command-line application with clear separ
 
 ![High-level architecture diagram](diagrams/SystemArchitectureDiagram.png)
 
+### Parser and command subsystem
+#### Structural view (class diagram)
+The class diagram below introduces parser-to-command construction and core command hierarchy before runtime interactions.
+
+![Parser and command subsystem class diagram](diagrams/ParserCommandClassDiagram.png)
+
 ### Command execution flow
 The following sequence diagram shows the standard command path after a user is authenticated:
 
@@ -31,6 +37,12 @@ The following sequence diagram shows the standard command path after a user is a
 3. `Parser` constructs a concrete `Command` object.
 4. `Crypto1010` executes the command with the current in-memory `Blockchain` and `WalletManager`.
 5. On success, `Crypto1010` persists both blockchain and wallet states when save is enabled for that session.
+
+### Authentication subsystem
+#### Structural view (class diagram)
+The class diagram below introduces account credential management and password hashing structure used during login/registration.
+
+![Authentication subsystem class diagram](diagrams/AuthSubsystemClassDiagram.png)
 
 ### CLI shell, prompt, and tab completion
 - `InteractiveShell` wraps JLine when a non-dumb terminal is available; otherwise it falls back to scanner input.
@@ -380,6 +392,11 @@ Key design points shown in the diagram:
 - This gives expert users a fast chain summary before drilling into individual blocks with `viewblock`.
 
 ### Persistence implementation
+#### Structural view (class diagram)
+The class diagram below introduces storage-layer classes before persistence behavior details.
+
+![Storage subsystem class diagram](diagrams/StorageSubsystemClassDiagram.png)
+
 - `AccountStorage` persists hashed credentials in `data/accounts/credentials.txt`.
 - `BlockchainStorage` serializes blockchain state to `data/accounts/USERNAME/blockchain.json`.
 - `WalletStorage` persists wallet names, wallet currencies, and transaction history in `data/accounts/USERNAME/wallets.txt`.

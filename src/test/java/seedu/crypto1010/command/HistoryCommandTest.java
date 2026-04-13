@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 class HistoryCommandTest {
     @Test
-    void execute_walletWithoutHistory_printsEmptyMessage() {
+    void execute_walletWithoutHistory_printsEmptyMessage() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
@@ -28,7 +28,7 @@ class HistoryCommandTest {
     }
 
     @Test
-    void execute_walletWithHistory_printsNumberedEntries() {
+    void execute_walletWithHistory_printsNumberedEntries() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet wallet = walletManager.createWallet("alice");
