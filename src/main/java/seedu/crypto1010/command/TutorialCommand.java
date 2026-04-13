@@ -21,7 +21,7 @@ public class TutorialCommand extends Command {
     private static final String ERROR_MESSAGE = "Please input the given command to continue\n" +
             "If you want to exit tutorial mode, type: tutorial exit";
     private static final String EXIT_MESSAGE = "Exiting tutorial...";
-    private static final String WELCOME_MESSAGE = "Welcome! This tutorial will guide you through the basics of a blockchain system.\n" +
+    private static final String WELCOME_MESSAGE = "Welcome! This tutorial will guide you through the basics of a blockchain system. " +
             "We’ll learn about wallets, addresses, transactions, and blocks along the way.";
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid tutorial format. Use tutorial start";
     private static final String MISSING_INPUT_ERROR = "Error: Tutorial requires interactive input.";

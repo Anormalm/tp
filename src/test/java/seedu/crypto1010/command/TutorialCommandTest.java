@@ -34,7 +34,7 @@ public class TutorialCommandTest {
 
         String output = outputStream.toString();
 
-        assertTrue(output.contains("Welcome to the tutorial!"));
+        assertTrue(output.contains("Welcome!"));
         assertTrue(output.contains("Enter the following command:"));
         assertTrue(output.contains("create w/alice"));
         assertTrue(output.contains("Exiting tutorial..."));
