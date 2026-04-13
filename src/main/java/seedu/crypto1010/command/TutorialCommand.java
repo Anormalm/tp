@@ -48,22 +48,22 @@ public class TutorialCommand extends Command {
     };
 
     private static final String[] steps = {
-            "Creating a wallet",
-            "Creating a second wallet",
-            "Listing wallets",
-            "Generating keys for Alice",
-            "Generating keys for Bob",
-            "Listing wallets (with addresses",
-            "Checking Alice's balance",
-            "Checking Bob's balance",
-            "Sending the transaction",
-            "Checking Alice's balance after transaction",
-            "Checking Bob's balance after transaction",
-            "Learning more about send command",
-            "Viewing transaction history",
-            "Viewing a block",
-            "Validating the blockchain",
-            "Conclusion"
+        "Creating a wallet",
+        "Creating a second wallet",
+        "Listing wallets",
+        "Generating keys for Alice",
+        "Generating keys for Bob",
+        "Listing wallets (with addresses",
+        "Checking Alice's balance",
+        "Checking Bob's balance",
+        "Sending the transaction",
+        "Checking Alice's balance after transaction",
+        "Checking Bob's balance after transaction",
+        "Learning more about send command",
+        "Viewing transaction history",
+        "Viewing a block",
+        "Validating the blockchain",
+        "Conclusion"
     };
 
     private static final String[] tutorialMessages = {
