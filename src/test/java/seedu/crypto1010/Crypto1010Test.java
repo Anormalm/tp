@@ -89,7 +89,7 @@ class Crypto1010Test {
         }
 
         String output = outputStream.toString(StandardCharsets.UTF_8);
-        assertTrue(output.contains("Welcome to the tutorial!"));
+        assertTrue(output.contains("Welcome!"));
         assertTrue(output.contains("Exiting Crypto1010..."));
         assertFalse(output.contains("No wallets found."));
     }
