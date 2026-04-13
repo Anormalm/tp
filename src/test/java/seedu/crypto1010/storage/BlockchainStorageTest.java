@@ -62,6 +62,18 @@ class BlockchainStorageTest {
     }
 
     @Test
+    void load_blankFile_returnsDefaultBlockchain() throws IOException {
+        Files.createDirectories(dataDir);
+        Files.writeString(blockchainFile, "   \n\t", StandardCharsets.UTF_8);
+        BlockchainStorage storage = new BlockchainStorage(BlockchainStorageTest.class);
+
+        Blockchain loaded = storage.load();
+
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.validate().isValid());
+    }
+
+    @Test
     void load_invalidBlockchain_throwsIOException() throws IOException {
         Files.createDirectories(dataDir);
         String invalidBlockchainJson = """

@@ -32,4 +32,14 @@ class WalletManagerTest {
                 assertThrows(IllegalArgumentException.class, () -> walletManager.createWallet("ali|ce"));
         assertEquals("walletName contains reserved character: |", exception.getMessage());
     }
+
+    @Test
+    void createWallet_nameTooLong_throwsIllegalArgumentException() {
+        WalletManager walletManager = new WalletManager();
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class,
+                        () -> walletManager.createWallet("abcdefghijklmnopqrstuvwxyz1234567"));
+        assertEquals("walletName exceeds max length: 32", exception.getMessage());
+    }
 }

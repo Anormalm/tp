@@ -5,7 +5,10 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.CurrencyCode;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -29,7 +32,9 @@ public class CreateCommand extends Command {
     private static final String INVALID_FORMAT_ERROR =
             "Error: Invalid create format. Use: create w/WALLET_NAME [curr/CURRENCY]";
     private static final String CREATE_FORMAT = "Use: create w/WALLET_NAME [curr/CURRENCY]";
-    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 letters or digits.";
+    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 alphanumeric characters.";
+    private static final String CURRENCY_GENERIC_NOT_ALLOWED_ERROR =
+            "Error: CURRENCY must be specific. Omit curr/ to create a generic wallet.";
     private static final String WALLET_PREFIX = "w/";
     private static final String CURRENCY_PREFIX = "curr/";
 
@@ -44,7 +49,7 @@ public class CreateCommand extends Command {
 
     @Override
     public void execute(Blockchain blockchain, Scanner in) throws Crypto1010Exception {
-        ParsedCreateArguments parsedArguments = parseArguments(resolveArguments(arguments));
+        ParsedCreateArguments parsedArguments = parseArguments(arguments);
         String walletName = parsedArguments.walletName();
         String currencyCode = parsedArguments.currencyCode();
 
@@ -56,21 +61,12 @@ public class CreateCommand extends Command {
         }
 
         Wallet wallet = walletManager.createWallet(walletName, currencyCode);
-        System.out.println();
-        System.out.println("Wallet Created");
-        System.out.println("=".repeat(40));
-        System.out.printf("%-12s: %s%n", "Wallet", wallet.getName());
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(List.of("Wallet", wallet.getName()));
         if (!CurrencyCode.isGeneric(currencyCode)) {
-            System.out.printf("%-12s: %s%n", "Currency", currencyCode);
+            rows.add(List.of("Currency", currencyCode));
         }
-        System.out.println("=".repeat(40));
-    }
-
-    private String resolveArguments(String description) {
-        if (arguments == null || arguments.isBlank()) {
-            return description;
-        }
-        return arguments;
+        CliVisuals.printKeyValuePanel("Wallet Created", rows);
     }
 
     private ParsedCreateArguments parseArguments(String args) throws Crypto1010Exception {
@@ -97,6 +93,9 @@ public class CreateCommand extends Command {
                 String parsedCurrency = token.substring(CURRENCY_PREFIX.length()).trim();
                 if (!CurrencyCode.isValidSpecificCurrency(parsedCurrency)) {
                     throw new Crypto1010Exception(CURRENCY_INVALID_ERROR + " " + CREATE_FORMAT);
+                }
+                if (CurrencyCode.isGeneric(parsedCurrency)) {
+                    throw new Crypto1010Exception(CURRENCY_GENERIC_NOT_ALLOWED_ERROR + " " + CREATE_FORMAT);
                 }
                 currencyCode = CurrencyCode.normalize(parsedCurrency);
                 continue;

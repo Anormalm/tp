@@ -8,15 +8,14 @@ import java.util.Objects;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 
 public class Wallet {
-    private static final String NO_ADDRESS_ERROR = "Generate keys first";
-    private static final String INVALID_KEYS_ERROR = "keys must contain public and private keys";
+    private static final String NO_ADDRESS_ERROR = "Error: Generate keys first";
+    private static final String INVALID_KEYS_ERROR = "Error: Keys must contain public and private keys";
 
     private final String name;
     private final String currencyCode;
     private final List<String> transactionHistory;
     private String address;
-    private Key publicKey;
-    private Key privateKey;
+    private KeyPair keyPair;
 
     public Wallet(String name) {
         this(name, CurrencyCode.GENERIC);
@@ -46,6 +45,10 @@ public class Wallet {
         return address;
     }
 
+    public boolean hasKeyPair() {
+        return keyPair != null;
+    }
+
     public void addTransaction(String transactionEntry) {
         transactionHistory.add(Objects.requireNonNull(transactionEntry).trim());
         assert !transactionHistory.get(transactionHistory.size() - 1).isBlank()
@@ -57,15 +60,12 @@ public class Wallet {
         return Collections.unmodifiableList(transactionHistory);
     }
 
-    public void setKeys(Key[] keys) {
-        if (keys == null || keys.length < 2 || keys[0] == null || keys[1] == null) {
+    public void setKeys(KeyPair keys) {
+        String generatedAddress = keys.getWalletAddress();
+        if (generatedAddress == null || generatedAddress.isBlank()) {
             throw new IllegalArgumentException(INVALID_KEYS_ERROR);
         }
-        this.publicKey = keys[0];
-        this.privateKey = keys[1];
-        address = publicKey.getWalletAddress();
-        assert publicKey != null : "public key must not be null";
-        assert privateKey != null : "private key must not be null";
-        assert address != null && !address.isBlank() : "wallet address must be initialized";
+        this.keyPair = keys;
+        this.address = generatedAddress;
     }
 }

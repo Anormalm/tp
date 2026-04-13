@@ -9,44 +9,48 @@
 ## Design & Implementation
 Crypto1010 is implemented as a modular command-line application with clear separation between authentication, input parsing, command execution, domain model, and persistence.
 
-### High-level structure
-- `Crypto1010` manages the main loop, input capture, and save/load lifecycle.
-- `auth` package manages account registration, login, and password hashing.
+### Architecture overview
+- `Crypto1010` manages the main loop, input capture, authentication handoff, and save/load lifecycle.
+- `auth` package handles account registration, login, and password hashing.
 - `Parser` maps raw user input to concrete command objects.
 - `command` package implements user-facing functionality (`create`, `send`, `crossSend`, `balance`, `logout`, etc.).
-- `model` package contains core blockchain and wallet logic.
-- `service` package centralizes transfer recording so blockchain writes and wallet history stay aligned, including cross-account transfers.
-- `storage` package persists account credentials plus account-scoped blockchain and wallet data.
+- `service` package centralizes transaction logic shared across commands.
+- `model` package contains core blockchain and wallet state plus invariants.
+- `storage` package persists account credentials and account-scoped blockchain/wallet data.
+- `ui` package manages CLI rendering (`CliVisuals`) and interactive input (`InteractiveShell`, `CommandAutoCompleter`).
+
+![High-level architecture diagram](diagrams/SystemArchitectureDiagram.png)
 
 ### Command execution flow
-1. User authenticates through the startup login/register flow.
-2. `Crypto1010` loads account-specific blockchain and wallet storage for the authenticated username.
-3. User enters command text in the CLI.
-4. `Parser` extracts command word and arguments.
-5. A concrete `Command` subclass is instantiated.
-6. `Command.execute(...)` mutates/queries model state.
-7. `Crypto1010` saves account-scoped blockchain and wallet state after successful command execution.
-8. If `logout` is confirmed, `Crypto1010` returns to the authentication menu and starts a new account-scoped session.
+The following sequence diagram shows the standard command path after a user is authenticated:
+
+![Generic command execution sequence](diagrams/CommandExecutionSequence.png)
+
+1. User enters a command string.
+2. `Crypto1010` passes the raw input to `Parser`.
+3. `Parser` constructs a concrete `Command` object.
+4. `Crypto1010` executes the command with the current in-memory `Blockchain` and `WalletManager`.
+5. On success, `Crypto1010` persists both blockchain and wallet states when save is enabled for that session.
+
+### CLI shell, prompt, and tab completion
+- `InteractiveShell` wraps JLine when a non-dumb terminal is available; otherwise it falls back to scanner input.
+- `Crypto1010` uses a shared shell and a mode-aware `CommandAutoCompleter` across the full app lifecycle.
+- Completion scopes are switched explicitly:
+  - pre-login (auth mode): `1`, `2`, `3`, `login`, `register`, `exit`
+  - post-login (command mode): command words plus context-aware prefix/value suggestions
+  - post-logout: returns to pre-login scope
+- Prompt format in authenticated sessions is `USERNAME@crypto1010 ~`.
+
+Design rationale:
+- A single shell/completer instance avoids terminal reinitialization issues that can break completion after login.
+- Explicit mode switching prevents suggestion leakage between authentication and command execution contexts.
 
 ### Adding a new command
-- Add the new keyword and description to `CommandWord` so it is exposed through `help`.
-- Implement a new `Command` subclass in the `command` package and keep command-specific validation there.
-- Update `Parser.parse(...)` to return the new command and pass in `WalletManager` when the command needs wallet access.
-- Add a focused JUnit test under `src/test/java/seedu/crypto1010/command` following the existing command test pattern.
-- Add a manual test case in this guide so the CLI behaviour remains documented.
-
-### Blockchain model
-- A `Blockchain` stores an ordered list of `Block`.
-- Each `Block` has:
-  - index
-  - timestamp
-  - previous hash
-  - transactions
-  - current hash (SHA-256 of block payload)
-- `validate()` verifies:
-  - hash consistency
-  - previous-hash linkage
-  - transaction data quality
+1. Add the new keyword and description to `CommandWord` so it appears in `help`.
+2. Implement a new `Command` subclass in the `command` package.
+3. Update `Parser.parse(...)` to construct the new command.
+4. Add focused JUnit tests under `src/test/java/seedu/crypto1010/command`.
+5. Add a manual test case in this guide.
 
 ### Blockchain and Block subsystem
 This section documents the enhancement: the blockchain core (`Blockchain`, `Block`) and integrity-first validation flow that powers `validate`, `send`, and persisted-chain loading.
@@ -72,6 +76,11 @@ At system level, the flow is:
 4. Validation logic gates acceptance of loaded data.
 
 This keeps blockchain rules in one place and reduces the risk of inconsistent behavior between command paths.
+
+#### Structural view (class diagram)
+The class diagram below introduces the static structure before runtime interactions.
+
+![Blockchain class diagram](diagrams/BlockchainBlockClassDiagram.png)
 
 #### Component-level design
 `Block` design choices:
@@ -132,6 +141,15 @@ Rationale:
 
 This ensures hash linkage is always created from canonical in-memory state, not externally supplied values.
 
+#### Interaction views (sequence diagrams)
+Validation flow:
+
+![Blockchain validation sequence](diagrams/BlockchainValidationSequence.png)
+
+Append flow during `send`:
+
+![Block append sequence](diagrams/BlockAppendOnSendSequence.png)
+
 #### Persistence interaction
 `BlockchainStorage` serializes blocks to JSON and reconstructs them on load.
 After parsing JSON into `Block` objects, it calls `validate()`. Invalid chains are rejected with an `IOException`, and app startup falls back to a safe default chain. This prevents partially tampered or malformed persisted state from silently entering runtime.
@@ -161,15 +179,14 @@ Reason for planning this enhancement:
 - keeps correctness guarantees while reducing repeated full-chain scans for larger datasets.
 - preserves the current fail-safe model because full validation remains available as a fallback path.
 
-#### UML diagrams for this enhancement (PlantUML)
-This enhancement uses multiple UML diagram types to show both structure and runtime behavior:
-- Validation Sequence: `docs/diagrams/BlockchainValidationSequence.puml`
-- Append Sequence: `docs/diagrams/BlockAppendOnSendSequence.puml`
-- Class: `docs/diagrams/BlockchainBlockClassDiagram.puml`
-
 ### Wallet, WalletManager, and Key subsystem
-This section documents the enhancement: cryptographic wallet identity (`Wallet`,`Key`) and the wallet lifecycle manager
+This section documents the enhancement: cryptographic wallet identity (`Wallet`, `Key`) and the wallet lifecycle manager
 (`WalletManager`) that powers `create`, `send`, `crossSend`, `keygen`, and address-based recipient resolution.
+
+#### Structural view (class diagram)
+The class diagram below introduces core wallet classes before command-level interactions.
+
+![Wallet subsystem class diagram](diagrams/WalletSubsystemClassDiagram.png)
 
 #### Scope of enhancement
 - Cryptographic keypair generation per wallet using RSA.
@@ -184,24 +201,24 @@ The subsystem spans three model classes:
 
 Wallet is intentionally passive, holding state such as currency, but does not generate its own keys. Key generation and hence address assignment
 is triggered externally by `keygen`, separating cryptographic concerns from `Wallet`. All command layer code also interacts with any wallet
-solely through `WalletManager`
+solely through `WalletManager`.
 
 #### Component-level design
 `Key` design choices
 - RSA keypair generation uses 1024-bit probable primes via SecureRandom, with fixed public exponent 65537.
 - A correctness check is performed immediately after generation and throws `Crypto1010Exception` on failure, ensuring no malformed keypair enters the system.
-- Only the public `Key` carries a wallet address with the private `Key` having null in its `walletAddress` field
+- Only the public `Key` carries a wallet address, with the private `Key` having `null` in its `walletAddress` field.
 - `deriveAddress()` combines modulus and public exponent, multiplies by a large prime to spread bits, and formats as a zero-padded 40-character
 hex string with `0x` prefix to match an Ethereum-format address.
-- Large integers are truncated for CLI display via `truncate()`
+- Large integers are truncated for CLI display via `truncate()`.
 
 `Wallet` design choices:
 - Address is initialised to null and only populated after `setKeys()` is called.
 - `create w/WALLET_NAME [curr/CURRENCY]` assigns the wallet a specific currency tag used by `crossSend`
 - Wallets without `curr/` are stored as `generic` to ensure compatibility with legacy wallets.
-- `getAddress()` throws Crypto1010Exception rather than returning null to force caller to handle unkeyed state
+- `getAddress()` throws `Crypto1010Exception` rather than returning `null` to force caller to handle unkeyed state.
 - Stores an optional currency code in addition to its name.
-- Currency code is normalised at construction time via `CurrencyCode.normalizeOrDefault()`, keeping currency comparison consistent
+- Currency code is normalised at construction time via `CurrencyCode.normalizeOrDefault()`, keeping currency comparison consistent.
 
 `WalletManager` design choices:
 - `createWallet()` enforces three invariants before constructing a wallet:
@@ -221,7 +238,7 @@ so unkeyed wallets do not surface as false negatives during address lookup.
 
 #### Trade-offs and known limitations
 - RSA with 1024-bit keys is used for simulation convenience. Real blockchain systems use secp256k1 elliptic curve cryptography.
-Address derivation mimics Ethereum address formatting but does not use proper hashing
+- Address derivation mimics Ethereum address formatting but does not use proper hashing.
 - Address derivation is a deterministic arithmetic transform rather than a cryptographic hash,
 meaning it does not provide preimage resistance equivalent to a production address scheme.
 - `setKeys()` does not guard against being called more than once, meaning a wallet's keypair and address can be silently overwritten.
@@ -230,12 +247,12 @@ meaning it does not provide preimage resistance equivalent to a production addre
 #### Planned next-step extension
 The current implementation establishes wallet identity through RSA keypair generation and arithmetic address derivation.
 A planned extension is to bring the cryptographic model closer to production blockchain behaviour:
-- Using `secp256k1` elliptical curve cryptography rather than RSA.
+- Using `secp256k1` elliptic curve cryptography rather than RSA.
 
 Reasons for planning this enhancement:
 - Current RSA-based address derivation is structurally correct but cryptographically weaker than a hash-based scheme.
 - Allows the tutorial to teach students how production blockchains actually utilise cryptographic methods
-to derive addresses and sign transactions
+to derive addresses and sign transactions.
 - `secp256k1` migration would allow generated addresses and keypairs to be verified against real Ethereum tooling.
 
 ### `help` command implementation
@@ -263,10 +280,11 @@ Validation sequence:
    - display instructional message
    - prompt user to enter the expected command
 6. read user input from `Scanner`
-7. if input equals `tutorial exit` or `exit`, terminate tutorial and print exit message
-8. if input matches expected instruction (with special handling for dynamic inputs like `send`), execute command using parser
-9. if execution fails or input is incorrect, display error message and repeat step
-10. continue until all tutorial steps are completed or user exits
+7. if input equals `tutorial exit`, terminate tutorial and print tutorial exit message
+8. if input equals `exit`, trigger global application exit
+9. if input matches expected instruction (with special handling for dynamic inputs like `send`), execute command using parser
+10. if execution fails or input is incorrect, display error message and repeat step
+11. continue until all tutorial steps are completed or user exits
 
 ### `create` command implementation
 CreateCommand uses prefix-based argument parsing:
@@ -328,8 +346,7 @@ Key design points shown in the diagram:
 - `SendCommand` creates `TransferRequest` and delegates transfer persistence to `TransactionRecordingService`.
 - `TransactionRecordingService` performs blockchain write operations through `Blockchain`.
 
-Diagram source:
-- `docs/diagrams/SendCommandClassDiagram.puml`
+![SendCommand class diagram](diagrams/SendCommandClassDiagram.png)
 
 ### Centralized transfer recording
 - `TransactionRecordingService` is the single write path for successful transfers.
@@ -368,12 +385,7 @@ Diagram source:
 - `WalletStorage` persists wallet names, wallet currencies, and transaction history in `data/accounts/USERNAME/wallets.txt`.
 - On startup, `Crypto1010` authenticates first, then loads blockchain and wallet data for the current account only.
 - If loading fails, the app falls back to a default blockchain and/or an empty wallet list.
-
-### UML diagrams
-- Sequence diagram source: `docs/diagrams/BlockchainValidationSequence.puml`
-- Sequence diagram source: `docs/diagrams/BlockAppendOnSendSequence.puml`
-- Class diagram source: `docs/diagrams/BlockchainBlockClassDiagram.puml`
-- Class diagram source: `docs/diagrams/SendCommandClassDiagram.puml`
+- After a load failure, save is disabled for that data type in the current session to avoid overwriting possibly corrupted files.
 
 ## Product scope
 
@@ -433,11 +445,15 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 ### Manual test cases
 1. Authentication:
    - Launch the app.
-   - Choose `register`.
+   - At `Choice:`, enter `2` (or `register`).
    - Enter a username and password.
    - Expected: account is created and the app logs in to that account.
-   - Relaunch the app and choose `login` with the same credentials.
+   - Relaunch the app and at `Choice:`, enter `1` (or `login`) with the same credentials.
    - Expected: login succeeds and the same account data is loaded.
+   - Press `Tab` at `Choice:`.
+   - Expected: only auth-scope suggestions (`1`, `2`, `3`, `login`, `register`, `exit`) are offered.
+   - After successful login, press `Tab` in command prompt.
+   - Expected: command-scope suggestions are offered, and auth menu suggestions are no longer offered.
 1. Help
    - `help`
    - Expected: prints out the list of commands

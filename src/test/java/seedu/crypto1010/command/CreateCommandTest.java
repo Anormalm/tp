@@ -2,6 +2,7 @@ package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
@@ -13,6 +14,10 @@ import java.io.PrintStream;
 import org.junit.jupiter.api.Test;
 
 class CreateCommandTest {
+    private String normalizeOutput(String s) {
+        return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+    }
+
     @Test
     void execute_validName_createsWallet() {
         Blockchain blockchain = Blockchain.createDefault();
@@ -21,13 +26,9 @@ class CreateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "\nWallet Created\n" +
-            "========================================\n" +
-            String.format("%-12s: %s\n", "Wallet", "alice") +
-            "========================================\n";
-        String normExpected = expected.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
-        String normOutput = output.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
-        assertEquals(normExpected, normOutput);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Wallet Created"));
+        assertTrue(normalized.contains("Wallet : alice"));
         assertEquals(1, walletManager.getWallets().size());
         assertEquals("alice", walletManager.getWallets().get(0).getName());
     }
@@ -40,14 +41,10 @@ class CreateCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "\nWallet Created\n" +
-            "========================================\n" +
-            String.format("%-12s: %s\n", "Wallet", "alice") +
-            String.format("%-12s: %s\n", "Currency", "btc") +
-            "========================================\n";
-        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        assertEquals(normExpected, normOutput);
+        String normalized = normalizeOutput(output);
+        assertTrue(normalized.contains("Wallet Created"));
+        assertTrue(normalized.contains("Wallet : alice"));
+        assertTrue(normalized.contains("Currency : btc"));
         assertEquals("btc", walletManager.getWallets().get(0).getCurrencyCode());
     }
 
@@ -124,21 +121,27 @@ class CreateCommandTest {
     }
 
     @Test
-    void execute_blankStoredArguments_usesDescriptionFallback() {
+    void execute_nameTooLong_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        CreateCommand command = new CreateCommand("w/alice", walletManager);
+        CreateCommand command = new CreateCommand("w/abcdefghijklmnopqrstuvwxyz1234567", walletManager);
 
-        String output = runCommand(command, blockchain);
+        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name must be at most 32 characters. Use: create w/WALLET_NAME [curr/CURRENCY]",
+                exception.getMessage());
+        assertEquals(0, walletManager.getWallets().size());
+    }
 
-        String expected = "\nWallet Created\n" +
-            "========================================\n" +
-            String.format("%-12s: %s\n", "Wallet", "alice") +
-            "========================================\n";
-        String normExpected = expected.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
-        String normOutput = output.replaceAll("\\r\\n", "\n").replaceAll("[ \t]+$", "");
-        assertEquals(normExpected, normOutput);
-        assertEquals(1, walletManager.getWallets().size());
+    @Test
+    void execute_blankArguments_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        CreateCommand command = new CreateCommand("", walletManager);
+
+        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
+        assertEquals("Error: wallet name cannot be empty. Use: create w/WALLET_NAME [curr/CURRENCY]",
+                exception.getMessage());
+        assertEquals(0, walletManager.getWallets().size());
     }
 
     @Test
@@ -160,7 +163,18 @@ class CreateCommandTest {
         CreateCommand command = new CreateCommand("w/alice curr/b", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
-        assertEquals("Error: CURRENCY must be 2-10 letters or digits. "
+        assertEquals("Error: CURRENCY must be 2-10 alphanumeric characters. "
+                + "Use: create w/WALLET_NAME [curr/CURRENCY]", exception.getMessage());
+    }
+
+    @Test
+    void execute_genericCurrency_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        CreateCommand command = new CreateCommand("w/alice curr/generic", walletManager);
+
+        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
+        assertEquals("Error: CURRENCY must be specific. Omit curr/ to create a generic wallet. "
                 + "Use: create w/WALLET_NAME [curr/CURRENCY]", exception.getMessage());
     }
 

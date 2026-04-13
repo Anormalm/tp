@@ -12,8 +12,7 @@ import java.util.Objects;
 
 public class TransactionRecordingService {
     static final String WALLET_NOT_FOUND_ERROR = "Error: Wallet not found.";
-    static final String INSUFFICIENT_BALANCE_ERROR =
-            "invalid, sent amount is more than balance, nothing was sent";
+    static final String INSUFFICIENT_BALANCE_ERROR = "Error: Insufficient balance.";
     private static final String NETWORK_FEE_ACCOUNT = "network-fee";
 
     private final WalletManager walletManager;

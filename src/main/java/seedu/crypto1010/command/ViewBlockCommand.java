@@ -3,7 +3,10 @@ package seedu.crypto1010.command;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Block;
 import seedu.crypto1010.model.Blockchain;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class ViewBlockCommand extends Command {
@@ -38,22 +41,18 @@ public class ViewBlockCommand extends Command {
         }
 
         Block block = blockchain.getBlock(index);
-        System.out.println();
-        System.out.println("Block Details:");
-        System.out.println("=".repeat(80));
-        System.out.printf("%-18s: %s%n", "Block Index", block.getIndex());
-        System.out.printf("%-18s: %s%n", "Timestamp", block.getTimestamp());
-        System.out.printf("%-18s: %s%n", "Previous Hash", block.getPreviousHash());
-        System.out.printf("%-18s: %s%n", "Current Hash", block.getCurrentHash());
-        System.out.println("-".repeat(80));
-        System.out.println("Transactions:");
-        System.out.printf("%-4s %-74s%n", "No.", "Transaction");
-        System.out.println("-".repeat(80));
+        CliVisuals.printKeyValuePanel("Block Details", List.of(
+                List.of("Block Index", String.valueOf(block.getIndex())),
+                List.of("Timestamp", block.getTimestamp()),
+                List.of("Previous Hash", block.getPreviousHash()),
+                List.of("Current Hash", block.getCurrentHash())));
+
+        List<List<String>> rows = new ArrayList<>();
         int txNo = 1;
         for (String transaction : block.getTransactions()) {
-            System.out.printf("%-4d %-74s%n", txNo++, transaction);
+            rows.add(List.of(String.valueOf(txNo++), transaction));
         }
-        System.out.println("=".repeat(80));
+        CliVisuals.printTable("Transactions", List.of("No.", "Transaction"), rows);
     }
 
     private Integer parseIndex(String rawIndex) {

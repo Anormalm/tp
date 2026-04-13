@@ -3,11 +3,15 @@ package seedu.crypto1010.ui;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.Completer;
+import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
+import java.io.Console;
 import java.io.IOException;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -23,7 +27,17 @@ public final class InteractiveShell {
     }
 
     public static InteractiveShell create(Scanner scanner) {
-        return new InteractiveShell(scanner, createLineReader());
+        return new InteractiveShell(scanner, createLineReader(null));
+    }
+
+    public static InteractiveShell create(Scanner scanner, List<String> suggestions) {
+        return new InteractiveShell(scanner, createLineReader(new StringsCompleter(suggestions == null
+                ? List.of()
+                : suggestions)));
+    }
+
+    public static InteractiveShell create(Scanner scanner, Completer completer) {
+        return new InteractiveShell(scanner, createLineReader(completer));
     }
 
     public String readPlain(String prompt) {
@@ -61,23 +75,54 @@ public final class InteractiveShell {
                 // Fall back to plain prompt if masking support is unavailable.
             }
         }
+
+        Console console = System.console();
+        if (console != null) {
+            char[] input = console.readPassword("%s ", prompt);
+            return input == null ? null : new String(input).strip();
+        }
+
         return readPlain(prompt);
     }
 
-    private static LineReader createLineReader() {
+    public String readCommand(String prompt) {
+        if (lineReader != null) {
+            try {
+                String input = lineReader.readLine(prompt + " ");
+                return input == null ? null : input.strip();
+            } catch (UserInterruptException e) {
+                return "";
+            } catch (EndOfFileException e) {
+                return null;
+            } catch (RuntimeException e) {
+                // Fall back to scanner input if terminal state changes unexpectedly.
+            }
+        }
+
+        try {
+            return scanner.nextLine().strip();
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+    }
+
+    private static LineReader createLineReader(Completer completer) {
         if (System.console() == null) {
             return null;
         }
 
+        Logger.getLogger("org.jline").setLevel(Level.SEVERE);
         Logger.getLogger("org.jline.utils.Log").setLevel(Level.SEVERE);
         try {
             Terminal terminal = TerminalBuilder.builder()
                     .system(true)
-                    .jna(true)
-                    .jansi(true)
                     .build();
+            if ("dumb".equalsIgnoreCase(terminal.getType())) {
+                return null;
+            }
             return LineReaderBuilder.builder()
                     .terminal(terminal)
+                    .completer(completer == null ? new StringsCompleter(new String[0]) : completer)
                     .build();
         } catch (IOException | RuntimeException e) {
             return null;

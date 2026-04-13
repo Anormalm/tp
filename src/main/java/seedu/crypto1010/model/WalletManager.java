@@ -10,6 +10,7 @@ import seedu.crypto1010.exceptions.Crypto1010Exception;
 
 public class WalletManager {
     private static final char RESERVED_NAME_DELIMITER = '|';
+    private static final int MAX_WALLET_NAME_LENGTH = 32;
     private final List<Wallet> wallets;
 
     public WalletManager() {
@@ -26,6 +27,9 @@ public class WalletManager {
         String normalizedCurrency = CurrencyCode.normalizeOrDefault(currencyCode);
         if (normalizedName.isEmpty()) {
             throw new IllegalArgumentException("walletName must not be blank");
+        }
+        if (normalizedName.length() > MAX_WALLET_NAME_LENGTH) {
+            throw new IllegalArgumentException("walletName exceeds max length: " + MAX_WALLET_NAME_LENGTH);
         }
         if (containsReservedNameDelimiter(normalizedName)) {
             throw new IllegalArgumentException("walletName contains reserved character: " + RESERVED_NAME_DELIMITER);

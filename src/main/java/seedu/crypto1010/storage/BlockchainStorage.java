@@ -37,6 +37,9 @@ public class BlockchainStorage {
         }
 
         String json = Files.readString(dataFilePath, StandardCharsets.UTF_8);
+        if (json.isBlank()) {
+            return Blockchain.createDefault();
+        }
         Blockchain loaded = fromJson(json);
         ValidationResult result = loaded.validate();
         if (!result.isValid()) {

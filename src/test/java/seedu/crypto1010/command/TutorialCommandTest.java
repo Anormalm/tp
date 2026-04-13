@@ -34,7 +34,7 @@ public class TutorialCommandTest {
 
         String output = outputStream.toString();
 
-        assertTrue(output.contains("Welcome to the tutorial!"));
+        assertTrue(output.contains("Welcome!"));
         assertTrue(output.contains("Enter the following command:"));
         assertTrue(output.contains("create w/alice"));
         assertTrue(output.contains("Exiting tutorial..."));
@@ -73,6 +73,28 @@ public class TutorialCommandTest {
 
         String output = outputStream.toString();
         assertTrue(output.contains("Exiting tutorial..."));
+    }
+
+    @Test
+    public void execute_exitCommand_requestsGlobalExit() throws Crypto1010Exception {
+        String simulatedInput = "exit\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(simulatedInput.getBytes()));
+        TutorialCommand tutorialCommand = new TutorialCommand("start");
+        Blockchain blockchain = Blockchain.createDefault();
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            tutorialCommand.execute(blockchain, scanner);
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Exiting Crypto1010..."));
+        assertTrue(tutorialCommand.isExitRequested());
     }
 
     @Test

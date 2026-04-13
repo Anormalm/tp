@@ -5,8 +5,11 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
 import seedu.crypto1010.service.TransactionRecordingService;
 import seedu.crypto1010.service.TransferRequest;
+import seedu.crypto1010.ui.CliVisuals;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.function.Consumer;
@@ -109,9 +112,10 @@ public class SendCommand extends Command {
 
     private TransferRequest createTransferRequest(ParsedArgs parsed) throws Crypto1010Exception {
         BigDecimal amount = parsePositiveAmount(parsed.amount);
-        String speed = resolveSpeed(parsed.speed);
+        boolean hasManualFee = parsed.fee != null;
+        String speed = hasManualFee ? DEFAULT_SPEED : resolveSpeed(parsed.speed);
         BigDecimal fee = resolveValidatedFee(parsed.fee, speed);
-        String speedLabel = parsed.fee == null ? speed : MANUAL_SPEED_LABEL;
+        String speedLabel = hasManualFee ? MANUAL_SPEED_LABEL : speed;
 
         return new TransferRequest(
                 parsed.walletName,
@@ -123,11 +127,7 @@ public class SendCommand extends Command {
     }
 
     private BigDecimal parsePositiveAmount(String amountArgument) throws Crypto1010Exception {
-        BigDecimal amount = parseDecimal(amountArgument);
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new Crypto1010Exception(AMOUNT_INVALID_ERROR + " " + SEND_FORMAT);
-        }
-        return amount;
+        return CommandParserUtil.parsePositiveDecimal(amountArgument, AMOUNT_INVALID_ERROR, SEND_FORMAT);
     }
 
     private String resolveSpeed(String speedArgument) throws Crypto1010Exception {
@@ -147,18 +147,16 @@ public class SendCommand extends Command {
     }
 
     private void printTransferSummary(TransferRequest transferRequest) {
-        System.out.println();
-        System.out.println("Transaction sent successfully.");
-        System.out.println("=".repeat(60));
-        System.out.printf("%-12s: %s%n", "Wallet", transferRequest.getSenderWalletName());
-        System.out.printf("%-12s: %s%n", "To", transferRequest.getRecipientAddress());
-        System.out.printf("%-12s: %s%n", "Amount", transferRequest.getAmount().toPlainString());
-        System.out.printf("%-12s: %s%n", "Speed", transferRequest.getSpeedLabel());
-        System.out.printf("%-12s: %s%n", "Fee", transferRequest.getFee().toPlainString());
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(List.of("Wallet", transferRequest.getSenderWalletName()));
+        rows.add(List.of("To", transferRequest.getRecipientAddress()));
+        rows.add(List.of("Amount", transferRequest.getAmount().toPlainString()));
+        rows.add(List.of("Speed", transferRequest.getSpeedLabel()));
+        rows.add(List.of("Fee", transferRequest.getFee().toPlainString()));
         if (transferRequest.getNote() != null) {
-            System.out.printf("%-12s: %s%n", "Note", transferRequest.getNote());
+            rows.add(List.of("Note", transferRequest.getNote()));
         }
-        System.out.println("=".repeat(60));
+        CliVisuals.printKeyValuePanel("Transaction Sent Successfully", rows);
     }
 
     private ParsedArgs parseArguments(String args) {

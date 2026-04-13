@@ -69,10 +69,19 @@ public class AuthenticationService {
         return normalizedUsername;
     }
 
+    public String validateNewUsername(String username) throws AuthenticationException {
+        String normalizedUsername = normalizeUsername(username);
+        validateUsername(normalizedUsername);
+        if (accountsByUsername.containsKey(normalizedUsername)) {
+            throw new AuthenticationException("Error: Username already exists.");
+        }
+        return normalizedUsername;
+    }
+
     private void validateUsername(String username) throws AuthenticationException {
         if (!USERNAME_PATTERN.matcher(username).matches()) {
             throw new AuthenticationException(
-                    "Error: Username must be 3-20 characters using letters, numbers, '_' or '-'.");
+                    "Error: Username must be 3-20 characters with no spaces, using letters, numbers, '_' or '-'.");
         }
     }
 

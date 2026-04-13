@@ -87,7 +87,7 @@ class AuthenticationServiceTest {
                 AuthenticationException.class,
                 () -> authenticationService.register("ab", "secret1", "secret1"));
 
-        assertEquals("Error: Username must be 3-20 characters using letters, numbers, '_' or '-'.",
+        assertEquals("Error: Username must be 3-20 characters with no spaces, using letters, numbers, '_' or '-'.",
                 exception.getMessage());
     }
 

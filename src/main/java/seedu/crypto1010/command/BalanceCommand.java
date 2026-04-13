@@ -3,9 +3,11 @@ package seedu.crypto1010.command;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.Scanner;
 
 public class BalanceCommand extends Command {
@@ -39,12 +41,9 @@ public class BalanceCommand extends Command {
         }
         BigDecimal balance = blockchain.getPreciseBalance(trimmedWalletName);
 
-        System.out.println();
-        System.out.println("Wallet Balance");
-        System.out.println("=".repeat(40));
-        System.out.printf("%-16s: %s%n", "Wallet", trimmedWalletName);
-        System.out.printf("%-16s: %s%n", "Balance", formatBalance(balance));
-        System.out.println("=".repeat(40));
+        CliVisuals.printKeyValuePanel("Wallet Balance", List.of(
+                List.of("Wallet", trimmedWalletName),
+                List.of("Balance", formatBalance(balance))));
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {

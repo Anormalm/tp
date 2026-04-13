@@ -1,43 +1,53 @@
 @startuml
 title Send Command - Block Append and Hash Chaining
+autoactivate on
 
 actor User
-participant "Crypto1010" as App
-participant "Parser" as Parser
-participant "SendCommand" as Send
-participant "TransactionRecordingService" as Service
-participant "WalletManager" as WM
-participant "Blockchain" as Chain
-participant "Block(last)" as LastBlock
-participant "Block(new)" as NewBlock
-database "WalletStorage" as WS
-database "BlockchainStorage" as BS
+participant "app:Crypto1010" as App
+participant "parser:Parser" as Parser
+participant "sendCmd:SendCommand" as Send
+participant "txService:TransactionRecordingService" as Service
+participant "walletManager:WalletManager" as WM
+participant "chain:Blockchain" as Chain
+participant "lastBlock:Block" as LastBlock
+participant "walletStorage:WalletStorage" as WS
+participant "blockchainStorage:BlockchainStorage" as BS
 
 User -> App: send w/bob to/0x... amt/2 fee/0.001
 App -> Parser: parse(rawInput)
-Parser --> App: SendCommand
-App -> Send: execute(...)
+create Send
+Parser -> Send: <<create>> SendCommand(arguments, walletManager)
+Parser --> App: sendCmd
+App -> Send: execute(chain, in)
+
 Send -> WM: hasWallet("bob")
-WM --> Send: true
-Send -> Service: recordTransfer(request, blockchain)
+WM --> Send: exists?
+alt wallet not found
+  Send --> App: throw Crypto1010Exception
+  App --> User: print error
+else wallet found
+  Send -> Service: recordTransfer(request, chain)
+  Service -> WM: findWallet("bob")
+  WM --> Service: senderWallet
+  Service -> Chain: getPreciseBalance("bob")
+  Chain --> Service: senderBalance
+  Service -> Chain: addTransactions([transferTx, feeTx?])
 
-Service -> WM: findWallet("bob")
-WM --> Service: Wallet bob
-Service -> Chain: getPreciseBalance("bob")
-Chain --> Service: currentBalance
-Service -> Chain: addTransactions([txTransfer, txFee])
+  Chain -> LastBlock: getIndex()
+  LastBlock --> Chain: lastIndex
+  Chain -> LastBlock: getCurrentHash()
+  LastBlock --> Chain: previousHash
 
-Chain -> LastBlock: getIndex(), getCurrentHash()
-LastBlock --> Chain: index, hash
-Chain -> NewBlock: new Block(index+1, now, previousHash, txs)
-NewBlock -> NewBlock: compute SHA-256 currentHash
-NewBlock --> Chain: block
-Chain -> Chain: append block to blocks list
+  create "newBlock:Block" as NewBlock
+  Chain -> NewBlock: new Block(lastIndex+1, now, previousHash, txs)
+  NewBlock --> Chain: createdBlock
+  Chain -> Chain: append createdBlock
 
-Service --> Send: success
-Send --> App: print transfer summary
-App -> BS: save(blockchain)
-App -> WS: save(walletManager)
-App --> User: output
+  Service --> Send: success
+  Send -> User: print transfer summary
+  Send --> App: return
+  App -> BS: save(chain)
+  App -> WS: save(walletManager)
+end
 
 @enduml
