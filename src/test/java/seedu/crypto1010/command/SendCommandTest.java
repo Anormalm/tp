@@ -28,7 +28,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_validSendWithDefaultSpeed_recordsTransactionAndHistory() {
+    void execute_validSendWithDefaultSpeed_recordsTransactionAndHistory() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob"); // bob has balance 10 from default blockchain
@@ -53,7 +53,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_insufficientBalance_throwsException() {
+    void execute_insufficientBalance_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet wallet = walletManager.createWallet("alice"); // alice has balance -10
@@ -76,7 +76,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_invalidAmount_throwsException() {
+    void execute_invalidAmount_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -89,7 +89,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_extremeScientificAmount_throwsException() {
+    void execute_extremeScientificAmount_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -112,7 +112,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_manualFeeOverride_usesProvidedFee() {
+    void execute_manualFeeOverride_usesProvidedFee() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -137,7 +137,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_noteContainingPrefixLikeText_preservesEntireNote() {
+    void execute_noteContainingPrefixLikeText_preservesEntireNote() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -161,7 +161,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_validBitcoinAddress_succeeds() {
+    void execute_validBitcoinAddress_succeeds() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -179,7 +179,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_validSolanaAddress_succeeds() {
+    void execute_validSolanaAddress_succeeds() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -197,7 +197,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_invalidAddress_throwsException() {
+    void execute_invalidAddress_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -210,7 +210,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_invalidBitcoinAddressCharacters_throwsException() {
+    void execute_invalidBitcoinAddressCharacters_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -225,7 +225,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_unsupportedSpeed_throwsException() {
+    void execute_unsupportedSpeed_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -238,7 +238,7 @@ class SendCommandTest {
     }
 
     @Test
-    void execute_negativeManualFee_throwsException() {
+    void execute_negativeManualFee_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");

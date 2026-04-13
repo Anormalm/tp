@@ -73,7 +73,7 @@ class CreateCommandTest {
     }
 
     @Test
-    void execute_duplicateName_throwsException() {
+    void execute_duplicateName_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
@@ -145,7 +145,7 @@ class CreateCommandTest {
     }
 
     @Test
-    void execute_duplicateCurrency_throwsException() {
+    void execute_duplicateCurrency_throwsException() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice", "btc");

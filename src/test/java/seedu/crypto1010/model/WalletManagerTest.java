@@ -5,40 +5,42 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.crypto1010.exceptions.Crypto1010Exception;
+
 class WalletManagerTest {
     @Test
-    void createWallet_duplicateName_throwsIllegalArgumentException() {
+    void createWallet_duplicateName_throwsCrypto1010Exception() throws Crypto1010Exception {
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
 
-        assertThrows(IllegalArgumentException.class, () -> walletManager.createWallet("Alice"));
+        assertThrows(Crypto1010Exception.class, () -> walletManager.createWallet("Alice"));
     }
 
     @Test
-    void createWallet_duplicateSpecificCurrency_throwsIllegalArgumentException() {
+    void createWallet_duplicateSpecificCurrency_throwsCrypto1010Exception() throws Crypto1010Exception {
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice", "btc");
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> walletManager.createWallet("bob", "btc"));
+        Crypto1010Exception exception =
+                assertThrows(Crypto1010Exception.class, () -> walletManager.createWallet("bob", "btc"));
         assertEquals("wallet currency already exists: btc", exception.getMessage());
     }
 
     @Test
-    void createWallet_nameContainsReservedDelimiter_throwsIllegalArgumentException() {
+    void createWallet_nameContainsReservedDelimiter_throwsCrypto1010Exception() {
         WalletManager walletManager = new WalletManager();
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> walletManager.createWallet("ali|ce"));
+        Crypto1010Exception exception =
+                assertThrows(Crypto1010Exception.class, () -> walletManager.createWallet("ali|ce"));
         assertEquals("walletName contains reserved character: |", exception.getMessage());
     }
 
     @Test
-    void createWallet_nameTooLong_throwsIllegalArgumentException() {
+    void createWallet_nameTooLong_throwsCrypto1010Exception() {
         WalletManager walletManager = new WalletManager();
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class,
+        Crypto1010Exception exception =
+                assertThrows(Crypto1010Exception.class,
                         () -> walletManager.createWallet("abcdefghijklmnopqrstuvwxyz1234567"));
         assertEquals("walletName exceeds max length: 32", exception.getMessage());
     }

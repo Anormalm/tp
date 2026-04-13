@@ -90,7 +90,7 @@ class TransactionRecordingServiceTest {
     }
 
     @Test
-    void recordTransfer_insufficientBalance_throwsAndLeavesStateUnchanged() {
+    void recordTransfer_insufficientBalance_throwsAndLeavesStateUnchanged() throws Crypto1010Exception{
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet alice = walletManager.createWallet("alice");
