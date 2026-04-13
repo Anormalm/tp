@@ -90,6 +90,15 @@ public class SendCommand extends Command {
         if (!walletManager.hasWallet(walletName)) {
             throw new Crypto1010Exception(WALLET_NOT_FOUND_ERROR);
         }
+        // Enforce keygen: wallet must have an address
+        var walletOpt = walletManager.findWallet(walletName);
+        if (walletOpt.isPresent()) {
+            try {
+                walletOpt.get().getAddress();
+            } catch (Crypto1010Exception e) {
+                throw new Crypto1010Exception("Error: Must run keygen for this wallet before sending.");
+            }
+        }
     }
 
     private void validateRecipientAddress(String recipientAddress) throws Crypto1010Exception {

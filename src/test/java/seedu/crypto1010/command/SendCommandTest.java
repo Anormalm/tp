@@ -18,6 +18,16 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class SendCommandTest {
+        @Test
+        void execute_walletWithoutKeygen_throwsException() {
+            Blockchain blockchain = Blockchain.createDefault();
+            WalletManager walletManager = new WalletManager();
+            walletManager.createWallet("noKeygen");
+            SendCommand command = new SendCommand("w/noKeygen to/" + ETH_ADDRESS + " amt/1", walletManager);
+
+            Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
+            assertEquals("Error: Must run keygen for this wallet before sending.", exception.getMessage());
+        }
     private static final String ETH_ADDRESS = "0x1111111111111111111111111111111111111111";
     private static final String BTC_ADDRESS = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080";
     private static final String SOL_ADDRESS = "So11111111111111111111111111111111111111112";
@@ -26,18 +36,21 @@ class SendCommandTest {
     void execute_validSendWithDefaultSpeed_recordsTransactionAndHistory() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob"); // bob has balance 10 from default blockchain
+        Wallet bob = walletManager.createWallet("bob"); // bob has balance 10 from default blockchain
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/4", walletManager);
 
         String output = runCommand(command, blockchain);
 
-        String expected = "Transaction sent successfully." + System.lineSeparator()
-                + "Wallet: bob" + System.lineSeparator()
-                + "To: " + ETH_ADDRESS + System.lineSeparator()
-                + "Amount: 4" + System.lineSeparator()
-                + "Speed: standard" + System.lineSeparator()
-                + "Fee: 0.0010" + System.lineSeparator();
-        assertEquals(expected, output);
+        String expected = "Transaction sent successfully.\n"
+            + "============================================================\n"
+            + "Wallet      : bob\n"
+            + "To          : " + ETH_ADDRESS + "\n"
+            + "Amount      : 4\n"
+            + "Speed       : standard\n"
+            + "Fee         : 0.0010\n"
+            + "============================================================\n";
+        assertEquals(expected.trim().replace("\r\n", "\n"), output.trim().replace("\r\n", "\n"));
 
         assertEquals(3, blockchain.size());
         assertEquals(new BigDecimal("0.999"), blockchain.getPreciseBalance("bob"));
@@ -52,6 +65,7 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet wallet = walletManager.createWallet("alice"); // alice has balance -10
+        try { wallet.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/alice to/" + ETH_ADDRESS + " amt/1", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -74,7 +88,8 @@ class SendCommandTest {
     void execute_invalidAmount_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/-5", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -97,15 +112,16 @@ class SendCommandTest {
     void execute_manualFeeOverride_usesProvidedFee() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand(
                 "w/bob to/" + ETH_ADDRESS + " amt/4 speed/fast fee/0.5 note/priority transfer",
                 walletManager);
 
         String output = runCommand(command, blockchain);
 
-        assertTrue(output.contains("Speed: manual"));
-        assertTrue(output.contains("Fee: 0.5"));
+        assertTrue(output.contains("Speed       : manual"));
+        assertTrue(output.contains("Fee         : 0.5"));
         assertEquals(new BigDecimal("0.5"), blockchain.getPreciseBalance("network-fee"));
         Wallet wallet = walletManager.findWallet("bob").orElse(null);
         assertNotNull(wallet);
@@ -116,7 +132,8 @@ class SendCommandTest {
     void execute_noteContainingPrefixLikeText_preservesEntireNote() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand(
                 "w/bob to/" + ETH_ADDRESS + " amt/1 fee/0 note/repay w/alice tomorrow",
                 walletManager);
@@ -124,7 +141,7 @@ class SendCommandTest {
         String output = runCommand(command, blockchain);
 
         assertTrue(output.contains("Transaction sent successfully."));
-        assertTrue(output.contains("Note: repay w/alice tomorrow"));
+        assertTrue(output.contains("Note        : repay w/alice tomorrow"));
         Wallet wallet = walletManager.findWallet("bob").orElse(null);
         assertNotNull(wallet);
         assertTrue(wallet.getTransactionHistory().get(0).contains("note/repay w/alice tomorrow"));
@@ -134,33 +151,36 @@ class SendCommandTest {
     void execute_validBitcoinAddress_succeeds() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/bob to/" + BTC_ADDRESS + " amt/1 fee/0", walletManager);
 
         String output = runCommand(command, blockchain);
 
         assertTrue(output.contains("Transaction sent successfully."));
-        assertTrue(output.contains("To: " + BTC_ADDRESS));
+        assertTrue(output.contains("To          : " + BTC_ADDRESS));
     }
 
     @Test
     void execute_validSolanaAddress_succeeds() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/bob to/" + SOL_ADDRESS + " amt/1 fee/0", walletManager);
 
         String output = runCommand(command, blockchain);
 
         assertTrue(output.contains("Transaction sent successfully."));
-        assertTrue(output.contains("To: " + SOL_ADDRESS));
+        assertTrue(output.contains("To          : " + SOL_ADDRESS));
     }
 
     @Test
     void execute_invalidAddress_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/bob to/not-an-address amt/1", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -173,7 +193,8 @@ class SendCommandTest {
     void execute_invalidBitcoinAddressCharacters_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand(
                 "w/bob to/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt08I amt/1",
                 walletManager);
@@ -188,7 +209,8 @@ class SendCommandTest {
     void execute_unsupportedSpeed_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/1 speed/urgent", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -201,7 +223,8 @@ class SendCommandTest {
     void execute_negativeManualFee_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/1 fee/-0.1", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -216,9 +239,8 @@ class SendCommandTest {
         WalletManager walletManager = new WalletManager();
         Wallet sender = walletManager.createWallet("bob");
         Wallet receiver = walletManager.createWallet("carol");
-
-        Key[] keys = Key.generateKeyPair();
-        receiver.setKeys(keys);
+        try { sender.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try { receiver.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
 
         SendCommand command = new SendCommand(
                 "w/bob to/" + receiver.getAddress() + " amt/2 fee/0",
