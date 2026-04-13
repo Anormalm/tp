@@ -18,7 +18,7 @@ public class KeygenCommand extends Command {
             Format: keygen w/WALLET_NAME
             Example: keygen w/mainwallet
             
-            Generates and displays key pair for new wallet, or regenerates for existing wallet
+            Generates and displays key pair for a wallet that does not already have keys
             Displays the process of creating a key pair
             """;
 

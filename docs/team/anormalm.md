@@ -27,6 +27,11 @@ My primary scope was implementation ownership of blockchain/transfer internals p
   - sanitized terminal output to prevent control-sequence/ANSI injection from user-provided content
   - moved startup logo loading to bundled classpath resources (jar-safe, avoids CWD spoofing)
   - enforced wallet-name max length to reduce UI truncation/spoofing risk
+  - upgraded account password storage to salted PBKDF2 hashing
+  - implemented login brute-force throttling (temporary lockout after repeated failures)
+  - added credential-file integrity signing and verification
+  - added parser/storage size bounds to reduce oversized-input/file abuse risk
+  - hardened save/rollback behavior to fail safe on persistence errors
 
 ### Bug fixing and triaging (PE-D focus)
 - Triaged and resolved multiple PE-D findings across functionality and docs, including parser correctness, command behavior consistency, persistence edge cases, and tutorial/session flow.
@@ -57,6 +62,10 @@ My primary scope was implementation ownership of blockchain/transfer internals p
   - startup branding and authenticated prompt format
   - tab auto-completion scope before and after login
   - terminal constraints for completion behavior
+- Updated security/persistence documentation:
+  - password hashing and temporary login lockout behavior
+  - credential integrity signature and key file paths
+  - save-failure fail-safe behavior and keygen regeneration restriction
 
 ### Contributions to the Developer Guide
 - Wrote/updated the Blockchain and Block implementation details:
@@ -70,6 +79,8 @@ My primary scope was implementation ownership of blockchain/transfer internals p
 - Updated DG implementation and manual-testing details to stay aligned with current behavior after bug fixes.
 - Added implementation notes for shell/completer architecture and mode switching between authentication and command phases.
 - Added manual testing steps for tab completion scope transitions.
+- Corrected wallet/crypto internals documentation to match actual `KeyPair` + secp256k1 implementation (removed stale RSA/`Key` references).
+- Added DG coverage for authentication hardening (PBKDF2, lockout, credential-signature checks) and persistence/input hardening limits.
 
 ### Contributions to team-based tasks
 - Helped align blockchain behavior with command and storage layers so validation rules are enforced consistently in CLI and load-time paths.

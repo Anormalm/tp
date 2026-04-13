@@ -3,6 +3,9 @@ package seedu.crypto1010.auth;
 import seedu.crypto1010.storage.AccountStorage;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -14,13 +17,25 @@ import java.util.regex.Pattern;
 public class AuthenticationService {
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{3,20}$");
     private static final int MIN_PASSWORD_LENGTH = 6;
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private static final Duration LOCKOUT_DURATION = Duration.ofSeconds(30);
+    private static final String LOCKED_OUT_ERROR =
+            "Error: Too many failed login attempts. Try again in 30 seconds.";
 
     private final AccountStorage accountStorage;
     private final Map<String, AccountCredentials> accountsByUsername;
+    private final Map<String, FailedAttemptState> failedAttemptsByUsername;
+    private final Clock clock;
 
     public AuthenticationService(AccountStorage accountStorage) {
+        this(accountStorage, Clock.systemUTC());
+    }
+
+    AuthenticationService(AccountStorage accountStorage, Clock clock) {
         this.accountStorage = Objects.requireNonNull(accountStorage);
+        this.clock = Objects.requireNonNull(clock);
         this.accountsByUsername = new LinkedHashMap<>();
+        this.failedAttemptsByUsername = new LinkedHashMap<>();
     }
 
     public void load() throws IOException {
@@ -45,10 +60,14 @@ public class AuthenticationService {
 
     public String authenticate(String username, String password) throws AuthenticationException {
         String normalizedUsername = normalizeUsername(username);
+        enforceLockoutIfActive(normalizedUsername);
+
         AccountCredentials credentials = accountsByUsername.get(normalizedUsername);
         if (credentials == null || !PasswordHasher.matches(password, credentials)) {
+            recordFailedAttempt(normalizedUsername);
             throw new AuthenticationException("Error: Invalid username or password.");
         }
+        failedAttemptsByUsername.remove(normalizedUsername);
         return normalizedUsername;
     }
 
@@ -96,5 +115,36 @@ public class AuthenticationService {
 
     private String normalizeUsername(String username) {
         return username == null ? "" : username.trim().toLowerCase();
+    }
+
+    private void enforceLockoutIfActive(String normalizedUsername) throws AuthenticationException {
+        FailedAttemptState state = failedAttemptsByUsername.get(normalizedUsername);
+        if (state == null) {
+            return;
+        }
+
+        Instant now = clock.instant();
+        if (state.lockedUntil != null && now.isBefore(state.lockedUntil)) {
+            throw new AuthenticationException(LOCKED_OUT_ERROR);
+        }
+        if (state.lockedUntil != null && !now.isBefore(state.lockedUntil)) {
+            failedAttemptsByUsername.remove(normalizedUsername);
+        }
+    }
+
+    private void recordFailedAttempt(String normalizedUsername) {
+        FailedAttemptState state = failedAttemptsByUsername.computeIfAbsent(
+                normalizedUsername,
+                ignored -> new FailedAttemptState());
+        state.count++;
+        if (state.count >= MAX_FAILED_ATTEMPTS) {
+            state.lockedUntil = clock.instant().plus(LOCKOUT_DURATION);
+            state.count = 0;
+        }
+    }
+
+    private static final class FailedAttemptState {
+        private int count;
+        private Instant lockedUntil;
     }
 }

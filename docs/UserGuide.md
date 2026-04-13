@@ -59,6 +59,8 @@ The application is designed for educational use and records transactions in a si
 - Before login, the account menu supports tab suggestions for `1`, `2`, `3`, `login`, `register`, and `exit`.
 - Usernames are case-insensitive and must be 3-20 characters using letters, numbers, `_`, or `-`.
 - Passwords must be at least 6 characters long.
+- Passwords are stored as salted PBKDF2 hashes (not plaintext).
+- After 5 failed login attempts for the same username, login is temporarily locked for 30 seconds.
 
 <span id="ug-features"></span>
 ## Features
@@ -102,6 +104,8 @@ The application is designed for educational use and records transactions in a si
   [X] `viewblock -2`
 + Commands without parameters ignore extra trailing text.  
   e.g. `validate anything` is interpreted as `validate`.
++ Very long command lines are rejected.  
+  Input must be 512 characters or fewer.
 
 <span id="cmd-help"></span>
 ### `help`: Display command help
@@ -151,6 +155,7 @@ Format: `keygen w/WALLET_NAME`
 
 - Generates a public/private key pair for an existing wallet.
 - Fails if the wallet does not exist.
+- Fails if that wallet already has keys (key regeneration is blocked).
 - Generates a wallet address for that wallet.
 - Key generation is required if you want this wallet to have a local address (for receiving to that local address).
 - `send` does not require sender key generation.
@@ -255,6 +260,7 @@ Format: `exit`
 - Exits the program.
 - Data is saved when the current account data was loaded successfully.
 - If load failed due to corrupted data, save is intentionally disabled to avoid overwriting files.
+- If a save operation fails, the app exits to prevent further inconsistency.
 
 ---
 <span id="ug-coming-soon"></span>
@@ -289,11 +295,13 @@ This feature is not available yet in the current release.
 <span id="ug-data-and-persistence"></span>
 ## Data and Persistence
 - Account credentials are stored in `data/accounts/credentials.txt`.
+- Credential-signing key is stored in `data/accounts/credentials.key`.
 - Each account has its own blockchain data at `data/accounts/USERNAME/blockchain.json`.
 - Each account has its own wallet names, wallet currencies, and wallet send history at `data/accounts/USERNAME/wallets.txt`.
 - Generated keys and wallet addresses are not currently persisted; run `keygen` again after restarting if you need an address.
 - Missing or blank blockchain files are treated as no data yet and default data is loaded.
 - Corrupted blockchain or wallet data triggers safe fallback, and saving is disabled to avoid overwriting that account's files.
+- Credential data is signed; tampering with signed credential records is rejected on load.
 
 ---
 <span id="ug-faq"></span>
@@ -306,6 +314,9 @@ This feature is not available yet in the current release.
 
 **Q**: Why is my wallet address missing after restart?  
 **A**: Wallet names and send history are persisted, but generated keys and wallet addresses are not. Run `keygen w/WALLET_NAME` again.
+
+**Q**: Why am I blocked from login even with the correct password?  
+**A**: After repeated failed attempts, that username is locked for 30 seconds. Wait and retry.
 
 **Q**: Can I transfer to a wallet name directly?  
 **A**: `send` requires a recipient address string in `to/`. For direct account-to-account transfer, use `crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY`.

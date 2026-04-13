@@ -4,7 +4,8 @@
 - Java Platform, Standard Edition 17 API documentation: https://docs.oracle.com/en/java/javase/17/docs/api/
 - JUnit 5 User Guide (for unit testing approach and assertions): https://junit.org/junit5/docs/current/user-guide/
 - Gradle User Manual (build and task orchestration): https://docs.gradle.org/current/userguide/userguide.html
-- SHA-256 usage through Java `MessageDigest` API from the Java standard library documentation.
+- Password hashing: Java Cryptography Architecture (`PBKDF2WithHmacSHA256`) from the Java standard library.
+- Address hashing: Bouncy Castle digest implementations (`KeccakDigest`, `RIPEMD160Digest`).
 
 ## Design & Implementation
 Crypto1010 is implemented as a modular command-line application with clear separation between authentication, input parsing, command execution, domain model, and persistence.
@@ -37,12 +38,19 @@ The following sequence diagram shows the standard command path after a user is a
 3. `Parser` constructs a concrete `Command` object.
 4. `Crypto1010` executes the command with the current in-memory `Blockchain` and `WalletManager`.
 5. On success, `Crypto1010` persists both blockchain and wallet states when save is enabled for that session.
+6. If a save operation fails, the app exits to avoid continuing with potentially inconsistent persistence state.
 
 ### Authentication subsystem
 #### Structural view (class diagram)
 The class diagram below introduces account credential management and password hashing structure used during login/registration.
 
 ![Authentication subsystem class diagram](diagrams/AuthSubsystemClassDiagram.png)
+
+Key authentication behavior:
+- Password storage uses per-account random salt + PBKDF2 (`PBKDF2WithHmacSHA256`) derived hash.
+- Username lookup is case-insensitive through normalized lowercase keys.
+- Login throttling is in-memory per username: after 5 failed attempts, login for that username is blocked for 30 seconds.
+- Credential file integrity is protected with an HMAC signature header; signed file tampering is rejected during load.
 
 ### CLI shell, prompt, and tab completion
 - `InteractiveShell` wraps JLine when a non-dumb terminal is available; otherwise it falls back to scanner input.
@@ -191,9 +199,8 @@ Reason for planning this enhancement:
 - keeps correctness guarantees while reducing repeated full-chain scans for larger datasets.
 - preserves the current fail-safe model because full validation remains available as a fallback path.
 
-### Wallet, WalletManager, and Key subsystem
-This section documents the enhancement: cryptographic wallet identity (`Wallet`, `Key`) and the wallet lifecycle manager
-(`WalletManager`) that powers `create`, `send`, `crossSend`, `keygen`, and address-based recipient resolution.
+### Wallet, WalletManager, and KeyPair subsystem
+This section documents wallet identity and lifecycle management through `Wallet`, `WalletManager`, and `KeyPair`.
 
 #### Structural view (class diagram)
 The class diagram below introduces core wallet classes before command-level interactions.
@@ -201,71 +208,40 @@ The class diagram below introduces core wallet classes before command-level inte
 ![Wallet subsystem class diagram](diagrams/WalletSubsystemClassDiagram.png)
 
 #### Scope of enhancement
-- Cryptographic keypair generation per wallet using RSA.
-- Deterministic wallet address derivation from the public key.
-- Address-based wallet lookup without requiring wallet name input.
+- secp256k1 keypair generation per wallet (`keygen` command path).
+- Currency-aware wallet management to support unambiguous `crossSend curr/...` routing.
+- Address-based recipient resolution support for local-address sends.
 
 #### Architectural-level design
 The subsystem spans three model classes:
-- `Key`: an immutable record of an RSA keypair component. Used to generate keypair and provides address to wallet.
-- `Wallet`: a mutable identity container owning a wallet's name, currency tag, keypair, derived address, and outgoing transaction history.
-- `WalletManager`: the single authority for wallet lifecycle management, providing name-based, currency-based, and address-based lookup.  
+- `KeyPair`: owns generated private/public secp256k1 values and derived wallet address.
+- `Wallet`: mutable identity container (name, currency, optional keypair/address, outgoing history).
+- `WalletManager`: lifecycle authority for creation and lookup (name/currency/address).
 
-Wallet is intentionally passive, holding state such as currency, but does not generate its own keys. Key generation and hence address assignment
-is triggered externally by `keygen`, separating cryptographic concerns from `Wallet`. All command layer code also interacts with any wallet
-solely through `WalletManager`.
+`Wallet` does not generate keys internally. `KeygenCommand` calls `KeyPair.generate(...)` and injects the result via `wallet.setKeys(...)`.
 
 #### Component-level design
-`Key` design choices
-- RSA keypair generation uses 1024-bit probable primes via SecureRandom, with fixed public exponent 65537.
-- A correctness check is performed immediately after generation and throws `Crypto1010Exception` on failure, ensuring no malformed keypair enters the system.
-- Only the public `Key` carries a wallet address, with the private `Key` having `null` in its `walletAddress` field.
-- `deriveAddress()` combines modulus and public exponent, multiplies by a large prime to spread bits, and formats as a zero-padded 40-character
-hex string with `0x` prefix to match an Ethereum-format address.
-- Large integers are truncated for CLI display via `truncate()`.
+`KeyPair` design choices:
+- Generates secp256k1 private key and computes public key point via scalar multiplication.
+- Verifies generated public key lies on curve before accepting output.
+- Derives Ethereum-style addresses via Keccak-256 for `eth`/`generic` currency wallets.
+- Derives Bitcoin Base58Check addresses via compressed pubkey + SHA-256 + RIPEMD-160 for `btc`.
 
 `Wallet` design choices:
-- Address is initialised to null and only populated after `setKeys()` is called.
-- `create w/WALLET_NAME [curr/CURRENCY]` assigns the wallet a specific currency tag used by `crossSend`
-- Wallets without `curr/` are stored as `generic` to ensure compatibility with legacy wallets.
-- `getAddress()` throws `Crypto1010Exception` rather than returning `null` to force caller to handle unkeyed state.
-- Stores an optional currency code in addition to its name.
-- Currency code is normalised at construction time via `CurrencyCode.normalizeOrDefault()`, keeping currency comparison consistent.
+- Address is null until keys are generated.
+- `hasKeyPair()` explicitly exposes keyed/unkeyed state.
+- `setKeys(...)` is guarded at command level by `KeygenCommand` (regeneration blocked).
+- Currency code is normalized at construction time.
 
 `WalletManager` design choices:
-- `createWallet()` enforces three invariants before constructing a wallet:
-name is non-blank and contains no reserved pipe delimiter (|), no wallet with the same name already exists,
-and no wallet with the same non-generic currency already exists.
-- Enforces at most one wallet per specific currency per account so `crossSend curr/...` can resolve a sender wallet unambiguously.
-- `findWalletByAddress()` silently skips wallets that throw `Crypto1010Exception` on `getAddress()`,
-so unkeyed wallets do not surface as false negatives during address lookup.
-
-#### Alternatives considered
-1. Have `Wallet` generate its own keypair internally at construction:
-   - Rejected as then cryptographic operation is coupled to object construction. 
-2. Return null from `getAddress()` when keys have not been generated:
-   - Rejected because silent null propagation makes unkeyed wallet bugs harder to detect. 
-3. Allow `WalletManager` to hold multiple wallets per currency:
-   - Rejected because `crossSend` requires unambiguous currency-to-wallet resolution.
+- Enforces unique wallet names (case-insensitive).
+- Enforces at most one non-generic wallet per specific currency per account.
+- Provides `findWalletByAddress(...)` for local recipient resolution in send flow.
 
 #### Trade-offs and known limitations
-- RSA with 1024-bit keys is used for simulation convenience. Real blockchain systems use secp256k1 elliptic curve cryptography.
-- Address derivation mimics Ethereum address formatting but does not use proper hashing.
-- Address derivation is a deterministic arithmetic transform rather than a cryptographic hash,
-meaning it does not provide preimage resistance equivalent to a production address scheme.
-- `setKeys()` does not guard against being called more than once, meaning a wallet's keypair and address can be silently overwritten.
-- Private keys are held in memory as Key objects but are not currently used for transaction signing.
-
-#### Planned next-step extension
-The current implementation establishes wallet identity through RSA keypair generation and arithmetic address derivation.
-A planned extension is to bring the cryptographic model closer to production blockchain behaviour:
-- Using `secp256k1` elliptic curve cryptography rather than RSA.
-
-Reasons for planning this enhancement:
-- Current RSA-based address derivation is structurally correct but cryptographically weaker than a hash-based scheme.
-- Allows the tutorial to teach students how production blockchains actually utilise cryptographic methods
-to derive addresses and sign transactions.
-- `secp256k1` migration would allow generated addresses and keypairs to be verified against real Ethereum tooling.
+- This project generates addresses but does not sign/verify transactions with private keys.
+- Keypairs/addresses are currently in-memory only and are not persisted across restarts.
+- Crypto model is educational and does not implement full production wallet standards end-to-end.
 
 ### `help` command implementation
 HelpCommand uses prefix-based argument parsing:
@@ -323,10 +299,9 @@ Validation sequence:
 Validation sequence:
 1. parse prefixes
 2. verify wallet exists
-3. delegate keypair generation to `Key` via `generateKeyPair()`
-4. create primes, modulus, totient, and private exponent
-5. validate key generation success
-6. pass keys to wallet
+3. verify wallet does not already have keys (regeneration blocked)
+4. delegate keypair generation to `KeyPair.generate(currencyCode)`
+5. set generated keys/address into wallet
 
 ### Transaction and balance logic
 Transactions are represented in this format:
@@ -398,11 +373,15 @@ The class diagram below introduces storage-layer classes before persistence beha
 ![Storage subsystem class diagram](diagrams/StorageSubsystemClassDiagram.png)
 
 - `AccountStorage` persists hashed credentials in `data/accounts/credentials.txt`.
+- `AccountStorage` stores an HMAC signature header in `credentials.txt` and a local signing key in
+  `data/accounts/credentials.key` to detect credential-file tampering.
 - `BlockchainStorage` serializes blockchain state to `data/accounts/USERNAME/blockchain.json`.
 - `WalletStorage` persists wallet names, wallet currencies, and transaction history in `data/accounts/USERNAME/wallets.txt`.
 - On startup, `Crypto1010` authenticates first, then loads blockchain and wallet data for the current account only.
 - If loading fails, the app falls back to a default blockchain and/or an empty wallet list.
 - After a load failure, save is disabled for that data type in the current session to avoid overwriting possibly corrupted files.
+- Parser/storage paths enforce conservative input/file-size limits to reduce denial-of-service style oversized payloads.
+- If save fails during an authenticated session, the app exits instead of continuing with partially persisted state.
 
 ## Product scope
 
@@ -471,6 +450,8 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
    - Expected: only auth-scope suggestions (`1`, `2`, `3`, `login`, `register`, `exit`) are offered.
    - After successful login, press `Tab` in command prompt.
    - Expected: command-scope suggestions are offered, and auth menu suggestions are no longer offered.
+   - Enter a valid username with wrong password 5 times.
+   - Expected: subsequent login attempts for that username are temporarily rejected for 30 seconds.
 1. Help
    - `help`
    - Expected: prints out the list of commands
@@ -490,6 +471,11 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 1. List wallets:
    - `list`
    - Expected: numbered wallet list including `alice`, `bob`, and any currency-tagged wallet with its currency shown.
+1. Generate wallet keys:
+   - `keygen w/alice`
+   - Expected: wallet address is generated and shown.
+   - Run `keygen w/alice` again.
+   - Expected: error that wallet already has a key pair.
 1. Check balance:
    - `balance w/bob`
    - Expected: balance displayed with 8 decimal places.

@@ -23,6 +23,10 @@ public class BlockchainStorage {
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String DATA_DIR = "data";
     private static final String FILE_NAME = "blockchain.json";
+    private static final long MAX_BLOCKCHAIN_FILE_SIZE_BYTES = 2L * 1024L * 1024L;
+    private static final int MAX_BLOCK_COUNT = 10_000;
+    private static final int MAX_TRANSACTIONS_PER_BLOCK = 5_000;
+    private static final int MAX_TRANSACTION_LENGTH = 512;
 
     private final Path dataFilePath;
 
@@ -38,6 +42,8 @@ public class BlockchainStorage {
         if (!Files.exists(dataFilePath)) {
             return Blockchain.createDefault();
         }
+        enforceFileSizeLimit(dataFilePath, MAX_BLOCKCHAIN_FILE_SIZE_BYTES,
+                "Invalid blockchain data: blockchain file is too large.");
 
         String json = Files.readString(dataFilePath, StandardCharsets.UTF_8);
         if (json.isBlank()) {
@@ -107,6 +113,9 @@ public class BlockchainStorage {
                 throw new IOException("Invalid blockchain JSON: block item must be an object.");
             }
             blocks.add(parseBlock(blockMap));
+            if (blocks.size() > MAX_BLOCK_COUNT) {
+                throw new IOException("Invalid blockchain JSON: too many blocks.");
+            }
         }
 
         if (blocks.isEmpty()) {
@@ -164,7 +173,13 @@ public class BlockchainStorage {
             if (!(item instanceof String text)) {
                 throw new IOException("Invalid blockchain JSON: " + fieldName + " entries must be strings.");
             }
+            if (text.length() > MAX_TRANSACTION_LENGTH) {
+                throw new IOException("Invalid blockchain JSON: transaction entry is too long.");
+            }
             result.add(text);
+            if (result.size() > MAX_TRANSACTIONS_PER_BLOCK) {
+                throw new IOException("Invalid blockchain JSON: too many transactions in a block.");
+            }
         }
         return result;
     }
@@ -444,6 +459,12 @@ public class BlockchainStorage {
 
         private IOException error(String message) {
             return new IOException(message + " At position " + index + ".");
+        }
+    }
+
+    private void enforceFileSizeLimit(Path filePath, long maxBytes, String errorMessage) throws IOException {
+        if (Files.size(filePath) > maxBytes) {
+            throw new IOException(errorMessage);
         }
     }
 }

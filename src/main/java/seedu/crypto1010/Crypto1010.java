@@ -119,7 +119,7 @@ public class Crypto1010 {
             } catch (RuntimeException e) {
                 // Terminal failures are treated like an exit so the current session can still be saved.
                 completer.setAuthMode(true);
-                saveData(
+                saveDataOrExit(
                         blockchainStorage,
                         walletStorage,
                         blockchain,
@@ -131,7 +131,7 @@ public class Crypto1010 {
             if (message == null) {
                 // End-of-input should shut down cleanly after persisting the latest in-memory state.
                 completer.setAuthMode(true);
-                saveData(
+                saveDataOrExit(
                         blockchainStorage,
                         walletStorage,
                         blockchain,
@@ -155,7 +155,7 @@ public class Crypto1010 {
                     c.execute(blockchain, in);
                     long durationMs = (System.nanoTime() - startNs) / 1_000_000;
                     LOGGER.fine(() -> "Command executed successfully: exit (" + durationMs + " ms)");
-                    saveData(
+                    saveDataOrExit(
                             blockchainStorage,
                             walletStorage,
                             blockchain,
@@ -168,7 +168,7 @@ public class Crypto1010 {
                 c.execute(blockchain, in);
                 if (c instanceof TutorialCommand tutorialCommand && tutorialCommand.isExitRequested()) {
                     // The tutorial can trigger a full application exit via the `exit` command.
-                    saveData(
+                    saveDataOrExit(
                             blockchainStorage,
                             walletStorage,
                             blockchain,
@@ -180,13 +180,17 @@ public class Crypto1010 {
                 long durationMs = (System.nanoTime() - startNs) / 1_000_000;
                 String commandName = c.getClass().getSimpleName();
                 LOGGER.fine(() -> "Command executed successfully: " + commandName + " (" + durationMs + " ms)");
-                saveData(
+                if (!saveData(
                         blockchainStorage,
                         walletStorage,
                         blockchain,
                         walletManager,
                         allowBlockchainSave,
-                        allowWalletSave);
+                        allowWalletSave)) {
+                    completer.setWalletManager(null);
+                    completer.setAuthMode(true);
+                    return SessionOutcome.EXIT;
+                }
 
                 if (c instanceof LogoutCommand logoutCommand && logoutCommand.isLogoutConfirmed()) {
                     // Logout returns to account access without terminating the process.
@@ -350,21 +354,30 @@ public class Crypto1010 {
         }
     }
 
-    /**
-     * Persists the current session state only for stores that were loaded successfully.
-     */
-    private static void saveData(
+    private static void saveDataOrExit(
             BlockchainStorage blockchainStorage,
             WalletStorage walletStorage,
             Blockchain blockchain,
             WalletManager walletManager,
             boolean allowBlockchainSave,
             boolean allowWalletSave) {
+        saveData(blockchainStorage, walletStorage, blockchain, walletManager, allowBlockchainSave, allowWalletSave);
+    }
+
+    private static boolean saveData(
+            BlockchainStorage blockchainStorage,
+            WalletStorage walletStorage,
+            Blockchain blockchain,
+            WalletManager walletManager,
+            boolean allowBlockchainSave,
+            boolean allowWalletSave) {
+        boolean allSaved = true;
         if (allowBlockchainSave) {
             try {
                 blockchainStorage.save(blockchain);
             } catch (IOException e) {
                 System.out.println("Failed to save blockchain data.");
+                allSaved = false;
             }
         }
         if (allowWalletSave) {
@@ -372,8 +385,13 @@ public class Crypto1010 {
                 walletStorage.save(walletManager);
             } catch (IOException e) {
                 System.out.println("Failed to save wallet data.");
+                allSaved = false;
             }
         }
+        if (!allSaved) {
+            System.out.println("Persistence error encountered. Exiting to prevent further inconsistency.");
+        }
+        return allSaved;
     }
 
     private enum SessionOutcome {

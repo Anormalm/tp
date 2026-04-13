@@ -288,13 +288,31 @@ public class CrossAccountTransferService {
             BlockchainStorage recipientBlockchainStorage,
             WalletManager recipientWalletManagerBefore,
             Blockchain recipientBlockchainBefore) throws Crypto1010Exception {
+        List<IOException> rollbackErrors = new ArrayList<>();
         try {
             recipientWalletStorage.save(recipientWalletManagerBefore);
+        } catch (IOException e) {
+            rollbackErrors.add(e);
+        }
+        try {
             recipientBlockchainStorage.save(recipientBlockchainBefore);
+        } catch (IOException e) {
+            rollbackErrors.add(e);
+        }
+        try {
             senderWalletStorage.save(senderWalletManagerBefore);
+        } catch (IOException e) {
+            rollbackErrors.add(e);
+        }
+        try {
             senderBlockchainStorage.save(senderBlockchainBefore);
-        } catch (IOException rollbackFailure) {
-            throw new Crypto1010Exception("Error: Transfer save failed and rollback did not complete.");
+        } catch (IOException e) {
+            rollbackErrors.add(e);
+        }
+
+        if (!rollbackErrors.isEmpty()) {
+            throw new Crypto1010Exception(
+                    "Error: Transfer save failed and rollback did not complete for all files.");
         }
     }
 

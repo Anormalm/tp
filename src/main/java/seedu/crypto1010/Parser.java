@@ -22,6 +22,8 @@ import seedu.crypto1010.model.WalletManager;
  * Parses raw user input into executable command objects.
  */
 public class Parser {
+    private static final int MAX_COMMAND_INPUT_LENGTH = 512;
+
     private final WalletManager walletManager;
     private final String currentAccountName;
     private final Class<?> storageAnchor;
@@ -59,6 +61,9 @@ public class Parser {
     public Command parse(String inputText) {
         if (inputText == null || inputText.isBlank()) {
             throw new IllegalArgumentException("Input command must not be blank.");
+        }
+        if (inputText.length() > MAX_COMMAND_INPUT_LENGTH) {
+            throw new IllegalArgumentException("Input command is too long.");
         }
         // Split only once so command implementations receive the original argument string intact.
         String trimmedInput = inputText.trim();

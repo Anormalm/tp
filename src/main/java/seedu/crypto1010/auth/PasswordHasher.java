@@ -2,14 +2,21 @@ package seedu.crypto1010.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 /**
  * Generates salts and hashes passwords before they are persisted.
  */
 final class PasswordHasher {
     private static final int SALT_LENGTH_BYTES = 16;
+    private static final int DERIVED_KEY_LENGTH_BITS = 256;
+    private static final int PBKDF2_ITERATIONS = 120_000;
+    private static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA256";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private PasswordHasher() {
@@ -23,12 +30,16 @@ final class PasswordHasher {
 
     static String hash(String password, String saltHex) throws AuthenticationException {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            digest.update(fromHex(saltHex));
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(PBKDF2_ALGORITHM);
+            KeySpec keySpec = new PBEKeySpec(
+                    password.toCharArray(),
+                    fromHex(saltHex),
+                    PBKDF2_ITERATIONS,
+                    DERIVED_KEY_LENGTH_BITS);
+            byte[] hash = keyFactory.generateSecret(keySpec).getEncoded();
             return toHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 algorithm unavailable", e);
+        } catch (InvalidKeySpecException | java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Password hash algorithm unavailable", e);
         }
     }
 

@@ -20,6 +20,10 @@ public class WalletStorage {
     private static final String TRANSACTION_PREFIX = "T|";
     private static final String END_MARKER = "E";
     private static final String FIELD_SEPARATOR = "|";
+    private static final long MAX_WALLET_FILE_SIZE_BYTES = 1024L * 1024L;
+    private static final int MAX_WALLET_COUNT = 1_000;
+    private static final int MAX_TRANSACTIONS_PER_WALLET = 5_000;
+    private static final int MAX_TRANSACTION_ENTRY_LENGTH = 512;
 
     private final Path dataFilePath;
 
@@ -39,9 +43,13 @@ public class WalletStorage {
         if (!Files.exists(dataFilePath)) {
             return walletManager;
         }
+        enforceFileSizeLimit(dataFilePath, MAX_WALLET_FILE_SIZE_BYTES,
+                "Invalid wallet data: wallet file is too large.");
 
         List<String> lines = Files.readAllLines(dataFilePath, StandardCharsets.UTF_8);
         Wallet currentWallet = null;
+        int walletCount = 0;
+        int transactionsForCurrentWallet = 0;
 
         for (String line : lines) {
             if (line.isBlank()) {
@@ -58,13 +66,26 @@ public class WalletStorage {
                 } catch (Crypto1010Exception e) {
                     throw new IOException("Invalid wallet data: " + e.getMessage(), e);
                 }
+                walletCount++;
+                if (walletCount > MAX_WALLET_COUNT) {
+                    throw new IOException("Invalid wallet data: too many wallets.");
+                }
+                transactionsForCurrentWallet = 0;
                 continue;
             }
             if (line.startsWith(TRANSACTION_PREFIX)) {
                 if (currentWallet == null) {
                     throw new IOException("Invalid wallet data: transaction without wallet context.");
                 }
-                currentWallet.addTransaction(unescape(line.substring(TRANSACTION_PREFIX.length())));
+                String transaction = unescape(line.substring(TRANSACTION_PREFIX.length()));
+                if (transaction.length() > MAX_TRANSACTION_ENTRY_LENGTH) {
+                    throw new IOException("Invalid wallet data: transaction entry is too long.");
+                }
+                currentWallet.addTransaction(transaction);
+                transactionsForCurrentWallet++;
+                if (transactionsForCurrentWallet > MAX_TRANSACTIONS_PER_WALLET) {
+                    throw new IOException("Invalid wallet data: too many transactions in wallet.");
+                }
                 continue;
             }
             if (END_MARKER.equals(line)) {
@@ -150,5 +171,11 @@ public class WalletStorage {
             result.append('\\');
         }
         return result.toString();
+    }
+
+    private void enforceFileSizeLimit(Path filePath, long maxBytes, String errorMessage) throws IOException {
+        if (Files.size(filePath) > maxBytes) {
+            throw new IOException(errorMessage);
+        }
     }
 }
