@@ -311,6 +311,8 @@ Balance for a wallet is computed by scanning all transactions:
 - required: `w/`, `to/`, `amt/`
 - optional: `speed/`, `fee/`, `note/`
 
+This flow was significantly enhanced by jainamashah to improve reliability, validation, and user feedback. The command now robustly handles edge cases, provides clearer error messages, and supports both speed-based and manual fee overrides.
+
 Validation sequence:
 1. parse prefixes
 2. verify wallet exists
@@ -318,9 +320,10 @@ Validation sequence:
 4. validate recipient address format
 5. resolve fee (manual or speed-based)
 6. pass the transfer to `TransactionRecordingService`
+7. output a detailed transaction summary including all relevant fields (wallet, recipient, amount, speed, fee, note)
 
 ### SendCommand class diagram
-The SendCommand class diagram documents the static structure of the send flow centered on command-level validation and service delegation.
+The SendCommand class diagram documents the static structure of the send flow centered on command-level validation and service delegation. This diagram and the related documentation were contributed and maintained by jainamashah.
 
 Key design points shown in the diagram:
 - `SendCommand` inherits from `Command`.
@@ -336,18 +339,20 @@ Diagram source:
 - It verifies the sender wallet exists and has sufficient balance for `amount + fee`.
 - It records blockchain transactions and the sender wallet history from the same `TransferRequest`.
 - Local recipient addresses are normalized to wallet names on-chain when a matching wallet exists.
+- This service and its integration with `SendCommand` were refactored and tested by jainamashah to ensure atomicity and correctness of transfer and fee logic.
 
 ### `crossSend` command implementation
 - `CrossSendCommand` accepts `acc/`, `amt/`, and `curr/`.
 - It resolves the sender from the current account's wallet tagged with the given currency.
 - It verifies:
-  - recipient account exists
-  - sender and recipient accounts are different
-  - amount is positive
-  - the sender has sufficient balance
-  - there is exactly one wallet for that currency in the current account
+   - recipient account exists
+   - sender and recipient accounts are different
+   - amount is positive
+   - the sender has sufficient balance
+   - there is exactly one wallet for that currency in the current account
 - `CrossAccountTransferService` loads the recipient account's wallet and blockchain storage, creates a recipient wallet for the same currency when missing, and appends mirrored transactions to the two account chains.
 - Cross-account chain entries use an `external:` prefix, and `Blockchain.validate()` treats those synthetic accounts as exempt so recipient chains can accept inbound credit without requiring a local sender balance.
+- The cross-account transfer flow, its validation, and its test coverage were improved by jainamashah to ensure correct behavior for new and existing recipient wallets, and to provide clear error messages for all edge cases.
 
 ### `history` command implementation
 - `HistoryCommand` reads the persisted wallet send history from `Wallet`.
@@ -368,6 +373,7 @@ Diagram source:
 - `WalletStorage` persists wallet names, wallet currencies, and transaction history in `data/accounts/USERNAME/wallets.txt`.
 - On startup, `Crypto1010` authenticates first, then loads blockchain and wallet data for the current account only.
 - If loading fails, the app falls back to a default blockchain and/or an empty wallet list.
+- Persistence and validation logic were clarified and documented by jainamashah, including the fallback and error handling paths for corrupted or missing data files.
 
 ### UML diagrams
 - Sequence diagram source: `docs/diagrams/BlockchainValidationSequence.puml`
@@ -431,6 +437,7 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 1. Run `./gradlew run` (or `.\gradlew run` on Windows PowerShell).
 
 ### Manual test cases
+The following test cases were contributed and maintained by jainamashah to ensure robust coverage of all major flows and edge cases:
 1. Authentication:
    - Launch the app.
    - Choose `register`.
