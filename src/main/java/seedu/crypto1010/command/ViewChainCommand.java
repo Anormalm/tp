@@ -3,10 +3,15 @@ package seedu.crypto1010.command;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Block;
 import seedu.crypto1010.model.Blockchain;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Displays a compact summary of the blockchain.
+ */
 public class ViewChainCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: viewchain
@@ -27,23 +32,19 @@ public class ViewChainCommand extends Command {
                 .mapToInt(block -> block.getTransactions().size())
                 .sum();
 
-        System.out.println();
-        System.out.println("Blockchain Overview:");
-        System.out.println("Total blocks      : " + blocks.size());
-        System.out.println("Total transactions: " + totalTransactions);
-        System.out.println();
-        System.out.println("Blocks:");
-        System.out.println("=".repeat(80));
-        System.out.printf("%-6s %-10s %-20s %-40s%n", "Index", "Tx Count", "Timestamp", "Hash Preview");
-        System.out.println("-".repeat(80));
+        CliVisuals.printKeyValuePanel("Blockchain Overview", List.of(
+                List.of("Total blocks", String.valueOf(blocks.size())),
+                List.of("Total transactions", String.valueOf(totalTransactions))));
+
+        List<List<String>> rows = new ArrayList<>();
         for (Block block : blocks) {
-            System.out.printf("%-6d %-10d %-20s %-40s%n",
-                    block.getIndex(),
-                    block.getTransactions().size(),
+            rows.add(List.of(
+                    String.valueOf(block.getIndex()),
+                    String.valueOf(block.getTransactions().size()),
                     block.getTimestamp(),
-                    compactHash(block.getCurrentHash()));
+                    compactHash(block.getCurrentHash())));
         }
-        System.out.println("=".repeat(80));
+        CliVisuals.printTable("Blocks", List.of("Index", "Tx Count", "Timestamp", "Hash Preview"), rows);
     }
 
     private String compactHash(String hash) {

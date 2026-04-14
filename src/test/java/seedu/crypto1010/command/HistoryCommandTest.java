@@ -2,6 +2,7 @@ package seedu.crypto1010.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 class HistoryCommandTest {
     @Test
-    void execute_walletWithoutHistory_printsEmptyMessage() {
+    void execute_walletWithoutHistory_printsEmptyMessage() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("alice");
@@ -27,7 +28,7 @@ class HistoryCommandTest {
     }
 
     @Test
-    void execute_walletWithHistory_printsNumberedEntries() {
+    void execute_walletWithHistory_printsNumberedEntries() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet wallet = walletManager.createWallet("alice");
@@ -37,16 +38,11 @@ class HistoryCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        String expected = "\nTransaction history for alice:\n" +
-                "============================================================\n" +
-                String.format("%-4s %-54s\n", "No.", "Transaction") +
-                "------------------------------------------------------------\n" +
-                String.format("%-4d %-54s\n", 1, "to/0xabc amt/1 speed/standard fee/0.001") +
-                String.format("%-4d %-54s\n", 2, "to/0xdef amt/2 speed/manual fee/0.1 note/rent") +
-                "============================================================\n";
-        String normExpected = expected.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "");
-        assertEquals(normExpected, normOutput);
+        String normOutput = output.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+        assertTrue(normOutput.contains("Transaction History for alice"));
+        assertTrue(normOutput.contains("No. | Transaction"));
+        assertTrue(normOutput.contains("1   | to/0xabc amt/1 speed/standard fee/0.001"));
+        assertTrue(normOutput.contains("2   | to/0xdef amt/2 speed/manual fee/0.1 note/rent"));
     }
 
     @Test

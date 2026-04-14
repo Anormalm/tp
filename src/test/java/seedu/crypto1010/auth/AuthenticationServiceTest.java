@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +81,32 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    void authenticate_tooManyFailures_temporarilyLocksAccount() throws Exception {
+        Instant base = Instant.parse("2026-04-14T00:00:00Z");
+        MutableClock clock = new MutableClock(base);
+        AuthenticationService authenticationService =
+                new AuthenticationService(
+                        new AccountStorage(AuthenticationServiceTest.class),
+                        clock);
+        authenticationService.load();
+        authenticationService.register("alice", "secret1", "secret1");
+
+        for (int i = 0; i < 5; i++) {
+            assertThrows(AuthenticationException.class,
+                    () -> authenticationService.authenticate("alice", "wrongpw"));
+        }
+
+        AuthenticationException lockoutException = assertThrows(
+                AuthenticationException.class,
+                () -> authenticationService.authenticate("alice", "secret1"));
+        assertEquals("Error: Too many failed login attempts. Try again in 30 seconds.",
+                lockoutException.getMessage());
+
+        clock.setInstant(base.plusSeconds(31));
+        assertEquals("alice", authenticationService.authenticate("alice", "secret1"));
+    }
+
+    @Test
     void register_invalidUsername_throwsException() throws Exception {
         AuthenticationService authenticationService =
                 new AuthenticationService(new AccountStorage(AuthenticationServiceTest.class));
@@ -87,7 +116,7 @@ class AuthenticationServiceTest {
                 AuthenticationException.class,
                 () -> authenticationService.register("ab", "secret1", "secret1"));
 
-        assertEquals("Error: Username must be 3-20 characters using letters, numbers, '_' or '-'.",
+        assertEquals("Error: Username must be 3-20 characters with no spaces, using letters, numbers, '_' or '-'.",
                 exception.getMessage());
     }
 
@@ -108,15 +137,45 @@ class AuthenticationServiceTest {
     void load_invalidStoredUsername_throwsIOException() throws Exception {
         Path credentialsFile = tempDir.resolve("accounts").resolve("credentials.txt");
         Files.createDirectories(credentialsFile.getParent());
-        Files.writeString(
-                credentialsFile,
-                "U|..\\evil|00112233445566778899aabbccddeeff|abcdef0123456789" + System.lineSeparator(),
-                StandardCharsets.UTF_8);
+        AuthenticationService writer =
+                new AuthenticationService(new AccountStorage(AuthenticationServiceTest.class));
+        writer.load();
+        writer.register("alice", "secret1", "secret1");
+        String existingContent = Files.readString(credentialsFile, StandardCharsets.UTF_8);
+        String tampered = existingContent.replace("U|alice|", "U|..\\evil|");
+        Files.writeString(credentialsFile, tampered, StandardCharsets.UTF_8);
 
         AuthenticationService authenticationService =
                 new AuthenticationService(new AccountStorage(AuthenticationServiceTest.class));
 
         IOException exception = assertThrows(IOException.class, authenticationService::load);
-        assertTrue(exception.getMessage().startsWith("Invalid account data: username"));
+        assertTrue(exception.getMessage().startsWith("Invalid account data: credential file signature mismatch."));
+    }
+
+    private static final class MutableClock extends java.time.Clock {
+        private Instant instant;
+
+        private MutableClock(Instant instant) {
+            this.instant = instant;
+        }
+
+        private void setInstant(Instant instant) {
+            this.instant = instant;
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public java.time.Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
     }
 }

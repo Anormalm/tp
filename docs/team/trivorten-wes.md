@@ -22,6 +22,7 @@ My focus was on making the application user-friendly and easy to learn through `
 
 ### Contributions to the Developer Guide
 - Added implementation details for `help` and `tutorial`
+- Created UML diagrams for tutorial class and sequence
 
 ### Contributions to team-based tasks
 - Ensured commands work with each other through tutorial mode

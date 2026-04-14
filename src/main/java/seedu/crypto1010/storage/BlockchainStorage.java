@@ -16,10 +16,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Loads and saves blockchain data using the application's JSON format.
+ */
 public class BlockchainStorage {
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String DATA_DIR = "data";
     private static final String FILE_NAME = "blockchain.json";
+    private static final long MAX_BLOCKCHAIN_FILE_SIZE_BYTES = 2L * 1024L * 1024L;
+    private static final int MAX_BLOCK_COUNT = 10_000;
+    private static final int MAX_TRANSACTIONS_PER_BLOCK = 5_000;
+    private static final int MAX_TRANSACTION_LENGTH = 512;
 
     private final Path dataFilePath;
 
@@ -35,8 +42,13 @@ public class BlockchainStorage {
         if (!Files.exists(dataFilePath)) {
             return Blockchain.createDefault();
         }
+        enforceFileSizeLimit(dataFilePath, MAX_BLOCKCHAIN_FILE_SIZE_BYTES,
+                "Invalid blockchain data: blockchain file is too large.");
 
         String json = Files.readString(dataFilePath, StandardCharsets.UTF_8);
+        if (json.isBlank()) {
+            return Blockchain.createDefault();
+        }
         Blockchain loaded = fromJson(json);
         ValidationResult result = loaded.validate();
         if (!result.isValid()) {
@@ -50,6 +62,9 @@ public class BlockchainStorage {
         Files.writeString(dataFilePath, toJson(blockchain), StandardCharsets.UTF_8);
     }
 
+    /**
+     * Serializes the blockchain into the small JSON subset understood by the custom parser below.
+     */
     private String toJson(Blockchain blockchain) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n  \"blocks\": [");
@@ -78,6 +93,9 @@ public class BlockchainStorage {
         return sb.toString();
     }
 
+    /**
+     * Parses blockchain JSON and validates the presence and shape of all required fields.
+     */
     private Blockchain fromJson(String json) throws IOException {
         Object parsed = new JsonParser(json).parse();
         if (!(parsed instanceof Map<?, ?> root)) {
@@ -95,6 +113,9 @@ public class BlockchainStorage {
                 throw new IOException("Invalid blockchain JSON: block item must be an object.");
             }
             blocks.add(parseBlock(blockMap));
+            if (blocks.size() > MAX_BLOCK_COUNT) {
+                throw new IOException("Invalid blockchain JSON: too many blocks.");
+            }
         }
 
         if (blocks.isEmpty()) {
@@ -152,7 +173,13 @@ public class BlockchainStorage {
             if (!(item instanceof String text)) {
                 throw new IOException("Invalid blockchain JSON: " + fieldName + " entries must be strings.");
             }
+            if (text.length() > MAX_TRANSACTION_LENGTH) {
+                throw new IOException("Invalid blockchain JSON: transaction entry is too long.");
+            }
             result.add(text);
+            if (result.size() > MAX_TRANSACTIONS_PER_BLOCK) {
+                throw new IOException("Invalid blockchain JSON: too many transactions in a block.");
+            }
         }
         return result;
     }
@@ -168,6 +195,9 @@ public class BlockchainStorage {
                 .replace("\t", "\\t");
     }
 
+    /**
+     * Minimal JSON parser that supports exactly the value types used by the storage format.
+     */
     private static final class JsonParser {
         private final String input;
         private int index;
@@ -312,6 +342,9 @@ public class BlockchainStorage {
             }
         }
 
+        /**
+         * Parses JSON numbers as either {@code Long} or {@code Double}, which is sufficient for this file format.
+         */
         private Object parseNumber() throws IOException {
             int start = index;
             if (consumeIf('-')) {
@@ -426,6 +459,12 @@ public class BlockchainStorage {
 
         private IOException error(String message) {
             return new IOException(message + " At position " + index + ".");
+        }
+    }
+
+    private void enforceFileSizeLimit(Path filePath, long maxBytes, String errorMessage) throws IOException {
+        if (Files.size(filePath) > maxBytes) {
+            throw new IOException(errorMessage);
         }
     }
 }

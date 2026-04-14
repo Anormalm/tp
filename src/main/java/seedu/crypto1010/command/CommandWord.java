@@ -1,5 +1,8 @@
 package seedu.crypto1010.command;
 
+/**
+ * Enumerates the supported command words and their short help descriptions.
+ */
 public enum CommandWord {
     HELP("help", "lists all commands"),
     EXIT("exit", "exits the program"),

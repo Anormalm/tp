@@ -5,6 +5,9 @@ import seedu.crypto1010.model.Blockchain;
 
 import java.util.Scanner;
 
+/**
+ * Ends the application session.
+ */
 public class ExitCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: exit

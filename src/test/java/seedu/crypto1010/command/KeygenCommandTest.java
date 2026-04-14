@@ -23,7 +23,9 @@ class KeygenCommandTest {
 
         String output = runCommand(command, blockchain);
 
-        assertTrue(output.contains("Key pair successfully generated"));
+        assertTrue(output.contains("Key Pair Generated"));
+        assertTrue(output.contains("Wallet : bob"));
+        assertTrue(output.contains("Address : 0x"));
     }
 
     @Test

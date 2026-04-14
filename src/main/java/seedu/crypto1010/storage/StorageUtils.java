@@ -5,6 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
+/**
+ * Resolves the directories used by the application's storage classes.
+ */
 public final class StorageUtils {
     private static final String DATA_DIRECTORY_PROPERTY = "crypto1010.dataDir";
     private static final String ACCOUNTS_DIR = "accounts";

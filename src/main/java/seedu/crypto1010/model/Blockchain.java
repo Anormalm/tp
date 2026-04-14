@@ -14,6 +14,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Stores the blocks that make up the chain and validates their integrity.
+ */
 public class Blockchain {
     private static final String GENESIS_PREVIOUS_HASH = "0000000000000000";
     private static final Pattern TRANSACTION_PATTERN =
@@ -30,6 +33,9 @@ public class Blockchain {
         this.blocks = new ArrayList<>(blocks);
     }
 
+    /**
+     * Creates the starter chain used for first-run data and many tests.
+     */
     public static Blockchain createDefault() {
         List<Block> defaultBlocks = new ArrayList<>();
         Block genesis = new Block(
@@ -38,12 +44,12 @@ public class Blockchain {
                 GENESIS_PREVIOUS_HASH,
                 List.of("Genesis Block"));
         defaultBlocks.add(genesis);
-        defaultBlocks.add(new Block(
-                1,
-                LocalDateTime.of(2026, 2, 12, 14, 35, 2),
-                genesis.getCurrentHash(),
-                List.of("network -> alice : 10", "alice -> bob : 10", "bob -> carol : 5")));
         return new Blockchain(defaultBlocks);
+    }
+
+    public static boolean isExemptAccount(String normalizedAccountName) {
+        return EXEMPT_BALANCE_ACCOUNTS.contains(normalizedAccountName)
+                || normalizedAccountName.startsWith(EXTERNAL_ACCOUNT_PREFIX);
     }
 
     public int size() {
@@ -58,6 +64,9 @@ public class Blockchain {
         return blocks.get(index);
     }
 
+    /**
+     * Verifies block ordering, block hashes, hash linkage, and transaction balances.
+     */
     public ValidationResult validate() {
         assert blocks != null : "Block list must not be null.";
         if (blocks.isEmpty()) {
@@ -84,6 +93,7 @@ public class Blockchain {
             }
 
             if (i == 0) {
+                // The genesis block is validated separately because it does not spend a prior balance.
                 if (!GENESIS_PREVIOUS_HASH.equals(block.getPreviousHash())) {
                     return invalidWithLog("Invalid previous hash linkage at Block " + i + ".");
                 }
@@ -139,6 +149,9 @@ public class Blockchain {
         return balance;
     }
 
+    /**
+     * Interprets one transaction from the perspective of a single wallet name.
+     */
     private BigDecimal parseTransactionAmount(String walletName, String transaction) {
         Matcher matcher = TRANSACTION_PATTERN.matcher(transaction);
         if (!matcher.matches()) {
@@ -184,6 +197,7 @@ public class Blockchain {
             }
             assert amount.compareTo(BigDecimal.ZERO) > 0 : "Validated amount should be positive.";
 
+            // Exempt accounts represent system-style balances that are not constrained by prior transfers.
             String normalizedSender = sender.toLowerCase();
             String normalizedReceiver = receiver.toLowerCase();
             if (!isExemptAccount(normalizedSender)) {
@@ -202,11 +216,6 @@ public class Blockchain {
             }
         }
         return ValidationResult.valid();
-    }
-
-    private boolean isExemptAccount(String normalizedAccountName) {
-        return EXEMPT_BALANCE_ACCOUNTS.contains(normalizedAccountName)
-                || normalizedAccountName.startsWith(EXTERNAL_ACCOUNT_PREFIX);
     }
 
     private ValidationResult invalidWithLog(String reason) {

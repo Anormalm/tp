@@ -1,0 +1,26 @@
+@startuml
+title Generic Command Execution Sequence
+autoactivate on
+
+actor User
+participant "app:Crypto1010" as App
+participant "parser:Parser" as Parser
+participant "chain:Blockchain" as Chain
+participant "walletManager:WalletManager" as WM
+participant "walletStorage:WalletStorage" as WS
+participant "blockchainStorage:BlockchainStorage" as BS
+
+User -> App: <command text>
+App -> Parser: parse(input)
+create Cmd
+Parser -> Cmd: <<create>> ConcreteCommand(...)
+Parser --> App: cmd
+App -> Cmd: execute(chain, in)
+Cmd -> Chain: query/mutate state
+Cmd -> WM: query/mutate state (optional)
+Cmd -> User: print command result
+Cmd --> App: return
+App -> BS: save(chain)
+App -> WS: save(walletManager)
+
+@enduml

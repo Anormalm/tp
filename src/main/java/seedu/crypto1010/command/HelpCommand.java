@@ -4,12 +4,17 @@ import seedu.crypto1010.Parser;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Shows either the command list or detailed help for one command.
+ */
 public class HelpCommand extends Command {
     private static final String COMMAND_PREFIX = "c/";
-    private static final int COMMAND_LIST_COLUMN_WIDTH = 12;
     private static final String HELP_DESCRIPTION = """
             Format: help [c/COMMAND]
             Example: help c/list
@@ -36,17 +41,13 @@ public class HelpCommand extends Command {
 
         try {
             if (arguments.isEmpty()) {
-                System.out.println();
-                System.out.println("Available Commands");
-                System.out.println("=".repeat(40));
-                System.out.printf("%-14s | %s%n", "Command", "Description");
-                System.out.println("-".repeat(40));
+                List<List<String>> rows = new ArrayList<>();
                 for (CommandWord c : CommandWord.values()) {
                     assert c.getCommand() != null : "command word should have a command";
                     assert c.getDescription() != null : "command word should have a description";
-                    System.out.printf("%-14s | %s%n", c.getCommand(), c.getDescription());
+                    rows.add(List.of(c.getCommand(), c.getDescription()));
                 }
-                System.out.println("=".repeat(40));
+                CliVisuals.printTable("Available Commands", List.of("Command", "Description"), rows);
                 System.out.println(HELP_MESSAGE);
             } else {
                 if (!arguments.startsWith(COMMAND_PREFIX)) {
@@ -61,7 +62,7 @@ public class HelpCommand extends Command {
                 Command c = parser.parse(commandName);
                 c.displayHelpDescription();
             }
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
         }
     }

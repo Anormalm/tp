@@ -5,6 +5,9 @@ import seedu.crypto1010.model.Blockchain;
 
 import java.util.Scanner;
 
+/**
+ * Base type for commands that operate on the current blockchain state.
+ */
 public abstract class Command {
     protected String helpDescription;
 

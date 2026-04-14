@@ -1,6 +1,7 @@
 package seedu.crypto1010;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import seedu.crypto1010.command.BalanceCommand;
 import seedu.crypto1010.command.Command;
@@ -56,5 +57,13 @@ class ParserTest {
         Command command = parser.parse("logout");
 
         assertInstanceOf(LogoutCommand.class, command);
+    }
+
+    @Test
+    void parse_overlyLongInput_throwsIllegalArgumentException() {
+        Parser parser = new Parser(new WalletManager());
+        String input = "a".repeat(513);
+
+        assertThrows(IllegalArgumentException.class, () -> parser.parse(input));
     }
 }
