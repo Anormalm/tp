@@ -88,7 +88,7 @@ class WalletTest {
         wallet.setKeys(first);
         KeyPair second = KeyPair.generate("eth");
 
-        // restoreKeyPair bypasses the lock — simulates storage restoration
+        // restoreKeyPair bypasses the lock - simulates storage restoration
         wallet.restoreKeyPair(second);
 
         assertEquals(second.getWalletAddress(), wallet.getKeyPair().getWalletAddress());

@@ -20,13 +20,7 @@ public class CommandAutoCompleter implements Completer {
     private static final List<String> SPEED_VALUES = List.of("speed/slow", "speed/standard", "speed/fast");
     private static final List<String> CURRENCY_VALUES = List.of(
             "curr/btc",
-            "curr/eth",
-            "curr/sol",
-            "curr/xrp",
-            "curr/ada",
-            "curr/dot",
-            "curr/avax",
-            "curr/bnb");
+            "curr/eth");
 
     private volatile WalletManager walletManager;
     private final List<String> authWords;

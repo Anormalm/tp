@@ -139,7 +139,7 @@ public class WalletStorage {
                             .append(FIELD_SEPARATOR)
                             .append(wallet.getKeyPair().getPrivateKey().toString(16));
                 } catch (Crypto1010Exception e) {
-                    // address not set — skip key fields
+                    // address not set - skip key fields
                 }
             }
 

@@ -38,7 +38,7 @@ public class SendCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]
             Examples: send w/alice to/0x8b3...e21 amt/0.05
-                      send w/main to/bc1qxyz...9k amt/0.001 speed/slow fee/0.00001 note/rent
+                      send w/main to/1BoatSLRHtKNngkdXEeobR76b53LETtpyT amt/0.001 speed/slow fee/0.00001 note/rent
 
             SPEED FEE and MEMO are optional arguments
             Supported SPEED values: speed/slow, speed/standard, speed/fast
