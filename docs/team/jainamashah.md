@@ -35,14 +35,12 @@ My focus was improving the transfer flow (`send`), including stronger argument h
 - Clarified error messages and command usage in the documentation for new users.
 
 ### Contributions to the Developer Guide
-- Added a dedicated `SendCommand` class diagram source:
-  - `docs/diagrams/SendCommandClassDiagram.puml`
 - Added/updated DG sections describing:
   - `send` command implementation details
   - design rationale and dependencies around `SendCommand`
   - UML diagram references for maintainers
-  - Persistence and storage design for blockchain and wallet data
-  - Documented and clarified the validation and error handling logic for transfers and persistence.
+  - And other refactoring changes
+  - Wallet Persistence
 
 ### Contributions to team-based tasks
 - Updated project documentation structure and cross-references between DG and diagram sources.
@@ -57,4 +55,6 @@ I documented the send flow and design responsibilities in the DG, emphasizing:
 - the UML view of static dependencies used in transfer execution.
 
 ### UML diagrams contributed
-- `docs/diagrams/SendCommandClassDiagram.puml`
+ `diagrams/SendCommandClassDiagram.png`
+ `diagrams/SendCommandValidationSequence.png`
+ `diagrams/SendCommandActivity.png`
