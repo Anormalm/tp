@@ -133,7 +133,8 @@ Format: `create w/WALLET_NAME [curr/CURRENCY]`
 
 - Creates a wallet for the current account and persists it on save.
 - Wallet names are unique (case-insensitive).
-- `curr/` is optional.
+- `CURRENCY` can only be `eth` or `btc` for ethereum and bitcoin wallet types respectively.
+- `curr/` is optional. Not including `curr/CURRENCY` results in a wallet with generic currency code.
 - A wallet tagged with a specific currency can be used by `crossSend`.
 - At most one wallet per specific currency is allowed in the same account.
 
@@ -148,6 +149,7 @@ Format: `list`
 
 - Shows all wallets in the current account (including previously saved wallets loaded at login).
 - Wallets created with a specific currency display that currency in the list.
+- Wallets with keys generated will show address in the format of currency code.
 
 <span id="cmd-keygen"></span>
 ### `keygen`: Generate keys for a wallet
@@ -156,7 +158,7 @@ Format: `keygen w/WALLET_NAME`
 - Generates a public/private key pair for an existing wallet.
 - Fails if the wallet does not exist.
 - Fails if that wallet already has keys (key regeneration is blocked).
-- Generates a wallet address for that wallet.
+- Generates a wallet address for that wallet based on wallet's currency code.
 - Key generation is required if you want this wallet to have a local address (for receiving to that local address).
 - `send` does not require sender key generation.
 
@@ -185,7 +187,8 @@ Format: `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/F
 - If `fee/` is provided, it overrides speed-based fee.
 - Address validation supports Ethereum, Bitcoin, and Solana address formats.
 - Total deduction = `AMOUNT + FEE`.
-- `note/` captures the remainder of input after it appears, so place it last.
+- `note/` captures the remainder of input after it appears.
+- `note/` must be placed at the last position.
 
 Examples:
 - `send w/bob to/0x1111111111111111111111111111111111111111 amt/1.5`
@@ -269,7 +272,6 @@ Based on planned work tracked in project discussions/issues, the next user-facin
 
 ### Cross-account address discovery (planned)
 - Resolve local wallet addresses across accounts without requiring a direct account name transfer command.
-- Persist generated keys and wallet addresses across restarts so account-to-account interactions are easier to continue.
 
 This feature is not available yet in the current release.
 
@@ -297,8 +299,9 @@ This feature is not available yet in the current release.
 - Account credentials are stored in `data/accounts/credentials.txt`.
 - Credential-signing key is stored in `data/accounts/credentials.key`.
 - Each account has its own blockchain data at `data/accounts/USERNAME/blockchain.json`.
-- Each account has its own wallet names, wallet currencies, and wallet send history at `data/accounts/USERNAME/wallets.txt`.
-- Generated keys and wallet addresses are not currently persisted; run `keygen` again after restarting if you need an address.
+- Each account has its own wallet names, wallet currencies, wallet send history, wallet address, and wallet key pairs saved at `data/accounts/USERNAME/wallets.txt`.
+- Due to the nature of cryptocurrency and blockchain, as well as the intentional functionalities of balance and currency, it is advised not to tamper with saved values
+as it can easily corrupt and prevent loading into new sessions, and hence saving of new data.
 - Missing or blank blockchain files are treated as no data yet and default data is loaded.
 - Corrupted blockchain or wallet data triggers safe fallback, and saving is disabled to avoid overwriting that account's files.
 - Credential data is signed; tampering with signed credential records is rejected on load.
@@ -312,8 +315,9 @@ This feature is not available yet in the current release.
 **Q**: Where is my blockchain data stored?  
 **A**: In `data/accounts/USERNAME/blockchain.json` for the currently logged-in account.
 
-**Q**: Why is my wallet address missing after restart?  
-**A**: Wallet names and send history are persisted, but generated keys and wallet addresses are not. Run `keygen w/WALLET_NAME` again.
+**Q**: Can I access and change wallet attributes in the text file directly?  
+**A**: Tampering with saved files is heavily discouraged as many attributes are cryptographically determined, hence tampering can easily cause issues.
+In the program, many edits to the save files will cause corruption, hence the file data will often not be loaded for safety purposes.
 
 **Q**: Why am I blocked from login even with the correct password?  
 **A**: After repeated failed attempts, that username is locked for 30 seconds. Wait and retry.
