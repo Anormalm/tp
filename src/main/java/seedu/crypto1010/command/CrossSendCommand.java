@@ -5,12 +5,18 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.CurrencyCode;
 import seedu.crypto1010.model.WalletManager;
 import seedu.crypto1010.service.CrossAccountTransferService;
+import seedu.crypto1010.ui.CliVisuals;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+/**
+ * Sends funds from the current account to another registered account.
+ */
 public class CrossSendCommand extends Command {
     private static final String ACCOUNT_PREFIX = "acc/";
     private static final String AMOUNT_PREFIX = "amt/";
@@ -29,7 +35,7 @@ public class CrossSendCommand extends Command {
             + "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY";
     private static final String AMOUNT_INVALID_ERROR = "Error: Amount must be a positive number.";
     private static final String ACCOUNT_INVALID_ERROR = "Error: ACCOUNT_NAME is invalid.";
-    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 letters or digits.";
+    private static final String CURRENCY_INVALID_ERROR = "Error: CURRENCY must be 2-10 alphanumeric characters.";
     private static final String COMMAND_FORMAT = "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY";
 
     private final String arguments;
@@ -65,18 +71,16 @@ public class CrossSendCommand extends Command {
                 normalizedCurrency,
                 blockchain);
 
-        System.out.println();
-        System.out.println("Cross-account transfer completed successfully.");
-        System.out.println("=".repeat(60));
-        System.out.printf("%-18s: %s%n", "From wallet", result.senderWalletName());
-        System.out.printf("%-18s: %s%n", "To account", parsedArgs.accountName().toLowerCase());
-        System.out.printf("%-18s: %s%n", "Recipient wallet", result.recipientWalletName());
-        System.out.printf("%-18s: %s%n", "Amount", amount.stripTrailingZeros().toPlainString());
-        System.out.printf("%-18s: %s%n", "Currency", normalizedCurrency);
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(List.of("From wallet", result.senderWalletName()));
+        rows.add(List.of("To account", parsedArgs.accountName().toLowerCase()));
+        rows.add(List.of("Recipient wallet", result.recipientWalletName()));
+        rows.add(List.of("Amount", amount.stripTrailingZeros().toPlainString()));
+        rows.add(List.of("Currency", normalizedCurrency));
         if (result.recipientWalletCreated()) {
-            System.out.printf("%-18s: %s%n", "Info", "Recipient wallet was created automatically.");
+            rows.add(List.of("Info", "Recipient wallet was created automatically."));
         }
-        System.out.println("=".repeat(60));
+        CliVisuals.printKeyValuePanel("Cross-Account Transfer Completed", rows);
     }
 
     private ParsedArgs parseArguments(String args) {
@@ -131,15 +135,7 @@ public class CrossSendCommand extends Command {
     }
 
     private BigDecimal parsePositiveAmount(String amountText) throws Crypto1010Exception {
-        try {
-            BigDecimal amount = new BigDecimal(amountText);
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new Crypto1010Exception(AMOUNT_INVALID_ERROR + " " + COMMAND_FORMAT);
-            }
-            return amount;
-        } catch (NumberFormatException e) {
-            throw new Crypto1010Exception(AMOUNT_INVALID_ERROR + " " + COMMAND_FORMAT);
-        }
+        return CommandParserUtil.parsePositiveDecimal(amountText, AMOUNT_INVALID_ERROR, COMMAND_FORMAT);
     }
 
     private String normalizeCurrency(String currencyCode) throws Crypto1010Exception {

@@ -8,33 +8,44 @@ import java.util.Optional;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 
+/**
+ * Manages wallet creation and lookup for a single account.
+ */
 public class WalletManager {
     private static final char RESERVED_NAME_DELIMITER = '|';
+    private static final int MAX_WALLET_NAME_LENGTH = 32;
     private final List<Wallet> wallets;
 
     public WalletManager() {
         this.wallets = new ArrayList<>();
     }
 
-    public Wallet createWallet(String walletName) {
+    public Wallet createWallet(String walletName) throws Crypto1010Exception {
         return createWallet(walletName, CurrencyCode.GENERIC);
     }
 
-    public Wallet createWallet(String walletName, String currencyCode) {
+    public Wallet createWallet(String walletName, String currencyCode) throws Crypto1010Exception {
         Objects.requireNonNull(walletName, "walletName must not be null");
         String normalizedName = walletName.trim();
         String normalizedCurrency = CurrencyCode.normalizeOrDefault(currencyCode);
         if (normalizedName.isEmpty()) {
-            throw new IllegalArgumentException("walletName must not be blank");
+            throw new Crypto1010Exception("walletName must not be blank");
+        }
+        if (normalizedName.length() > MAX_WALLET_NAME_LENGTH) {
+            throw new Crypto1010Exception("walletName exceeds max length: " + MAX_WALLET_NAME_LENGTH);
         }
         if (containsReservedNameDelimiter(normalizedName)) {
-            throw new IllegalArgumentException("walletName contains reserved character: " + RESERVED_NAME_DELIMITER);
+            throw new Crypto1010Exception("walletName contains reserved character: " + RESERVED_NAME_DELIMITER);
+        }
+        if (Blockchain.isExemptAccount(normalizedName.toLowerCase())) {
+            throw new Crypto1010Exception("wallet name is reserved: " + normalizedName);
         }
         if (hasWallet(normalizedName)) {
-            throw new IllegalArgumentException("wallet already exists: " + normalizedName);
+            throw new Crypto1010Exception("wallet already exists: " + normalizedName);
         }
         if (!CurrencyCode.isGeneric(normalizedCurrency) && hasWalletForCurrency(normalizedCurrency)) {
-            throw new IllegalArgumentException("wallet currency already exists: " + normalizedCurrency);
+            throw new Crypto1010Exception("Error: a wallet for that currency already exists in this account." +
+                                                  "Use: create w/WALLET_NAME [curr/CURRENCY]");
         }
         Wallet wallet = new Wallet(normalizedName, normalizedCurrency);
         wallets.add(wallet);

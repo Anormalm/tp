@@ -1,0 +1,27 @@
+@startuml
+' Activity diagram for SendCommand execution
+start
+:Parse command arguments;
+if (Wallet exists?) then (yes)
+  if (Amount > 0?) then (yes)
+    if (Valid recipient address?) then (yes)
+      :Resolve fee (manual/speed);
+      :Create TransferRequest;
+      :Call TransactionRecordingService;
+      :Append transactions to blockchain;
+      :Update wallet history;
+      :Print transaction summary;
+      stop
+    else (no)
+      :Show error: Invalid recipient address;
+      stop
+    endif
+  else (no)
+    :Show error: Amount must be positive;
+    stop
+  endif
+else (no)
+  :Show error: Wallet not found;
+  stop
+endif
+@enduml

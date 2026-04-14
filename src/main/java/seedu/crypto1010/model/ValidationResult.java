@@ -1,5 +1,8 @@
 package seedu.crypto1010.model;
 
+/**
+ * Represents the outcome of validating a blockchain.
+ */
 public class ValidationResult {
     private final boolean valid;
     private final String reason;

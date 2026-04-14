@@ -3,6 +3,9 @@ package seedu.crypto1010.service;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Captures the normalized fields needed to record a transfer.
+ */
 public class TransferRequest {
     private final String senderWalletName;
     private final String recipientAddress;

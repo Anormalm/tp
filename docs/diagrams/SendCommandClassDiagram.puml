@@ -6,7 +6,7 @@ skinparam classAttributeIconSize 0
 
 abstract class Command {
   #helpDescription: String
-  +execute(description: String, blockchain: Blockchain): void
+  +execute(blockchain: Blockchain, in: Scanner): void
 }
 
 class SendCommand {
@@ -14,16 +14,22 @@ class SendCommand {
   -walletManager: WalletManager
   -transactionRecordingService: TransactionRecordingService
   +SendCommand(arguments: String, walletManager: WalletManager)
-  +execute(description: String, blockchain: Blockchain): void
+  +execute(blockchain: Blockchain, in: Scanner): void
 }
 
-class ParsedArgs {
+class "SendCommand.ParsedArgs" as ParsedArgs {
   -walletName: String
   -recipientAddress: String
   -amount: String
   -speed: String
   -fee: String
   -note: String
+}
+
+enum "SendCommand.TokenParseResult" as TokenParseResult {
+  NOT_MATCHED
+  PARSED
+  INVALID
 }
 
 class WalletManager {
@@ -43,13 +49,14 @@ class Blockchain
 class Crypto1010Exception
 
 SendCommand --|> Command
-SendCommand *-- TransactionRecordingService : contains
+SendCommand *-- TransactionRecordingService : owns
 SendCommand --> WalletManager : uses
 SendCommand ..> ParsedArgs : creates
+SendCommand ..> TokenParseResult : uses
 SendCommand ..> TransferRequest : creates
-SendCommand ..> Blockchain : execute(...)
+SendCommand ..> Blockchain : mutates
 SendCommand ..> Crypto1010Exception : throws
 TransactionRecordingService ..> TransferRequest
-TransactionRecordingService ..> Blockchain
+TransactionRecordingService ..> Blockchain : addTransactions()
 
 @enduml

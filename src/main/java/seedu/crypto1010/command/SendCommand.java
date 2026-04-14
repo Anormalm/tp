@@ -5,21 +5,23 @@ import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
 import seedu.crypto1010.service.TransactionRecordingService;
 import seedu.crypto1010.service.TransferRequest;
+import seedu.crypto1010.ui.CliVisuals;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+/**
+ * Sends funds from a wallet to a recipient address and records the transfer locally.
+ */
 public class SendCommand extends Command {
     private static final Pattern ETH_ADDRESS_PATTERN = Pattern.compile("^0x[a-fA-F0-9]{40}$");
-    private static final Pattern BTC_LEGACY_ADDRESS_PATTERN =
+    private static final Pattern BTC_ADDRESS_PATTERN =
             Pattern.compile("^[13][A-HJ-NP-Za-km-z1-9]{25,34}$");
-    private static final Pattern BTC_BECH32_ADDRESS_PATTERN =
-            Pattern.compile("^(bc1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}"
-                    + "|BC1[QPZRY9X8GF2TVDW0S3JN54KHCE6MUA7L]{11,71})$");
-    private static final Pattern SOL_ADDRESS_PATTERN = Pattern.compile("^[1-9A-HJ-NP-Za-km-z]{32,44}$");
 
     private static final String DEFAULT_SPEED = "standard";
     private static final String MANUAL_SPEED_LABEL = "manual";
@@ -36,12 +38,13 @@ public class SendCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/FEE] [note/MEMO]
             Examples: send w/alice to/0x8b3...e21 amt/0.05
-                      send w/main to/bc1qxyz...9k amt/0.001 speed/slow fee/0.00001 note/rent
+                      send w/main to/1BoatSLRHtKNngkdXEeobR76b53LETtpyT amt/0.001 speed/slow fee/0.00001 note/rent
 
             SPEED FEE and MEMO are optional arguments
             Supported SPEED values: speed/slow, speed/standard, speed/fast
             If fee/FEE is provided, it overrides any speed/SPEED
             If neither speed/ nor fee/ is provided, speed/standard is used by default
+            note/MEMO must be the last argument if provided
             Sends cryptocurrency from one wallet to another address
             """;
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid send format. Use: send w/WALLET_NAME"
@@ -78,6 +81,9 @@ public class SendCommand extends Command {
         printTransferSummary(transferRequest);
     }
 
+    /**
+     * Enforces that all mandatory arguments were present and parsed successfully.
+     */
     private ParsedArgs parseRequiredArguments(String args) throws Crypto1010Exception {
         ParsedArgs parsed = parseArguments(args);
         if (parsed == null) {
@@ -90,6 +96,15 @@ public class SendCommand extends Command {
         if (!walletManager.hasWallet(walletName)) {
             throw new Crypto1010Exception(WALLET_NOT_FOUND_ERROR);
         }
+        // Enforce keygen: wallet must have an address
+        var walletOpt = walletManager.findWallet(walletName);
+        if (walletOpt.isPresent()) {
+            try {
+                walletOpt.get().getAddress();
+            } catch (Crypto1010Exception e) {
+                throw new Crypto1010Exception("Error: Must run keygen for this wallet before sending.");
+            }
+        }
     }
 
     private void validateRecipientAddress(String recipientAddress) throws Crypto1010Exception {
@@ -100,9 +115,11 @@ public class SendCommand extends Command {
 
     private TransferRequest createTransferRequest(ParsedArgs parsed) throws Crypto1010Exception {
         BigDecimal amount = parsePositiveAmount(parsed.amount);
-        String speed = resolveSpeed(parsed.speed);
+        boolean hasManualFee = parsed.fee != null;
+        // A manual fee bypasses speed validation because the reported speed becomes informational only.
+        String speed = hasManualFee ? DEFAULT_SPEED : resolveSpeed(parsed.speed);
         BigDecimal fee = resolveValidatedFee(parsed.fee, speed);
-        String speedLabel = parsed.fee == null ? speed : MANUAL_SPEED_LABEL;
+        String speedLabel = hasManualFee ? MANUAL_SPEED_LABEL : speed;
 
         return new TransferRequest(
                 parsed.walletName,
@@ -114,11 +131,7 @@ public class SendCommand extends Command {
     }
 
     private BigDecimal parsePositiveAmount(String amountArgument) throws Crypto1010Exception {
-        BigDecimal amount = parseDecimal(amountArgument);
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new Crypto1010Exception(AMOUNT_INVALID_ERROR + " " + SEND_FORMAT);
-        }
-        return amount;
+        return CommandParserUtil.parsePositiveDecimal(amountArgument, AMOUNT_INVALID_ERROR, SEND_FORMAT);
     }
 
     private String resolveSpeed(String speedArgument) throws Crypto1010Exception {
@@ -138,18 +151,16 @@ public class SendCommand extends Command {
     }
 
     private void printTransferSummary(TransferRequest transferRequest) {
-        System.out.println();
-        System.out.println("Transaction sent successfully.");
-        System.out.println("=".repeat(60));
-        System.out.printf("%-12s: %s%n", "Wallet", transferRequest.getSenderWalletName());
-        System.out.printf("%-12s: %s%n", "To", transferRequest.getRecipientAddress());
-        System.out.printf("%-12s: %s%n", "Amount", transferRequest.getAmount().toPlainString());
-        System.out.printf("%-12s: %s%n", "Speed", transferRequest.getSpeedLabel());
-        System.out.printf("%-12s: %s%n", "Fee", transferRequest.getFee().toPlainString());
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(List.of("Wallet", transferRequest.getSenderWalletName()));
+        rows.add(List.of("To", transferRequest.getRecipientAddress()));
+        rows.add(List.of("Amount", transferRequest.getAmount().toPlainString()));
+        rows.add(List.of("Speed", transferRequest.getSpeedLabel()));
+        rows.add(List.of("Fee", transferRequest.getFee().toPlainString()));
         if (transferRequest.getNote() != null) {
-            System.out.printf("%-12s: %s%n", "Note", transferRequest.getNote());
+            rows.add(List.of("Note", transferRequest.getNote()));
         }
-        System.out.println("=".repeat(60));
+        CliVisuals.printKeyValuePanel("Transaction Sent Successfully", rows);
     }
 
     private ParsedArgs parseArguments(String args) {
@@ -157,6 +168,7 @@ public class SendCommand extends Command {
             return null;
         }
 
+        // Tokenization keeps prefix-style arguments simple while still allowing a free-form trailing note.
         String[] tokens = args.trim().split("\\s+");
         ParsedArgs parsed = new ParsedArgs();
 
@@ -170,6 +182,7 @@ public class SendCommand extends Command {
                 if (parsed.note != null) {
                     return null;
                 }
+                // `note/` consumes the rest of the command so memo text can contain spaces and prefix-like fragments.
                 parsed.note = extractNoteValue(tokens, i);
                 if (parsed.note == null) {
                     return null;
@@ -251,15 +264,30 @@ public class SendCommand extends Command {
         return parsed;
     }
 
+    /**
+     * Reconstructs the note from the current token through the end of the command line.
+     */
     private String extractNoteValue(String[] tokens, int noteTokenIndex) {
         StringBuilder noteBuilder = new StringBuilder(tokens[noteTokenIndex].substring(NOTE_PREFIX.length()));
         for (int i = noteTokenIndex + 1; i < tokens.length; i++) {
-            noteBuilder.append(" ").append(tokens[i]);
+            String token = tokens[i];
+            // if a known prefix appears after note/, reject the whole command
+            if (token.startsWith(WALLET_PREFIX)
+                    || token.startsWith(RECIPIENT_PREFIX)
+                    || token.startsWith(AMOUNT_PREFIX)
+                    || token.startsWith(SPEED_PREFIX)
+                    || token.startsWith(FEE_PREFIX)) {
+                return null;
+            }
+            noteBuilder.append(" ").append(token);
         }
         String noteValue = noteBuilder.toString().trim();
         return noteValue.isEmpty() ? null : noteValue;
     }
 
+    /**
+     * Parses prefix/value tokens that must appear at most once and must not contain whitespace.
+     */
     private TokenParseResult parseSingleValueToken(String token, ParsedArgs parsed, String prefix,
                                                    String existingValue, Consumer<String> setter) {
         if (!token.startsWith(prefix)) {
@@ -292,6 +320,7 @@ public class SendCommand extends Command {
             return manualFee;
         }
 
+        // Default fees are fixed constants so all callers use the same implied fee schedule.
         return switch (speed) {
         case "slow" -> SLOW_FEE;
         case "standard" -> STANDARD_FEE;
@@ -313,11 +342,12 @@ public class SendCommand extends Command {
             return false;
         }
         return ETH_ADDRESS_PATTERN.matcher(address).matches()
-                || BTC_LEGACY_ADDRESS_PATTERN.matcher(address).matches()
-                || BTC_BECH32_ADDRESS_PATTERN.matcher(address).matches()
-                || SOL_ADDRESS_PATTERN.matcher(address).matches();
+                || BTC_ADDRESS_PATTERN.matcher(address).matches();
     }
 
+    /**
+     * Mutable parse target used while iterating through the prefixed arguments.
+     */
     private static class ParsedArgs {
         String walletName;
         String recipientAddress;
@@ -327,6 +357,9 @@ public class SendCommand extends Command {
         String note;
     }
 
+    /**
+     * Result of matching one token against one supported prefix.
+     */
     private enum TokenParseResult {
         NOT_MATCHED,
         PARSED,

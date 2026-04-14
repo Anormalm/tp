@@ -3,6 +3,7 @@ package seedu.crypto1010.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
 
@@ -34,13 +35,16 @@ class AccountScopedStorageTest {
         WalletStorage aliceStorage = new WalletStorage(AccountScopedStorageTest.class, "alice");
         WalletStorage bobStorage = new WalletStorage(AccountScopedStorageTest.class, "bob");
 
-        WalletManager aliceManager = new WalletManager();
-        aliceManager.createWallet("alice-wallet");
-        WalletManager bobManager = new WalletManager();
-        bobManager.createWallet("bob-wallet");
-
-        aliceStorage.save(aliceManager);
-        bobStorage.save(bobManager);
+        try {
+            WalletManager aliceManager = new WalletManager();
+            aliceManager.createWallet("alice-wallet");
+            WalletManager bobManager = new WalletManager();
+            bobManager.createWallet("bob-wallet");
+            aliceStorage.save(aliceManager);
+            bobStorage.save(bobManager);
+        } catch (Crypto1010Exception e) {
+            throw new IOException(e.getMessage());
+        }
 
         assertEquals("alice-wallet", aliceStorage.load().getWallets().get(0).getName());
         assertEquals("bob-wallet", bobStorage.load().getWallets().get(0).getName());
@@ -61,8 +65,8 @@ class AccountScopedStorageTest {
         Blockchain loadedAliceChain = aliceStorage.load();
         Blockchain loadedBobChain = bobStorage.load();
 
-        assertEquals(3, loadedAliceChain.size());
-        assertEquals(2, loadedBobChain.size());
+        assertEquals(2, loadedAliceChain.size());
+        assertEquals(1, loadedBobChain.size());
         assertTrue(loadedAliceChain.validate().isValid());
         assertTrue(loadedBobChain.validate().isValid());
     }

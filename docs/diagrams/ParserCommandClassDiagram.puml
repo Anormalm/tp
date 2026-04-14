@@ -1,0 +1,50 @@
+@startuml
+title Parser and Command Subsystem - Class Diagram
+
+hide circle
+skinparam classAttributeIconSize 0
+
+class Parser {
+  -walletManager: WalletManager
+  +parseCommand(commandWord: String): CommandWord
+  +parse(inputText: String): Command
+}
+
+enum CommandWord
+
+abstract class Command {
+  +execute(blockchain: Blockchain, in: Scanner): void
+}
+
+class HelpCommand
+class CreateCommand
+class SendCommand
+class CrossSendCommand
+class ValidateCommand
+class ExitCommand
+class TutorialCommand
+
+class WalletManager
+class TransactionRecordingService
+class CrossAccountTransferService
+class Blockchain
+
+Parser ..> CommandWord : resolves
+Parser ..> Command : creates concrete command
+
+HelpCommand --|> Command
+CreateCommand --|> Command
+SendCommand --|> Command
+CrossSendCommand --|> Command
+ValidateCommand --|> Command
+ExitCommand --|> Command
+TutorialCommand --|> Command
+
+CreateCommand --> WalletManager
+SendCommand --> WalletManager
+SendCommand *-- TransactionRecordingService
+CrossSendCommand --> WalletManager
+CrossSendCommand *-- CrossAccountTransferService
+Command ..> Blockchain : execute against state
+
+@enduml

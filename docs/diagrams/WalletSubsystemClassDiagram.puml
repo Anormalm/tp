@@ -1,0 +1,51 @@
+@startuml
+title Wallet Subsystem - Class Diagram
+
+hide circle
+skinparam classAttributeIconSize 0
+
+class WalletManager {
+  -wallets: List<Wallet>
+  +createWallet(walletName: String, currencyCode: String): Wallet
+  +findWallet(walletName: String): Optional<Wallet>
+  +findWalletByAddress(address: String): Optional<Wallet>
+  +findWalletsByCurrency(currencyCode: String): List<Wallet>
+}
+
+class Wallet {
+  -name: String
+  -currencyCode: String
+  -transactionHistory: List<String>
+  -address: String
+  -keyPair: KeyPair
+  +hasKeyPair(): boolean
+  +setKeys(keys: KeyPair): void
+  +getAddress(): String
+  +addTransaction(entry: String): void
+}
+
+class KeyPair {
+  +generate(currencyCode: String): KeyPair
+  +getWalletAddress(): String
+}
+
+class KeygenCommand {
+  +execute(blockchain: Blockchain, in: Scanner): void
+}
+
+class SendCommand {
+  +execute(blockchain: Blockchain, in: Scanner): void
+}
+
+class CrossSendCommand {
+  +execute(blockchain: Blockchain, in: Scanner): void
+}
+
+WalletManager "1" *-- "*" Wallet
+Wallet ..> KeyPair : stores generated keypair
+KeygenCommand ..> WalletManager : lookup wallet
+KeygenCommand ..> KeyPair : generate()
+SendCommand ..> WalletManager : resolve sender wallet
+CrossSendCommand ..> WalletManager : resolve currency wallet
+
+@enduml

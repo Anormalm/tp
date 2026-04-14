@@ -6,14 +6,17 @@ skinparam classAttributeIconSize 0
 
 class Blockchain {
   -blocks: List<Block>
+  +size(): int
+  +getBlock(index: int): Block
   +getBlocks(): List<Block>
+  +getPreciseBalance(walletName: String): BigDecimal
   +addTransactions(txs: List<String>): void
   +validate(): ValidationResult
 }
 
 class Block {
   -index: int
-  -timestamp: String
+  -timestamp: LocalDateTime
   -previousHash: String
   -transactions: List<String>
   -currentHash: String
@@ -23,34 +26,18 @@ class Block {
 
 class ValidationResult {
   -valid: boolean
-  -message: String
+  -reason: String
   +isValid(): boolean
-  +getMessage(): String
+  +getReason(): String
 }
 
-class ValidateCommand {
-  +execute(...): String
-}
-
-class BlockchainStorage {
-  +load(): Blockchain
-  +save(blockchain: Blockchain): void
-}
-
-ValidateCommand --> Blockchain : calls validate()
-Blockchain "1" o-- "*" Block : contains
-Blockchain --> ValidationResult : returns
-BlockchainStorage --> Blockchain : load/save
+Blockchain "1" *-- "0..*" Block : blocks
+Blockchain ..> ValidationResult : returns
 
 note right of Blockchain
 Single authority for:
 - block append invariants
 - full-chain validation
-end note
-
-note bottom of Block
-Hash payload includes:
-index + timestamp + previousHash + tx list
 end note
 
 @enduml

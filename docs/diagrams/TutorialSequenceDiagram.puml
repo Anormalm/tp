@@ -1,0 +1,49 @@
+@startuml
+actor User
+
+participant "TutorialCommand" as TC
+participant "CliVisuals" as UI
+participant "Scanner" as Scan
+participant "Parser" as Parser
+participant "Blockchain" as BC
+participant "Command" as Cmd
+
+User -> TC : execute(blockchain, scanner)
+activate TC
+
+TC -> UI : printPanel(WELCOME_MESSAGE)
+
+loop while index < instructions.length
+
+    TC -> UI : printPanel(step info, instructions[index])
+
+    TC -> Scan : nextLine()
+    Scan --> TC : input
+
+    alt input == "exit"
+        TC -> Cmd : new ExitCommand().execute()
+        deactivate TC
+        break
+
+    else input == "tutorial exit"
+        break
+
+    else valid instruction
+        TC -> Parser : parse(input)
+        Parser --> TC : Cmd
+
+        TC -> Cmd : execute(BC)
+        Cmd --> TC : result
+
+        TC -> TC : index++
+
+    else invalid input
+        TC -> UI : printWarning(ERROR_MESSAGE)
+    end
+
+end
+
+TC -> UI : printInfo(EXIT_MESSAGE)
+deactivate TC
+
+@enduml

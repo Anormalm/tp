@@ -18,7 +18,12 @@ import seedu.crypto1010.command.ViewChainCommand;
 import seedu.crypto1010.command.ViewBlockCommand;
 import seedu.crypto1010.model.WalletManager;
 
+/**
+ * Parses raw user input into executable command objects.
+ */
 public class Parser {
+    private static final int MAX_COMMAND_INPUT_LENGTH = 512;
+
     private final WalletManager walletManager;
     private final String currentAccountName;
     private final Class<?> storageAnchor;
@@ -33,6 +38,9 @@ public class Parser {
         this.storageAnchor = storageAnchor;
     }
 
+    /**
+     * Converts the leading command word into the matching enum constant.
+     */
     public CommandWord parseCommand(String commandWord) {
         if (commandWord == null || commandWord.isBlank()) {
             throw new IllegalArgumentException("Command word must not be blank.");
@@ -54,6 +62,10 @@ public class Parser {
         if (inputText == null || inputText.isBlank()) {
             throw new IllegalArgumentException("Input command must not be blank.");
         }
+        if (inputText.length() > MAX_COMMAND_INPUT_LENGTH) {
+            throw new IllegalArgumentException("Input command is too long.");
+        }
+        // Split only once so command implementations receive the original argument string intact.
         String trimmedInput = inputText.trim();
         String[] components = trimmedInput.split("\\s+", 2);
         try {

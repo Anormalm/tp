@@ -3,11 +3,16 @@ package seedu.crypto1010.command;
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Displays the current balance of one wallet.
+ */
 public class BalanceCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: balance w/WALLET_NAME
@@ -39,12 +44,9 @@ public class BalanceCommand extends Command {
         }
         BigDecimal balance = blockchain.getPreciseBalance(trimmedWalletName);
 
-        System.out.println();
-        System.out.println("Wallet Balance");
-        System.out.println("=".repeat(40));
-        System.out.printf("%-16s: %s%n", "Wallet", trimmedWalletName);
-        System.out.printf("%-16s: %s%n", "Balance", formatBalance(balance));
-        System.out.println("=".repeat(40));
+        CliVisuals.printKeyValuePanel("Wallet Balance", List.of(
+                List.of("Wallet", trimmedWalletName),
+                List.of("Balance", formatBalance(balance))));
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {
@@ -57,7 +59,13 @@ public class BalanceCommand extends Command {
     }
 
     private String formatBalance(BigDecimal balance) {
-        return balance.setScale(8, RoundingMode.HALF_UP).toPlainString();
+        BigDecimal rounded = balance.setScale(8, RoundingMode.HALF_UP);
+        // If rounded is zero but actual balance is non-zero, show scientific notation
+        if (rounded.compareTo(BigDecimal.ZERO) == 0 && balance.compareTo(BigDecimal.ZERO) != 0) {
+            // Use scientific notation with up to 8 decimal places in mantissa
+            return String.format("%.8e", balance);
+        }
+        return rounded.toPlainString();
     }
 
 }

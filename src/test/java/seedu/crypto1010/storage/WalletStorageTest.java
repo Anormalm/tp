@@ -1,9 +1,12 @@
 package seedu.crypto1010.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import seedu.crypto1010.exceptions.Crypto1010Exception;
+import seedu.crypto1010.model.KeyPair;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
@@ -37,7 +40,7 @@ class WalletStorageTest {
     }
 
     @Test
-    void saveThenLoad_persistsWalletsAndHistory() throws IOException {
+    void saveThenLoad_persistsWalletsAndHistory() throws IOException, Crypto1010Exception {
         WalletManager manager = new WalletManager();
         Wallet alice = manager.createWallet("alice");
         Wallet bob = manager.createWallet("bob");
@@ -60,7 +63,7 @@ class WalletStorageTest {
     }
 
     @Test
-    void saveThenLoad_persistsWalletCurrency() throws IOException {
+    void saveThenLoad_persistsWalletCurrency() throws IOException, Crypto1010Exception {
         WalletManager manager = new WalletManager();
         manager.createWallet("alice", "btc");
 
@@ -70,6 +73,37 @@ class WalletStorageTest {
 
         assertEquals(1, loaded.getWallets().size());
         assertEquals("btc", loaded.getWallets().get(0).getCurrencyCode());
+    }
+
+    @Test
+    void saveThenLoad_persistsKeyPairAndAddress() throws IOException, Crypto1010Exception {
+        WalletManager manager = new WalletManager();
+        Wallet alice = manager.createWallet("alice", "eth");
+        KeyPair keyPair = KeyPair.generate("eth");
+        alice.setKeys(keyPair);
+
+        WalletStorage storage = new WalletStorage(WalletStorageTest.class);
+        storage.save(manager);
+        WalletManager loaded = storage.load();
+
+        Wallet loadedAlice = loaded.getWallets().get(0);
+        assertTrue(loadedAlice.hasKeyPair());
+        assertEquals(keyPair.getWalletAddress(), loadedAlice.getKeyPair().getWalletAddress());
+        assertEquals(keyPair.getPublicKeyX(), loadedAlice.getKeyPair().getPublicKeyX());
+        assertEquals(keyPair.getPublicKeyY(), loadedAlice.getKeyPair().getPublicKeyY());
+        assertEquals(keyPair.getPrivateKey(), loadedAlice.getKeyPair().getPrivateKey());
+    }
+
+    @Test
+    void saveThenLoad_walletWithoutKeyPair_loadsWithoutKeyPair() throws IOException, Crypto1010Exception {
+        WalletManager manager = new WalletManager();
+        manager.createWallet("alice");
+
+        WalletStorage storage = new WalletStorage(WalletStorageTest.class);
+        storage.save(manager);
+        WalletManager loaded = storage.load();
+
+        assertFalse(loaded.getWallets().get(0).hasKeyPair());
     }
 
     @Test

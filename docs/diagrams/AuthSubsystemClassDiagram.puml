@@ -1,0 +1,42 @@
+@startuml
+title Authentication Subsystem - Class Diagram
+
+hide circle
+skinparam classAttributeIconSize 0
+
+class AuthenticationService {
+  -accountStorage: AccountStorage
+  -accountsByUsername: Map<String, AccountCredentials>
+  +load(): void
+  +hasRegisteredAccounts(): boolean
+  +authenticate(username: String, password: String): String
+  +register(username: String, password: String, passwordConfirmation: String): String
+  +validateNewUsername(username: String): String
+}
+
+class AccountStorage {
+  +load(): List<AccountCredentials>
+  +save(accounts: Collection<AccountCredentials>): void
+}
+
+class PasswordHasher {
+  {static} +generateSaltHex(): String
+  {static} +hash(password: String, saltHex: String): String
+  {static} +matches(password: String, credentials: AccountCredentials): boolean
+}
+
+class AuthenticationException
+
+class "AccountCredentials\n(record)" as AccountCredentials {
+  +username(): String
+  +saltHex(): String
+  +passwordHashHex(): String
+}
+
+AuthenticationService --> AccountStorage : persists credentials
+AuthenticationService ..> PasswordHasher : hashes/verifies password
+AuthenticationService ..> AccountCredentials : manages
+AccountStorage ..> AccountCredentials : reads/writes
+AuthenticationService ..> AuthenticationException : throws
+
+@enduml

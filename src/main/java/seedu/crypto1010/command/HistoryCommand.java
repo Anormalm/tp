@@ -4,11 +4,16 @@ import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
+/**
+ * Displays the recorded transaction history for one wallet.
+ */
 public class HistoryCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: history w/WALLET_NAME
@@ -44,35 +49,19 @@ public class HistoryCommand extends Command {
             return;
         }
 
-        System.out.println();
-        System.out.println("Transaction history for " + wallet.getName() + ":");
-        System.out.println("=".repeat(60));
-        System.out.printf("%-4s %-54s%n", "No.", "Transaction");
-        System.out.println("-".repeat(60));
+        List<List<String>> rows = new ArrayList<>();
         for (int i = 0; i < transactionHistory.size(); i++) {
-            System.out.printf("%-4d %-54s%n", i + 1, transactionHistory.get(i));
+            rows.add(List.of(String.valueOf(i + 1), transactionHistory.get(i)));
         }
-        System.out.println("=".repeat(60));
+        CliVisuals.printTable("Transaction History for " + wallet.getName(), List.of("No.", "Transaction"), rows);
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {
-        if (args == null || args.isBlank()) {
-            throw new Crypto1010Exception(NAME_ERROR + " " + HISTORY_FORMAT);
-        }
-
-        String trimmedArgs = args.trim();
-        if (!trimmedArgs.startsWith("w/")) {
-            throw new Crypto1010Exception(INVALID_FORMAT_ERROR);
-        }
-
-        String walletName = trimmedArgs.substring(2).trim();
-        if (walletName.isEmpty()) {
-            throw new Crypto1010Exception(NAME_ERROR + " " + HISTORY_FORMAT);
-        }
-        if (walletName.chars().anyMatch(Character::isWhitespace)) {
-            throw new Crypto1010Exception(NAME_WHITESPACE_ERROR + " " + HISTORY_FORMAT);
-        }
-
-        return walletName;
+        return CommandParserUtil.parseRequiredWalletNameArgument(
+                args,
+                INVALID_FORMAT_ERROR,
+                NAME_ERROR,
+                NAME_WHITESPACE_ERROR,
+                HISTORY_FORMAT);
     }
 }

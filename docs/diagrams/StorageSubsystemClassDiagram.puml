@@ -1,0 +1,43 @@
+@startuml
+title Storage Subsystem - Class Diagram
+
+hide circle
+skinparam classAttributeIconSize 0
+
+class AccountStorage {
+  +load(): List<AccountCredentials>
+  +save(accounts: Collection<AccountCredentials>): void
+}
+
+class WalletStorage {
+  +load(): WalletManager
+  +save(walletManager: WalletManager): void
+}
+
+class BlockchainStorage {
+  +load(): Blockchain
+  +save(blockchain: Blockchain): void
+}
+
+class StorageUtils {
+  {static} +resolveDataDirectory(appClass: Class, dataDir: String): Path
+  {static} +resolveDataFilePath(appClass: Class, dataDir: String, fileName: String): Path
+  {static} +resolveAccountDataDirectory(appClass: Class, dataDir: String, accountName: String): Path
+  {static} +resolveAccountDataFilePath(appClass: Class, dataDir: String, accountName: String, fileName: String): Path
+}
+
+class AccountCredentials
+class WalletManager
+class Blockchain
+class ValidationResult
+
+AccountStorage ..> StorageUtils : resolve path
+WalletStorage ..> StorageUtils : resolve path
+BlockchainStorage ..> StorageUtils : resolve path
+
+AccountStorage --> AccountCredentials : read/write
+WalletStorage --> WalletManager : read/write
+BlockchainStorage --> Blockchain : read/write
+BlockchainStorage ..> ValidationResult : validate on load
+
+@enduml

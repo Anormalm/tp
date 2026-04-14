@@ -2,18 +2,23 @@ package seedu.crypto1010.command;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
-import seedu.crypto1010.model.Key;
+import seedu.crypto1010.model.KeyPair;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
+import seedu.crypto1010.ui.CliVisuals;
 
+import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Generates a key pair and address for a wallet that does not have one yet.
+ */
 public class KeygenCommand extends Command {
     private static final String HELP_DESCRIPTION = """
             Format: keygen w/WALLET_NAME
             Example: keygen w/mainwallet
             
-            Generates and displays key pair for new wallet, or regenerates for existing wallet
+            Generates and displays key pair for a wallet that does not already have keys
             Displays the process of creating a key pair
             """;
 
@@ -23,6 +28,7 @@ public class KeygenCommand extends Command {
     private static final String NAME_WHITESPACE_ERROR = "Error: wallet name must be one word without spaces.";
     private static final String INVALID_FORMAT_ERROR = "Error: Invalid keygen format. Use: keygen w/WALLET_NAME";
     private static final String KEYGEN_FORMAT = "Use: keygen w/WALLET_NAME";
+    private static final String KEYS_ALREADY_SET_ERROR = "Error: wallet already has a key pair.";
 
     private final String arguments;
     private final WalletManager walletManager;
@@ -38,8 +44,13 @@ public class KeygenCommand extends Command {
         String walletName = parseArguments(arguments);
         Wallet wallet = walletManager.findWallet(walletName)
                 .orElseThrow(() -> new Crypto1010Exception(WALLET_NOT_FOUND_ERROR));
-        wallet.setKeys(Key.generateKeyPair());
-        System.out.println(KEY_PAIR_GENERATION_SUCCESSFUL);
+        if (wallet.hasKeyPair()) {
+            throw new Crypto1010Exception(KEYS_ALREADY_SET_ERROR);
+        }
+        wallet.setKeys(KeyPair.generate(wallet.getCurrencyCode()));
+        CliVisuals.printKeyValuePanel("Key Pair Generated", List.of(
+                List.of("Wallet", wallet.getName()),
+                List.of("Address", wallet.getAddress())));
     }
 
     private String parseArguments(String args) throws Crypto1010Exception {

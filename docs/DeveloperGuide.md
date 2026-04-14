@@ -4,49 +4,73 @@
 - Java Platform, Standard Edition 17 API documentation: https://docs.oracle.com/en/java/javase/17/docs/api/
 - JUnit 5 User Guide (for unit testing approach and assertions): https://junit.org/junit5/docs/current/user-guide/
 - Gradle User Manual (build and task orchestration): https://docs.gradle.org/current/userguide/userguide.html
-- SHA-256 usage through Java `MessageDigest` API from the Java standard library documentation.
+- Password hashing: Java Cryptography Architecture (`PBKDF2WithHmacSHA256`) from the Java standard library.
+- Address hashing: Bouncy Castle digest implementations (`KeccakDigest`, `RIPEMD160Digest`).
 
 ## Design & Implementation
 Crypto1010 is implemented as a modular command-line application with clear separation between authentication, input parsing, command execution, domain model, and persistence.
 
-### High-level structure
-- `Crypto1010` manages the main loop, input capture, and save/load lifecycle.
-- `auth` package manages account registration, login, and password hashing.
+### Architecture overview
+- `Crypto1010` manages the main loop, input capture, authentication handoff, and save/load lifecycle.
+- `auth` package handles account registration, login, and password hashing.
 - `Parser` maps raw user input to concrete command objects.
 - `command` package implements user-facing functionality (`create`, `send`, `crossSend`, `balance`, `logout`, etc.).
-- `model` package contains core blockchain and wallet logic.
-- `service` package centralizes transfer recording so blockchain writes and wallet history stay aligned, including cross-account transfers.
-- `storage` package persists account credentials plus account-scoped blockchain and wallet data.
+- `service` package centralizes transaction logic shared across commands.
+- `model` package contains core blockchain and wallet state plus invariants.
+- `storage` package persists account credentials and account-scoped blockchain/wallet data.
+- `ui` package manages CLI rendering (`CliVisuals`) and interactive input (`InteractiveShell`, `CommandAutoCompleter`).
+
+![High-level architecture diagram](diagrams/SystemArchitectureDiagram.png)
+
+### Parser and command subsystem
+#### Structural view (class diagram)
+The class diagram below introduces parser-to-command construction and core command hierarchy before runtime interactions.
+
+![Parser and command subsystem class diagram](diagrams/ParserCommandClassDiagram.png)
 
 ### Command execution flow
-1. User authenticates through the startup login/register flow.
-2. `Crypto1010` loads account-specific blockchain and wallet storage for the authenticated username.
-3. User enters command text in the CLI.
-4. `Parser` extracts command word and arguments.
-5. A concrete `Command` subclass is instantiated.
-6. `Command.execute(...)` mutates/queries model state.
-7. `Crypto1010` saves account-scoped blockchain and wallet state after successful command execution.
-8. If `logout` is confirmed, `Crypto1010` returns to the authentication menu and starts a new account-scoped session.
+The following sequence diagram shows the standard command path after a user is authenticated:
+
+![Generic command execution sequence](diagrams/CommandExecutionSequence.png)
+
+1. User enters a command string.
+2. `Crypto1010` passes the raw input to `Parser`.
+3. `Parser` constructs a concrete `Command` object.
+4. `Crypto1010` executes the command with the current in-memory `Blockchain` and `WalletManager`.
+5. On success, `Crypto1010` persists both blockchain and wallet states when save is enabled for that session.
+6. If a save operation fails, the app exits to avoid continuing with potentially inconsistent persistence state.
+
+### Authentication subsystem
+#### Structural view (class diagram)
+The class diagram below introduces account credential management and password hashing structure used during login/registration.
+
+![Authentication subsystem class diagram](diagrams/AuthSubsystemClassDiagram.png)
+
+Key authentication behavior:
+- Password storage uses per-account random salt + PBKDF2 (`PBKDF2WithHmacSHA256`) derived hash.
+- Username lookup is case-insensitive through normalized lowercase keys.
+- Login throttling is in-memory per username: after 5 failed attempts, login for that username is blocked for 30 seconds.
+- Credential files support an HMAC signature header; when present, signed content is verified during load.
+
+### CLI shell, prompt, and tab completion
+- `InteractiveShell` wraps JLine when a non-dumb terminal is available; otherwise it falls back to scanner input.
+- `Crypto1010` uses a shared shell and a mode-aware `CommandAutoCompleter` across the full app lifecycle.
+- Completion scopes are switched explicitly:
+  - pre-login (auth mode): `1`, `2`, `3`, `login`, `register`, `exit`
+  - post-login (command mode): command words plus context-aware prefix/value suggestions
+  - post-logout: returns to pre-login scope
+- Prompt format in authenticated sessions is `USERNAME@crypto1010 ~`.
+
+Design rationale:
+- A single shell/completer instance avoids terminal reinitialization issues that can break completion after login.
+- Explicit mode switching prevents suggestion leakage between authentication and command execution contexts.
 
 ### Adding a new command
-- Add the new keyword and description to `CommandWord` so it is exposed through `help`.
-- Implement a new `Command` subclass in the `command` package and keep command-specific validation there.
-- Update `Parser.parse(...)` to return the new command and pass in `WalletManager` when the command needs wallet access.
-- Add a focused JUnit test under `src/test/java/seedu/crypto1010/command` following the existing command test pattern.
-- Add a manual test case in this guide so the CLI behaviour remains documented.
-
-### Blockchain model
-- A `Blockchain` stores an ordered list of `Block`.
-- Each `Block` has:
-  - index
-  - timestamp
-  - previous hash
-  - transactions
-  - current hash (SHA-256 of block payload)
-- `validate()` verifies:
-  - hash consistency
-  - previous-hash linkage
-  - transaction data quality
+1. Add the new keyword and description to `CommandWord` so it appears in `help`.
+2. Implement a new `Command` subclass in the `command` package.
+3. Update `Parser.parse(...)` to construct the new command.
+4. Add focused JUnit tests under `src/test/java/seedu/crypto1010/command`.
+5. Add a manual test case in this guide.
 
 ### Blockchain and Block subsystem
 This section documents the enhancement: the blockchain core (`Blockchain`, `Block`) and integrity-first validation flow that powers `validate`, `send`, and persisted-chain loading.
@@ -72,6 +96,11 @@ At system level, the flow is:
 4. Validation logic gates acceptance of loaded data.
 
 This keeps blockchain rules in one place and reduces the risk of inconsistent behavior between command paths.
+
+#### Structural view (class diagram)
+The class diagram below introduces the static structure before runtime interactions.
+
+![Blockchain class diagram](diagrams/BlockchainBlockClassDiagram.png)
 
 #### Component-level design
 `Block` design choices:
@@ -132,6 +161,15 @@ Rationale:
 
 This ensures hash linkage is always created from canonical in-memory state, not externally supplied values.
 
+#### Interaction views (sequence diagrams)
+Validation flow:
+
+![Blockchain validation sequence](diagrams/BlockchainValidationSequence.png)
+
+Append flow during `send`:
+
+![Block append sequence](diagrams/BlockAppendOnSendSequence.png)
+
 #### Persistence interaction
 `BlockchainStorage` serializes blocks to JSON and reconstructs them on load.
 After parsing JSON into `Block` objects, it calls `validate()`. Invalid chains are rejected with an `IOException`, and app startup falls back to a safe default chain. This prevents partially tampered or malformed persisted state from silently entering runtime.
@@ -161,82 +199,157 @@ Reason for planning this enhancement:
 - keeps correctness guarantees while reducing repeated full-chain scans for larger datasets.
 - preserves the current fail-safe model because full validation remains available as a fallback path.
 
-#### UML diagrams for this enhancement (PlantUML)
-This enhancement uses multiple UML diagram types to show both structure and runtime behavior:
-- Validation Sequence: `docs/diagrams/BlockchainValidationSequence.puml`
-- Append Sequence: `docs/diagrams/BlockAppendOnSendSequence.puml`
-- Class: `docs/diagrams/BlockchainBlockClassDiagram.puml`
+### Wallet, WalletManager, and KeyPair subsystem
+This section documents wallet identity and lifecycle management through `Wallet`, `WalletManager`, and `KeyPair`.
 
-### Wallet, WalletManager, and Key subsystem
-This section documents the enhancement: cryptographic wallet identity (`Wallet`,`Key`) and the wallet lifecycle manager
-(`WalletManager`) that powers `create`, `send`, `crossSend`, `keygen`, and address-based recipient resolution.
+#### Structural view (class diagram)
+The class diagram below introduces core wallet classes before command-level interactions.
+
+![Wallet subsystem class diagram](diagrams/WalletSubsystemClassDiagram.png)
 
 #### Scope of enhancement
-- Cryptographic keypair generation per wallet using RSA.
-- Deterministic wallet address derivation from the public key.
-- Address-based wallet lookup without requiring wallet name input.
+- secp256k1 keypair generation per wallet (`keygen` command path).
+- Currency-aware wallet management to support unambiguous `crossSend curr/...` routing.
+- Address-based recipient resolution support for local-address sends.
 
 #### Architectural-level design
 The subsystem spans three model classes:
-- `Key`: an immutable record of an RSA keypair component. Used to generate keypair and provides address to wallet.
-- `Wallet`: a mutable identity container owning a wallet's name, currency tag, keypair, derived address, and outgoing transaction history.
-- `WalletManager`: the single authority for wallet lifecycle management, providing name-based, currency-based, and address-based lookup.  
+- `KeyPair`: owns generated private/public secp256k1 values and derived wallet address.
+- `Wallet`: mutable identity container (name, currency, optional keypair/address, outgoing history).
+- `WalletManager`: lifecycle authority for creation and lookup (name/currency/address).
 
-Wallet is intentionally passive, holding state such as currency, but does not generate its own keys. Key generation and hence address assignment
-is triggered externally by `keygen`, separating cryptographic concerns from `Wallet`. All command layer code also interacts with any wallet
-solely through `WalletManager`
+`Wallet` does not generate keys internally. `KeygenCommand` calls `KeyPair.generate(...)` and injects the result via `wallet.setKeys(...)`.
 
 #### Component-level design
-`Key` design choices
-- RSA keypair generation uses 1024-bit probable primes via SecureRandom, with fixed public exponent 65537.
-- A correctness check is performed immediately after generation and throws `Crypto1010Exception` on failure, ensuring no malformed keypair enters the system.
-- Only the public `Key` carries a wallet address with the private `Key` having null in its `walletAddress` field
-- `deriveAddress()` combines modulus and public exponent, multiplies by a large prime to spread bits, and formats as a zero-padded 40-character
-hex string with `0x` prefix to match an Ethereum-format address.
-- Large integers are truncated for CLI display via `truncate()`
+`KeyPair` design choices:
+- Generates secp256k1 private key and computes public key point via scalar multiplication.
+- Verifies generated public key lies on curve before accepting output.
+- Derives Ethereum-style addresses via Keccak-256 for `eth`/`generic` currency wallets.
+- Derives Bitcoin Base58Check addresses via compressed pubkey + SHA-256 + RIPEMD-160 for `btc`.
 
 `Wallet` design choices:
-- Address is initialised to null and only populated after `setKeys()` is called.
-- `create w/WALLET_NAME [curr/CURRENCY]` assigns the wallet a specific currency tag used by `crossSend`
-- Wallets without `curr/` are stored as `generic` to ensure compatibility with legacy wallets.
-- `getAddress()` throws Crypto1010Exception rather than returning null to force caller to handle unkeyed state
-- Stores an optional currency code in addition to its name.
-- Currency code is normalised at construction time via `CurrencyCode.normalizeOrDefault()`, keeping currency comparison consistent
+- Address is null until keys are generated.
+- `hasKeyPair()` explicitly exposes keyed/unkeyed state.
+- `setKeys(...)` is guarded at command level by `KeygenCommand` (regeneration blocked).
+- Currency code is normalized at construction time.
 
 `WalletManager` design choices:
-- `createWallet()` enforces three invariants before constructing a wallet:
-name is non-blank and contains no reserved pipe delimiter (|), no wallet with the same name already exists,
-and no wallet with the same non-generic currency already exists.
-- Enforces at most one wallet per specific currency per account so `crossSend curr/...` can resolve a sender wallet unambiguously.
-- `findWalletByAddress()` silently skips wallets that throw `Crypto1010Exception` on `getAddress()`,
-so unkeyed wallets do not surface as false negatives during address lookup.
-
-#### Alternatives considered
-1. Have `Wallet` generate its own keypair internally at construction:
-   - Rejected as then cryptographic operation is coupled to object construction. 
-2. Return null from `getAddress()` when keys have not been generated:
-   - Rejected because silent null propagation makes unkeyed wallet bugs harder to detect. 
-3. Allow `WalletManager` to hold multiple wallets per currency:
-   - Rejected because `crossSend` requires unambiguous currency-to-wallet resolution.
+- Enforces unique wallet names (case-insensitive).
+- Enforces at most one non-generic wallet per specific currency per account.
+- Provides `findWalletByAddress(...)` for local recipient resolution in send flow.
 
 #### Trade-offs and known limitations
-- RSA with 1024-bit keys is used for simulation convenience. Real blockchain systems use secp256k1 elliptic curve cryptography.
-Address derivation mimics Ethereum address formatting but does not use proper hashing
-- Address derivation is a deterministic arithmetic transform rather than a cryptographic hash,
-meaning it does not provide preimage resistance equivalent to a production address scheme.
-- `setKeys()` does not guard against being called more than once, meaning a wallet's keypair and address can be silently overwritten.
-- Private keys are held in memory as Key objects but are not currently used for transaction signing.
+- This project generates addresses but does not sign/verify transactions with private keys.
+- Keypairs/addresses are persisted in wallet storage and restored on load.
+- Crypto model is educational and does not implement full production wallet standards end-to-end.
 
-#### Planned next-step extension
-The current implementation establishes wallet identity through RSA keypair generation and arithmetic address derivation.
-A planned extension is to bring the cryptographic model closer to production blockchain behaviour:
-- Using `secp256k1` elliptical curve cryptography rather than RSA.
+### Tutorial
+This section documents the tutorial enhancement.
 
-Reasons for planning this enhancement:
-- Current RSA-based address derivation is structurally correct but cryptographically weaker than a hash-based scheme.
-- Allows the tutorial to teach students how production blockchains actually utilise cryptographic methods
-to derive addresses and sign transactions
-- `secp256k1` migration would allow generated addresses and keypairs to be verified against real Ethereum tooling.
+#### Component-level design
+
+`TutorialCommand` design choices:
+- Encapsulates the full tutorial flow within a single command execution cycle.
+- Maintains a step index (`int index`) to track progression through predefined tutorial stages.
+- Uses static arrays (`instructions[]`, `steps[]`, `tutorialMessages[]`) to define deterministic tutorial content.
+- Operates on a separate blockchain instance (`Blockchain.createDefault()`) to isolate tutorial execution.
+- Delegates command interpretation to `Parser` and execution to dynamically resolved `Command` objects.
+
+Why this design:
+- Ensures tutorial state is fully self-contained and does not interfere with user-managed blockchain data.
+- Enables reproducible step-by-step execution for educational purposes.
+- Centralises tutorial logic within a single command, reducing cross-component coupling.
+
+---
+
+#### Structural view (class diagram)
+![Tutorial Class Diagram](diagrams/TutorialCommandClassDiagram.png)
+
+---
+
+#### Input handling and execution loop
+
+The tutorial uses a blocking input loop based on `Scanner.nextLine()`:
+
+- Each iteration renders the current tutorial step via `CliVisuals.printPanel(...)`.
+- The system waits for user input before progressing.
+- Input is validated against the expected instruction for the current step.
+
+Control flow behaviour:
+1. If input matches `"exit"`:
+   - Immediately triggers `ExitCommand`
+   - Terminates the entire application
+
+2. If input matches `"tutorial exit"`:
+   - Breaks tutorial loop and exits tutorial mode only
+
+3. If input matches expected instruction:
+   - Parsed via `Parser.parse(input)`
+   - Executed on `tutorialBlockchain`
+   - Advances step index
+
+4. Otherwise:
+   - Displays error message via `CliVisuals.printWarning(ERROR_MESSAGE)`
+   - Repeats current step
+
+---
+#### Tutorial Execution Flow
+![Tutorial Sequence Diagram](diagrams/TutorialSequenceDiagram.png)
+
+---
+
+#### Tutorial data model
+
+The tutorial content is defined as static arrays:
+
+- `instructions[]`: expected user inputs
+- `steps[]`: step titles for UI rendering
+- `tutorialMessages[]`: explanatory content per step
+
+Rationale:
+- Ensures strict alignment between explanation, instruction, and execution.
+- Enables deterministic step progression without runtime generation overhead.
+- Simplifies testing by making expected inputs explicit and index-driven.
+
+---
+
+#### Error handling strategy
+
+Two layers of error handling are used:
+
+1. **Input-level validation**
+   - Invalid commands trigger `CliVisuals.printWarning(ERROR_MESSAGE)`
+   - Does not advance tutorial state
+
+2. **Execution-level validation**
+   - `Crypto1010Exception` is caught during command execution
+   - Prevents tutorial crash and preserves current step
+
+---
+
+#### Design considerations
+
+**Isolation of state**
+- Separate `tutorialBlockchain` prevents contamination of user data.
+
+**Strict step control**
+- User input must match given String exactly to continue (excluding trailing whitespaces).
+- Index-based progression ensures linear, deterministic tutorial flow.
+
+**Reuse of command system**
+- Avoids duplicating logic by reusing `Parser` + `Command` execution pipeline.
+
+**UI abstraction**
+- All output is delegated to `CliVisuals`, ensuring separation of logic and presentation.
+
+---
+
+#### Limitations
+
+- Linear progression only (no branching tutorial paths).
+- Strict input matching reduces flexibility for users.
+- Tutorial content is hardcoded, requiring code changes for updates.
+- Blocking input loop limits extensibility for asynchronous interaction models.
 
 ### `help` command implementation
 HelpCommand uses prefix-based argument parsing:
@@ -263,10 +376,11 @@ Validation sequence:
    - display instructional message
    - prompt user to enter the expected command
 6. read user input from `Scanner`
-7. if input equals `tutorial exit` or `exit`, terminate tutorial and print exit message
-8. if input matches expected instruction (with special handling for dynamic inputs like `send`), execute command using parser
-9. if execution fails or input is incorrect, display error message and repeat step
-10. continue until all tutorial steps are completed or user exits
+7. if input equals `tutorial exit`, terminate tutorial and print tutorial exit message
+8. if input equals `exit`, trigger global application exit
+9. if input matches expected instruction (with special handling for dynamic inputs like `send`), execute command using parser
+10. if execution fails or input is incorrect, display error message and repeat step
+11. continue until all tutorial steps are completed or user exits
 
 ### `create` command implementation
 CreateCommand uses prefix-based argument parsing:
@@ -293,10 +407,9 @@ Validation sequence:
 Validation sequence:
 1. parse prefixes
 2. verify wallet exists
-3. delegate keypair generation to `Key` via `generateKeyPair()`
-4. create primes, modulus, totient, and private exponent
-5. validate key generation success
-6. pass keys to wallet
+3. verify wallet does not already have keys (regeneration blocked)
+4. delegate keypair generation to `KeyPair.generate(currencyCode)`
+5. set generated keys/address into wallet
 
 ### Transaction and balance logic
 Transactions are represented in this format:
@@ -311,6 +424,8 @@ Balance for a wallet is computed by scanning all transactions:
 - required: `w/`, `to/`, `amt/`
 - optional: `speed/`, `fee/`, `note/`
 
+This flow was significantly enhanced by jainamashah to improve reliability, validation, and user feedback. The command now robustly handles edge cases, provides clearer error messages, and supports both speed-based and manual fee overrides.
+
 Validation sequence:
 1. parse prefixes
 2. verify wallet exists
@@ -318,36 +433,47 @@ Validation sequence:
 4. validate recipient address format
 5. resolve fee (manual or speed-based)
 6. pass the transfer to `TransactionRecordingService`
+7. output a detailed transaction summary including all relevant fields (wallet, recipient, amount, speed, fee, note)
 
-### SendCommand class diagram
-The SendCommand class diagram documents the static structure of the send flow centered on command-level validation and service delegation.
+### SendCommand diagrams
 
-Key design points shown in the diagram:
+The following diagrams document the static structure, validation, and activity flow of the send command:
+
+- **Class diagram**: Static structure and dependencies
+- **Validation sequence diagram**: Error handling and validation logic
+- **Activity diagram**: High-level execution and decision flow
+
+Key design points shown in the diagrams:
 - `SendCommand` inherits from `Command`.
 - `SendCommand` depends on `WalletManager` to validate sender wallet existence.
 - `SendCommand` creates `TransferRequest` and delegates transfer persistence to `TransactionRecordingService`.
 - `TransactionRecordingService` performs blockchain write operations through `Blockchain`.
 
-Diagram source:
-- `docs/diagrams/SendCommandClassDiagram.puml`
+![SendCommand class diagram](diagrams/SendCommandClassDiagram.png)
+
+![SendCommand validation sequence diagram](diagrams/SendCommandValidationSequence.png)
+
+![SendCommand activity diagram](diagrams/SendCommandActivity.png)
 
 ### Centralized transfer recording
 - `TransactionRecordingService` is the single write path for successful transfers.
 - It verifies the sender wallet exists and has sufficient balance for `amount + fee`.
 - It records blockchain transactions and the sender wallet history from the same `TransferRequest`.
 - Local recipient addresses are normalized to wallet names on-chain when a matching wallet exists.
+- This service and its integration with `SendCommand` were refactored and tested by jainamashah to ensure atomicity and correctness of transfer and fee logic.
 
 ### `crossSend` command implementation
 - `CrossSendCommand` accepts `acc/`, `amt/`, and `curr/`.
 - It resolves the sender from the current account's wallet tagged with the given currency.
 - It verifies:
-  - recipient account exists
-  - sender and recipient accounts are different
-  - amount is positive
-  - the sender has sufficient balance
-  - there is exactly one wallet for that currency in the current account
+   - recipient account exists
+   - sender and recipient accounts are different
+   - amount is positive
+   - the sender has sufficient balance
+   - there is exactly one wallet for that currency in the current account
 - `CrossAccountTransferService` loads the recipient account's wallet and blockchain storage, creates a recipient wallet for the same currency when missing, and appends mirrored transactions to the two account chains.
 - Cross-account chain entries use an `external:` prefix, and `Blockchain.validate()` treats those synthetic accounts as exempt so recipient chains can accept inbound credit without requiring a local sender balance.
+- The cross-account transfer flow, its validation, and its test coverage were improved by jainamashah to ensure correct behavior for new and existing recipient wallets, and to provide clear error messages for all edge cases.
 
 ### `history` command implementation
 - `HistoryCommand` reads the persisted wallet send history from `Wallet`.
@@ -363,17 +489,21 @@ Diagram source:
 - This gives expert users a fast chain summary before drilling into individual blocks with `viewblock`.
 
 ### Persistence implementation
+#### Structural view (class diagram)
+The class diagram below introduces storage-layer classes before persistence behavior details.
+
+![Storage subsystem class diagram](diagrams/StorageSubsystemClassDiagram.png)
+
 - `AccountStorage` persists hashed credentials in `data/accounts/credentials.txt`.
+- `AccountStorage` stores an HMAC signature header in `credentials.txt` and a local signing key in
+  `data/accounts/credentials.key` to detect credential-file tampering.
 - `BlockchainStorage` serializes blockchain state to `data/accounts/USERNAME/blockchain.json`.
 - `WalletStorage` persists wallet names, wallet currencies, and transaction history in `data/accounts/USERNAME/wallets.txt`.
 - On startup, `Crypto1010` authenticates first, then loads blockchain and wallet data for the current account only.
 - If loading fails, the app falls back to a default blockchain and/or an empty wallet list.
-
-### UML diagrams
-- Sequence diagram source: `docs/diagrams/BlockchainValidationSequence.puml`
-- Sequence diagram source: `docs/diagrams/BlockAppendOnSendSequence.puml`
-- Class diagram source: `docs/diagrams/BlockchainBlockClassDiagram.puml`
-- Class diagram source: `docs/diagrams/SendCommandClassDiagram.puml`
+- After a load failure, save is disabled for that data type in the current session to avoid overwriting possibly corrupted files.
+- Parser/storage paths enforce conservative input/file-size limits to reduce denial-of-service style oversized payloads.
+- If save fails during an authenticated session, the app exits instead of continuing with partially persisted state.
 
 ## Product scope
 
@@ -431,13 +561,20 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 1. Run `./gradlew run` (or `.\gradlew run` on Windows PowerShell).
 
 ### Manual test cases
+The following test cases were contributed and maintained by jainamashah to ensure robust coverage of all major flows and edge cases:
 1. Authentication:
    - Launch the app.
-   - Choose `register`.
+   - At `Choice:`, enter `2` (or `register`).
    - Enter a username and password.
    - Expected: account is created and the app logs in to that account.
-   - Relaunch the app and choose `login` with the same credentials.
+   - Relaunch the app and at `Choice:`, enter `1` (or `login`) with the same credentials.
    - Expected: login succeeds and the same account data is loaded.
+   - Press `Tab` at `Choice:`.
+   - Expected: only auth-scope suggestions (`1`, `2`, `3`, `login`, `register`, `exit`) are offered.
+   - After successful login, press `Tab` in command prompt.
+   - Expected: command-scope suggestions are offered, and auth menu suggestions are no longer offered.
+   - Enter a valid username with wrong password 5 times.
+   - Expected: subsequent login attempts for that username are temporarily rejected for 30 seconds.
 1. Help
    - `help`
    - Expected: prints out the list of commands
@@ -457,6 +594,11 @@ Crypto1010 provides a compact, practical environment to understand wallet transf
 1. List wallets:
    - `list`
    - Expected: numbered wallet list including `alice`, `bob`, and any currency-tagged wallet with its currency shown.
+1. Generate wallet keys:
+   - `keygen w/alice`
+   - Expected: wallet address is generated and shown.
+   - Run `keygen w/alice` again.
+   - Expected: error that wallet already has a key pair.
 1. Check balance:
    - `balance w/bob`
    - Expected: balance displayed with 8 decimal places.
