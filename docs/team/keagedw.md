@@ -3,7 +3,7 @@
 ## Overview
 Crypto1010 is a CLI focused cryptocurrency, blockchain, and digital wallet simulator, aimed to educate and familiarise students on the fundamentals of cryptocurrency. The program teaches students how to create wallets, key generation, crypto transactions, RSA encryption, blockchain validation, and more.
 
-My main contribution was in the creation and the integration of the public and private keys system (`keygen`), integral for transactions, addressing, and validation
+My main contribution was in the creation and integration of the public and private keys system (`keygen`), integral for wallet creation, addressing, and transaction.
 
 ## Summary of Contributions
 
@@ -13,7 +13,9 @@ My main contribution was in the creation and the integration of the public and p
 ### Enhancements implemented
 - Implemented `keygen` functionality
 - Created `KeyPair` class for use by `Wallet` that cryptographically derives private and public keys for wallet identity
+- `KeyPair` cryptographically derives valid Ethereum or Bitcoin addresses depending on currency type of wallet.
 - Implemented wallet address generation based on wallet currency identity to facilitate transactions
+- Implemented key pair, address, and currency type persistence.
 
 ### Contributions to the User Guide
 - Wrote main flow and content of the User Guide
@@ -25,6 +27,8 @@ My main contribution was in the creation and the integration of the public and p
 - Helped align transaction behaviour by unifying `send` command behaviour to wallet address and key usage
 - Helped align CreateCommand with Wallet and WalletManager to enforce currency and wallet type constraints
 - Helped align send vs crossSend priority and functionality delineation
+- Aligned currency across classes, ensuring common accepted formats and types
+- Designed and Implemented multiple tests across modules including BlockChain, Wallet, WalletManager, 
 
 ### Bug fixing and triaging (PE-D focus)
 - Resolved multiple bugs flagged from PE-D, particularly those related to Wallet, WalletManager, KeyPair,
