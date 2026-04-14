@@ -1,0 +1,35 @@
+@startuml
+' Sequence diagram for SendCommand error handling and validation
+actor User
+participant "Crypto1010" as App
+participant "Parser" as Parser
+participant "SendCommand" as Send
+participant "WalletManager" as WM
+participant "TransactionRecordingService" as Service
+participant "Blockchain" as Chain
+
+User -> App: send w/bob to/invalid amt/-1
+App -> Parser: parse(rawInput)
+Parser --> App: SendCommand
+App -> Send: execute(...)
+Send -> WM: hasWallet("bob")
+WM --> Send: true
+Send -> Send: validate amount > 0
+alt amount invalid
+    Send --> App: throw error ("Amount must be positive")
+    App --> User: error message
+else valid so far
+    Send -> Send: validate recipient address
+    alt address invalid
+        Send --> App: throw error ("Invalid recipient address")
+        App --> User: error message
+    else valid
+        Send -> Service: recordTransfer(...)
+        Service -> Chain: addTransactions(...)
+        Chain --> Service: success
+        Service --> Send: success
+        Send --> App: print transfer summary
+        App --> User: output
+    end
+end
+@enduml
