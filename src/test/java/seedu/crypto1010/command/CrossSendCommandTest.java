@@ -40,7 +40,7 @@ class CrossSendCommandTest {
     void setUp() throws Exception {
         System.setProperty("crypto1010.dataDir", tempDir.toString());
         AuthenticationService authenticationService =
-                new AuthenticationService(new AccountStorage(CrossSendCommandTest.class));
+            new AuthenticationService(new AccountStorage(CrossSendCommandTest.class));
         authenticationService.load();
         authenticationService.register("sender", "secret1", "secret1");
         authenticationService.register("receiver", "secret1", "secret1");
@@ -51,38 +51,37 @@ class CrossSendCommandTest {
         System.clearProperty("crypto1010.dataDir");
     }
 
-    @Test
-    void execute_validTransfer_createsRecipientWalletAndCreditsRecipient() throws Exception {
+        @Test
+        void execute_validTransfer_createsRecipientWalletAndCreditsRecipient() throws Exception {
         WalletManager senderWalletManager = new WalletManager();
         Wallet senderWallet = senderWalletManager.createWallet("main", "btc");
         Blockchain senderBlockchain = blockchainWithBalance("main", "10");
         CrossSendCommand command =
-                new CrossSendCommand("acc/receiver amt/2 curr/btc", senderWalletManager,
-                        "sender", CrossSendCommandTest.class);
+            new CrossSendCommand("acc/receiver amt/2 curr/btc", senderWalletManager,
+            "sender", CrossSendCommandTest.class);
 
         String output = runCommand(command, senderBlockchain);
 
         String norm = normalizeOutput(output);
-        assertTrue(norm.contains("Cross-Account Transfer Completed"));
-        assertTrue(norm.contains("From wallet : main"));
-        assertTrue(norm.contains("To account : receiver"));
-        assertTrue(norm.contains("Recipient wallet : btc"));
-        assertTrue(norm.contains("Amount : 2"));
-        assertTrue(norm.contains("Currency : btc"));
+        assertTrue(norm.contains("Cross-account transfer completed successfully."));
         assertTrue(norm.contains("Recipient wallet was created automatically."));
+        assertTrue(norm.contains("============================================================"));
         assertEquals(new BigDecimal("8"), senderBlockchain.getPreciseBalance("main"));
         assertEquals(1, senderWallet.getTransactionHistory().size());
         assertEquals("crossSend acc/receiver amt/2 curr/btc", senderWallet.getTransactionHistory().get(0));
 
-        WalletManager recipientWalletManager =
-                new WalletStorage(CrossSendCommandTest.class, "receiver").load();
+        WalletManager recipientWalletManager = new WalletStorage(CrossSendCommandTest.class, "receiver").load();
         assertEquals(1, recipientWalletManager.getWallets().size());
         Wallet recipientWallet = recipientWalletManager.getWallets().get(0);
         assertEquals("btc", recipientWallet.getName());
         assertEquals("btc", recipientWallet.getCurrencyCode());
 
+<<<<<<< HEAD
         Blockchain recipientBlockchain =
                 new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
+=======
+        Blockchain recipientBlockchain = new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
+>>>>>>> dcda681 (Fix: HelpCommandTest and HelpCommand error handling, CrossSendCommandTest checkstyle, all tests passing)
         assertEquals(new BigDecimal("2"), recipientBlockchain.getPreciseBalance("btc"));
     }
 
@@ -97,12 +96,18 @@ class CrossSendCommandTest {
         senderWalletManager.createWallet("main", "btc");
         Blockchain senderBlockchain = blockchainWithBalance("main", "5");
         CrossSendCommand command =
+<<<<<<< HEAD
                 new CrossSendCommand("acc/receiver amt/1.5 curr/btc", senderWalletManager,
                         "sender", CrossSendCommandTest.class);
+=======
+            new CrossSendCommand("acc/receiver amt/1.5 curr/btc", senderWalletManager,
+                "sender", CrossSendCommandTest.class);
+>>>>>>> dcda681 (Fix: HelpCommandTest and HelpCommand error handling, CrossSendCommandTest checkstyle, all tests passing)
 
         String output = runCommand(command, senderBlockchain);
 
         String normOutput = normalizeOutput(output);
+<<<<<<< HEAD
         assertTrue(normOutput.contains("Cross-Account Transfer Completed"));
         assertTrue(normOutput.contains("From wallet : main"));
         assertTrue(normOutput.contains("To account : receiver"));
@@ -112,6 +117,12 @@ class CrossSendCommandTest {
         assertEquals(new BigDecimal("3.5"), senderBlockchain.getPreciseBalance("main"));
         Blockchain recipientBlockchain =
                 new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
+=======
+        assertTrue(normOutput.contains(String.format("%-18s: %s", "Recipient wallet", "vault")));
+        assertTrue(normOutput.contains("============================================================"));
+        assertEquals(new BigDecimal("3.5"), senderBlockchain.getPreciseBalance("main"));
+        Blockchain recipientBlockchain = new BlockchainStorage(CrossSendCommandTest.class, "receiver").load();
+>>>>>>> dcda681 (Fix: HelpCommandTest and HelpCommand error handling, CrossSendCommandTest checkstyle, all tests passing)
         assertEquals(new BigDecimal("1.5"), recipientBlockchain.getPreciseBalance("vault"));
     }
 
@@ -121,6 +132,7 @@ class CrossSendCommandTest {
         senderWalletManager.createWallet("main");
         Blockchain senderBlockchain = blockchainWithBalance("main", "10");
         CrossSendCommand command =
+<<<<<<< HEAD
                 new CrossSendCommand("acc/receiver amt/2 curr/btc", senderWalletManager,
                         "sender", CrossSendCommandTest.class);
 
@@ -171,10 +183,62 @@ class CrossSendCommandTest {
         CrossSendCommand command =
                 new CrossSendCommand("acc/sender amt/2 curr/btc", senderWalletManager,
                         "sender", CrossSendCommandTest.class);
+=======
+            new CrossSendCommand("acc/receiver amt/2 curr/btc", senderWalletManager,
+                "sender", CrossSendCommandTest.class);
+>>>>>>> dcda681 (Fix: HelpCommandTest and HelpCommand error handling, CrossSendCommandTest checkstyle, all tests passing)
 
         Crypto1010Exception exception = assertThrows(
-                Crypto1010Exception.class,
-                () -> command.execute(senderBlockchain));
+            Crypto1010Exception.class,
+            () -> command.execute(senderBlockchain));
+
+        assertEquals("Error: No wallet found for currency 'btc'.", exception.getMessage());
+    }
+
+    @Test
+    void execute_recipientMissing_throwsException() {
+        WalletManager senderWalletManager = new WalletManager();
+        senderWalletManager.createWallet("main", "btc");
+        Blockchain senderBlockchain = blockchainWithBalance("main", "10");
+        CrossSendCommand command =
+            new CrossSendCommand("acc/ghost amt/2 curr/btc", senderWalletManager,
+                "sender", CrossSendCommandTest.class);
+
+        Crypto1010Exception exception = assertThrows(
+            Crypto1010Exception.class,
+            () -> command.execute(senderBlockchain));
+
+        assertEquals("Error: Recipient account not found.", exception.getMessage());
+    }
+
+    @Test
+    void execute_insufficientBalance_throwsException() {
+        WalletManager senderWalletManager = new WalletManager();
+        senderWalletManager.createWallet("main", "btc");
+        Blockchain senderBlockchain = blockchainWithBalance("main", "1");
+        CrossSendCommand command =
+            new CrossSendCommand("acc/receiver amt/2 curr/btc", senderWalletManager,
+                "sender", CrossSendCommandTest.class);
+
+        Crypto1010Exception exception = assertThrows(
+            Crypto1010Exception.class,
+            () -> command.execute(senderBlockchain));
+
+        assertEquals("invalid, sent amount is more than balance, nothing was sent", exception.getMessage());
+    }
+
+    @Test
+    void execute_sameAccount_throwsException() {
+        WalletManager senderWalletManager = new WalletManager();
+        senderWalletManager.createWallet("main", "btc");
+        Blockchain senderBlockchain = blockchainWithBalance("main", "10");
+        CrossSendCommand command =
+            new CrossSendCommand("acc/sender amt/2 curr/btc", senderWalletManager,
+                "sender", CrossSendCommandTest.class);
+
+        Crypto1010Exception exception = assertThrows(
+            Crypto1010Exception.class,
+            () -> command.execute(senderBlockchain));
 
         assertEquals("Error: Cannot send to your own account.", exception.getMessage());
     }
@@ -185,13 +249,14 @@ class CrossSendCommandTest {
         senderWalletManager.createWallet("main", "btc");
         Blockchain senderBlockchain = blockchainWithBalance("main", "10");
         CrossSendCommand command =
-                new CrossSendCommand("acc/receiver amt/2 curr/b", senderWalletManager,
-                        "sender", CrossSendCommandTest.class);
+            new CrossSendCommand("acc/receiver amt/2 curr/b", senderWalletManager,
+                "sender", CrossSendCommandTest.class);
 
         Crypto1010Exception exception = assertThrows(
-                Crypto1010Exception.class,
-                () -> command.execute(senderBlockchain));
+            Crypto1010Exception.class,
+            () -> command.execute(senderBlockchain));
 
+<<<<<<< HEAD
         assertEquals("Error: CURRENCY must be 2-10 alphanumeric characters. "
                 + "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY", exception.getMessage());
     }
@@ -211,19 +276,23 @@ class CrossSendCommandTest {
 
         assertEquals("Error: Amount must be a positive number. "
                 + "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY", exception.getMessage());
+=======
+        assertEquals("Error: CURRENCY must be 2-10 letters or digits. "
+            + "Use: crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY", exception.getMessage());
+>>>>>>> dcda681 (Fix: HelpCommandTest and HelpCommand error handling, CrossSendCommandTest checkstyle, all tests passing)
     }
 
     private Blockchain blockchainWithBalance(String walletName, String amount) {
         Block genesis = new Block(
-                0,
-                LocalDateTime.of(2026, 2, 12, 14, 30, 21),
-                "0000000000000000",
-                List.of("Genesis Block"));
+            0,
+            LocalDateTime.of(2026, 2, 12, 14, 30, 21),
+            "0000000000000000",
+            List.of("Genesis Block"));
         Block fundedBlock = new Block(
-                1,
-                LocalDateTime.of(2026, 2, 12, 14, 35, 2),
-                genesis.getCurrentHash(),
-                List.of("network -> " + walletName + " : " + amount));
+            1,
+            LocalDateTime.of(2026, 2, 12, 14, 35, 2),
+            genesis.getCurrentHash(),
+            List.of("network -> " + walletName + " : " + amount));
         return new Blockchain(List.of(genesis, fundedBlock));
     }
 
