@@ -50,7 +50,7 @@ Key authentication behavior:
 - Password storage uses per-account random salt + PBKDF2 (`PBKDF2WithHmacSHA256`) derived hash.
 - Username lookup is case-insensitive through normalized lowercase keys.
 - Login throttling is in-memory per username: after 5 failed attempts, login for that username is blocked for 30 seconds.
-- Credential file integrity is protected with an HMAC signature header; signed file tampering is rejected during load.
+- Credential files support an HMAC signature header; when present, signed content is verified during load.
 
 ### CLI shell, prompt, and tab completion
 - `InteractiveShell` wraps JLine when a non-dumb terminal is available; otherwise it falls back to scanner input.
@@ -240,7 +240,7 @@ The subsystem spans three model classes:
 
 #### Trade-offs and known limitations
 - This project generates addresses but does not sign/verify transactions with private keys.
-- Keypairs/addresses are currently in-memory only and are not persisted across restarts.
+- Keypairs/addresses are persisted in wallet storage and restored on load.
 - Crypto model is educational and does not implement full production wallet standards end-to-end.
 
 ### Tutorial

@@ -185,7 +185,7 @@ Format: `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/F
   - `standard`: `0.0010`
   - `fast`: `0.0020`
 - If `fee/` is provided, it overrides speed-based fee.
-- Address validation supports Ethereum, Bitcoin, and Solana address formats.
+- Address validation supports Ethereum and legacy Bitcoin address formats.
 - Total deduction = `AMOUNT + FEE`.
 - `note/` captures the remainder of input after it appears.
 - `note/` must be placed at the last position.
@@ -304,7 +304,7 @@ This feature is not available yet in the current release.
 as it can easily corrupt and prevent loading into new sessions, and hence saving of new data.
 - Missing or blank blockchain files are treated as no data yet and default data is loaded.
 - Corrupted blockchain or wallet data triggers safe fallback, and saving is disabled to avoid overwriting that account's files.
-- Credential data is signed; tampering with signed credential records is rejected on load.
+- Credential data supports an HMAC-signed format. Signed credential records are verified on load.
 
 ---
 <span id="ug-faq"></span>
