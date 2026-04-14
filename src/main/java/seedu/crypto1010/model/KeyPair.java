@@ -50,11 +50,6 @@ public class KeyPair {
     private final String walletAddress;
     private final String currencyCode;
 
-    public static KeyPair restore(BigInteger privateKey, BigInteger publicKeyX,
-                                  BigInteger publicKeyY, String address, String currencyCode) {
-        return new KeyPair(privateKey, publicKeyX, publicKeyY, address, currencyCode);
-    }
-
     private KeyPair(BigInteger privateKey, BigInteger publicKeyX, BigInteger publicKeyY,
                     String walletAddress, String currencyCode) {
         this.privateKey = privateKey;
@@ -82,6 +77,14 @@ public class KeyPair {
 
     public String getCurrencyCode() {
         return currencyCode;
+    }
+
+    /**
+     * Restores keypair data from previous sessions to insert into this session.
+     */
+    public static KeyPair restore(BigInteger privateKey, BigInteger publicKeyX,
+                                  BigInteger publicKeyY, String address, String currencyCode) {
+        return new KeyPair(privateKey, publicKeyX, publicKeyY, address, currencyCode);
     }
 
     /**
