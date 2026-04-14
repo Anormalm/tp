@@ -36,6 +36,12 @@ My focus was improving the transfer flow (`send`), including stronger argument h
   - `send` command implementation details
   - design rationale and dependencies around `SendCommand`
   - UML diagram references for maintainers
+- Added references to the new SendCommand validation sequence and activity diagrams (both .puml and .png):
+  - `docs/diagrams/SendCommandValidationSequence.puml`
+  - `docs/diagrams/SendCommandActivity.puml`
+  - `diagrams/SendCommandClassDiagram.png`
+  - `diagrams/SendCommandValidationSequence.png`
+  - `diagrams/SendCommandActivity.png`
 
 ### Contributions to team-based tasks
 - Updated project documentation structure and cross-references between DG and diagram sources.
