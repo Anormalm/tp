@@ -436,14 +436,12 @@ Validation sequence:
 7. output a detailed transaction summary including all relevant fields (wallet, recipient, amount, speed, fee, note)
 
 ### SendCommand diagrams
+
 The following diagrams document the static structure, validation, and activity flow of the send command:
 
 - **Class diagram**: Static structure and dependencies
-   - `docs/diagrams/SendCommandClassDiagram.puml`
 - **Validation sequence diagram**: Error handling and validation logic
-   - `docs/diagrams/SendCommandValidationSequence.puml`
 - **Activity diagram**: High-level execution and decision flow
-   - `docs/diagrams/SendCommandActivity.puml`
 
 Key design points shown in the diagrams:
 - `SendCommand` inherits from `Command`.
