@@ -62,3 +62,5 @@ I documented the send flow and design responsibilities in the DG, emphasizing:
 
 ### UML diagrams contributed
 - `docs/diagrams/SendCommandClassDiagram.puml`
+- `docs/diagrams/SendCommandActivity.puml`
+- `docs/diagrams/SendCommandValidationSequence.puml`
