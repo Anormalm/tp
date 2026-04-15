@@ -28,10 +28,24 @@ My focus was improving the transfer flow (`send`), including stronger argument h
 - Helped document and clarify persistence logic in the Developer Guide.
 
 ### Issue contributions on GitHub (summary)
-- Resolved multiple v1.0 and v2.0 issues focused on command quality, wallet robustness, persistence reliability, and send-flow maintainability.
-- Representative completed issues: improvements to command quality, wallet robustness, persistence reliability, and send-flow maintainability.
-- Participated in PR reviews, issue triage, and team discussions to ensure smooth collaboration and high code quality.
-- Maintained branch hygiene: frequent rebases, merges, and conflict resolutions to keep feature and documentation branches up to date.
+- Resolved a wide range of issues across multiple releases, including bug fixes, enhancements, and documentation updates.
+- Representative completed issues include:
+    - [#82: Update Developer Guide and User Guide and PPP](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/82): Coordinated and contributed to major documentation updates for the Developer Guide, User Guide, and PPP.
+    - [#168: `send` rounds very small remaining balances down to `0`, hiding non-zero funds](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/168): Fixed rounding logic in the send command to ensure accurate display of small balances.
+    - [#178: send works without keygen (contradicts User Guide)](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/178): Enforced key generation before sending, aligning implementation with documentation.
+    - [#78: Better CLI UX (Formatting Upgrade)](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/78): Improved CLI formatting for a more user-friendly experience.
+    - [#68: Extracting a shared utility method from BalanceCommand.java](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/68): Refactored code to improve maintainability and reduce duplication.
+    - [#66: Extracting validation and output in SendCommand.java](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/66): Separated validation and output logic for better code clarity.
+    - [#8: Record successful send transactions to wallet history and autosave](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/8): Implemented autosave and transaction history recording for send operations.
+    - [#7: Add fee policy for send: default speed, speed tiers, manual override](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/7): Added flexible fee policy options to the send command.
+    - [#6: Implement send command with amount/address validation](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/6): Developed the core send command with robust validation.
+    - [#56: Blockchain data doesn't persist across sessions](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/56): Fixed a critical bug where blockchain data was not reliably saved and loaded.
+    - [#55: balance command doesn't check for if wallet name is valid](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/55): Improved validation in the balance command.
+    - [#54: help c/COMMAND_NAME should show ideal format for command input](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/54): Enhanced the help command to display correct command formats.
+    - [#53: standardize balance for all wallets generated](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/53): Standardized wallet balance initialization and display.
+    - [#52: Wallet address shown before key generation](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/52): Ensured wallet addresses are only shown after key generation.
+    - [#48: Save to hard disk not working](https://github.com/AY2526S2-CS2113-F14-4/tp/issues/48): Fixed a major persistence bug where data was not being saved to disk.
+- These issues span persistence, validation, CLI UX, documentation, and feature enhancements. Each fix or enhancement involved careful testing and collaboration to ensure robust, user-friendly behavior.
 
 ### Contributions to the User Guide
 - Updated `send` command documentation to keep command format and behavior clear.
