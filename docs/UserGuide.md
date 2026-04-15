@@ -33,10 +33,10 @@ The application is designed for educational use and records transactions in a si
 <span id="ug-quick-start"></span>
 ## Quick Start
 1. Install Java 17.
-1. Download the latest `Crypto1010.jar` release file.
+1. Download the latest `crypto1010.jar` release file.
 1. Open a terminal in the folder containing the jar and run:
    ```bash
-   java -jar Crypto1010.jar
+   java -jar crypto1010.jar
    ```
 1. Enter commands in the terminal.
 1. At startup, choose `login` or `register`, then enter your username and password to access your account-specific wallets and blockchain data.
@@ -134,6 +134,8 @@ Format: `create w/WALLET_NAME [curr/CURRENCY]`
 
 - Creates a wallet for the current account and persists it on save.
 - Wallet names are unique (case-insensitive).
+- Wallet names must be one word, at most 32 characters, and must not contain `|`.
+- Internal reserved names such as `network`, `network-fee`, `system`, `coinbase`, `genesis`, and names starting with `external:` cannot be used.
 - `CURRENCY` can only be `eth` or `btc` for ethereum and bitcoin wallet types respectively.
 - `curr/` is optional. Not including `curr/CURRENCY` results in a wallet with generic currency code.
 - A wallet tagged with a specific currency can be used by `crossSend`.
@@ -150,7 +152,8 @@ Format: `list`
 
 - Shows all wallets in the current account (including previously saved wallets loaded at login).
 - Wallets created with a specific currency display that currency in the list.
-- Wallets with keys generated will show address in the format of currency code.
+- Wallets with generated keys will show their derived address.
+- Ethereum and generic wallets use `0x...` addresses. Bitcoin wallets use legacy Base58 addresses.
 
 <span id="cmd-keygen"></span>
 ### `keygen`: Generate keys for a wallet
@@ -161,7 +164,7 @@ Format: `keygen w/WALLET_NAME`
 - Fails if that wallet already has keys (key regeneration is blocked).
 - Generates a wallet address for that wallet based on wallet's currency code.
 - Key generation is required if you want this wallet to have a local address (for receiving to that local address).
-- `send` does not require sender key generation.
+- `send` requires sender key generation. Run `keygen` on the sender wallet before using `send`.
 
 Example:
 - `keygen w/alice`
@@ -171,7 +174,8 @@ Example:
 Format: `balance w/WALLET_NAME`
 
 - Computes balance from blockchain transactions.
-- Prints up to 8 decimal places.
+- Normally prints to 8 decimal places.
+- Extremely small non-zero balances may be shown in scientific notation instead of rounding to `0.00000000`.
 
 Example:
 - `balance w/bob`
@@ -186,10 +190,13 @@ Format: `send w/WALLET_NAME to/RECIPIENT_ADDRESS amt/AMOUNT [speed/SPEED] [fee/F
   - `standard`: `0.0010`
   - `fast`: `0.0020`
 - If `fee/` is provided, it overrides speed-based fee.
+- If `fee/` is provided, `speed/` becomes informational only. Even a non-standard `speed/...` value is accepted, and the result is shown as `manual`.
 - Address validation supports Ethereum and legacy Bitcoin address formats.
 - Total deduction = `AMOUNT + FEE`.
+- If `to/RECIPIENT_ADDRESS` matches a wallet address in the current account, the blockchain records the receiver by wallet name and that wallet's balance increases accordingly.
 - `note/` captures the remainder of input after it appears.
 - `note/` must be placed at the last position.
+- After `note/`, later tokens must not start with `w/`, `to/`, `amt/`, `speed/`, or `fee/`, or the command is rejected.
 
 Examples:
 - `send w/bob to/0x1111111111111111111111111111111111111111 amt/1.5`
@@ -304,7 +311,8 @@ This feature is not available yet in the current release.
 - Due to the nature of cryptocurrency and blockchain, as well as the intentional functionalities of balance and currency, it is advised not to tamper with saved values
 as it can easily corrupt and prevent loading into new sessions, and hence saving of new data.
 - Missing or blank blockchain files are treated as no data yet and default data is loaded.
-- Corrupted blockchain or wallet data triggers safe fallback, and saving is disabled to avoid overwriting that account's files.
+- Corrupted blockchain data, or malformed wallet data that prevents wallet loading, triggers safe fallback and disables saving for that data type to avoid overwriting that account's files.
+- If only a wallet's stored key material is corrupted, the wallet still loads, the app prints a warning, and that key pair is not restored. In that case, run `keygen w/WALLET_NAME` again for that wallet.
 - Credential data supports an HMAC-signed format. Signed credential records are verified on load.
 
 ---
@@ -325,6 +333,9 @@ In the program, many edits to the save files will cause corruption, hence the fi
 
 **Q**: Can I transfer to a wallet name directly?  
 **A**: `send` requires a recipient address string in `to/`. For direct account-to-account transfer, use `crossSend acc/ACCOUNT_NAME amt/AMOUNT curr/CURRENCY`.
+
+**Q**: What happens if I `send` to a wallet address that belongs to another wallet in my current account?  
+**A**: The app resolves that address to the matching local wallet name and credits that wallet on-chain. This is only for wallets in the current logged-in account.
 
 **Q**: What does `history` show?  
 **A**: `history w/WALLET_NAME` shows the wallet's recorded outgoing send history, not every blockchain transfer involving that wallet.

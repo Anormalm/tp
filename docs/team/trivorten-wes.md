@@ -1,9 +1,9 @@
 # Wesley Low - Project Portfolio Page
 
 ## Overview
-Crypto1010 is a CLI blockchain wallet simulator that teaches users about wallet-based transactions in a blockchain system
+Crypto1010 is a CLI-based blockchain wallet simulator designed to help users understand wallet-based transactions in a blockchain system.
 
-My focus was on making the application user-friendly and easy to learn through `help` and `tutorial` commands for new users
+My primary focus was improving usability by designing intuitive command flows and providing guided onboarding through the help and tutorial features.
 
 ## Summary of Contribution
 
@@ -11,18 +11,19 @@ My focus was on making the application user-friendly and easy to learn through `
 - [Code Contribution Link](https://nus-cs2113-ay2526-s2.github.io/tp-dashboard/?search=trivorten&sort=groupTitle&sortWithin=title&timeframe=commit&mergegroup=&groupSelect=groupByRepos&breakdown=true&checkedFileTypes=docs~functional-code~test-code~other&since=2026-02-20T00%3A00%3A00&filteredFileName=&tabOpen=true&tabType=authorship&tabAuthor=Trivorten-wes&tabRepo=AY2526S2-CS2113-F14-4%2Ftp%5Bmaster%5D&authorshipIsMergeGroup=false&authorshipFileTypes=docs~functional-code~test-code&authorshipIsBinaryFileTypeChecked=false&authorshipIsIgnoredFilesChecked=false)
 
 ### Enhancements Implemented
-- Implemented and managed the `Command` Enumerator
-- Created the parsing logic used to recognise user commands
-- Implemented and refined `help` command
-- Implemented and refined `tutorial`
+- Designed and implemented a Command enumeration to standardise command handling and reduce parsing inconsistencies
+- Developed the command parsing system to reliably interpret user inputs and improve robustness
+- Implemented the `help` command to provide clear, structured guidance for users
+- Designed and implemented an interactive `tutorial` system to guide new users through core features step-by-step
+- Improved `tutorial` system to educate users on how a blockchain system works
 
 ### Contributions to the User Guide
-- Added and updated command description of `help` and `tutorial` commands
-- Fixed formatting issues to ensure proper rendering in Markdown and PDF formats
+- Improved clarity and accessibility of documentation for the help and tutorial commands
+- Resolved formatting issues to ensure proper rendering across Markdown and PDF formats
 
 ### Contributions to the Developer Guide
-- Added implementation details for `help` and `tutorial`
-- Created UML diagrams for tutorial class and sequence
+- Documented implementation details of the help and tutorial features to support maintainability 
+- Created UML diagrams (class and sequence) to illustrate `tutorial` design and behaviour
 
 ### Contributions to team-based tasks
 - Ensured commands work with each other through tutorial mode
@@ -31,3 +32,4 @@ My focus was on making the application user-friendly and easy to learn through `
 
 ### Review/mentoring contributions
 - Assisted teammates in debugging issues related to command parsing
+- Assisted teammates with design choices and bug finding
